@@ -1,4 +1,4 @@
-CODE IS COMING...
+**CODE IS COMING...**
 
 This is the code we used for the experiments in the paper "**Fast and Robust Mesh Arrangements using Floating-point Arithmetic**" by G. Cherchi, M. Livesu, R. Scateni and M. Attene (SIGGRAPH ASIA 2020). 
 
