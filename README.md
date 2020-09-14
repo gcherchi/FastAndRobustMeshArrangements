@@ -11,7 +11,7 @@ The header-only **Cinolib library** is included as a submodule. To run the pipel
 Also the **Indirect Predicates** used in the code are included as a submodule.
 
 In this repository, a Qt project is present: please, check flags and includes in the .pro file if you want to use a different tool.
-You need to replace the `[TMesh_Kernel path]` and `[Cinolib path]` with the paths in your computer.
+You need to replace the `[TMesh_Kernel path]` with the path in your computer.
 In the main.cpp file a single function `solveIntersections(...)` is called. It contains the entire pipeline.
 
 We tested this code on MacOS and Linux (we are still testing on Windows).
