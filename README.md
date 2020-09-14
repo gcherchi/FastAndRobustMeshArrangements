@@ -6,7 +6,9 @@ WARNING: We are rewriting portions of the code to be more efficient. We are also
 
 At the moment, to run our code, you need to download and install the **TMesh_Kernel library** (https://github.com/MarcoAttene/TMesh_Kernel). Follow the instructions in the readme. The FAST MODE is sufficient.
 
-You also need to download the header-only **Cinolib library** (https://github.com/mlivesu/cinolib). To run the pipeline correctly, you must define the symbol `CINOLIB_USES_EXACT_PREDICATES` at compilation time, and also add the file *<CINOLIB_HOME>/external/predicates/shewchuk.c* in your project.
+The header-only **Cinolib library** is included as a submodule. To run the pipeline correctly, you must define the symbol `CINOLIB_USES_EXACT_PREDICATES` at compilation time, and also add the file *<CINOLIB_HOME>/external/predicates/shewchuk.c* in your project.
+
+Also the **Indirect Predicates** used in the code are included as a submodule.
 
 In this repository, a Qt project is present: please, check flags and includes in the .pro file if you want to use a different tool.
 You need to replace the `[TMesh_Kernel path]` and `[Cinolib path]` with the paths in your computer.
