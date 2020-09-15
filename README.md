@@ -6,7 +6,8 @@ This is the code we used for the experiments in the paper "**Fast and Robust Mes
 
 <p align="center"><img src="teaser_img.png"></p>
 
-:warning: **WARNING: We are rewriting portions of the code to be more efficient. We are also preparing an easy to use header-only version of our algorithm. It will be released as soon as possible.**
+|:warning: WARNING: We are rewriting portions of the code to be more efficient. The code is therefore subject to continuous updates. We are also preparing an easy to use header-only version of our algorithm. It will be released as soon as possible.  |
+| --- |
 
 ## Usage
 
