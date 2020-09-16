@@ -20,7 +20,7 @@ The header-only **Cinolib library** is included as a submodule in the folder *ex
 
 Also the **Indirect Predicates** used in the code are included as a submodule in the folder *external/IndirectPredicates*. You need to add the files `implicit_point.h/.cpp`, `numerics.h/.cpp` and `/predicates/indirect_predicates.h/.cpp` in your project.
 
-In this repository, a Qt project is present: please, check flags and includes in the .pro file if you want to use a different tool.
+In this repository, a Qt project is present: please, check **flags** and **includes** in the .pro file if you want to use a different tool.
 You need to replace the `[TMesh_Kernel path]` with the path in your computer.
 In the main.cpp file a single function `solveIntersections(...)` is called. It contains the entire pipeline.
 
