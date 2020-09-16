@@ -50,6 +50,11 @@ DEPENDPATH      += external/Cinolib/include
 INCLUDEPATH     += external/IndirectPredicates/
 INCLUDEPATH     += external/IndirectPredicates/predicates/
 
+#TMESH_KERNEL
+LIBS            += -L[TMesh_Kernel path]/TMesh_Kernel/build/ -lTMesh_Kernel
+INCLUDEPATH     += [TMesh_Kernel path]/TMesh_Kernel/include
+PRE_TARGETDEPS  += [TMesh_Kernel path]/TMesh_Kernel/build/libTMesh_Kernel.a
+
 
 unix:macx{
 
@@ -58,18 +63,6 @@ QMAKE_CXXFLAGS -= -O1
 QMAKE_CXXFLAGS -= -O2
 QMAKE_CXXFLAGS -= -O3
 QMAKE_CXXFLAGS += -O0
-
-#TMESH_KERNEL
-LIBS            += -L/Users/gianmarco/Documents/UnicaProjects/TMesh_Kernel/build/ -lTMesh_Kernel
-INCLUDEPATH     += /Users/gianmarco/Documents/UnicaProjects/TMesh_Kernel/include
-PRE_TARGETDEPS  += /Users/gianmarco/Documents/UnicaProjects/TMesh_Kernel/build/libTMesh_Kernel.a
-}
-
-unix:!macx{
-#TMESH_KERNEL
-LIBS            += -L/home/giammi/UnicaProjects/TMesh_Kernel/build/ -lTMesh_Kernel
-INCLUDEPATH     += /home/giammi/UnicaProjects/TMesh_Kernel/include
-PRE_TARGETDEPS  += /home/giammi/UnicaProjects/TMesh_Kernel/build/libTMesh_Kernel.a
 }
 
 
@@ -81,9 +74,3 @@ PRE_TARGETDEPS  += /home/giammi/UnicaProjects/TMesh_Kernel/build/libTMesh_Kernel
 DEFINES += IS64BITPLATFORM
 
 #DEFINES += NDEBUG
-
-
-
-
-
-
