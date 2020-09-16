@@ -2,4 +2,5 @@
 .DS_Store
 external/IndirectPredicates
 external/Cinolib
-mesh_arrangement.pro.user
+*.pro.user
+*.pro
