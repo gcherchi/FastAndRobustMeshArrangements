@@ -42,9 +42,13 @@
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-int main()
+int main(int argc, char *argv[])
 {
-    std::string file_in = std::string(DATA_PATH) + "two_spheres.stl";
+    std::string file_in;
+    if (argc == 1)
+        file_in = std::string(DATA_PATH) + "two_spheres.stl";
+    else
+        file_in = argv[1];
 
     //::::::: Loading file data ::::::::::::::::::::::::::::::::::::
     std::vector<cinolib::vec3d> cinolib_verts;

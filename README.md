@@ -8,19 +8,29 @@ This is the code we used for the experiments in the paper "**Fast and Robust Mes
 | --- |
 
 ## Usage
+At the moment, you first need to clone the **TMesh_Kernel library**:
+```
+git clone https://github.com/MarcoAttene/TMesh_Kernel
+```
+and compile it in FAST mode (see TMesh_Kernel Readme file for instructions).
 
-To use the code you need to clone this repository, including submodules, with: 
+When done with TMesh_Kernel, you need to clone this repository, including submodules, with:
 ```
 git clone --recursive https://github.com/gcherchi/FastAndRobustMeshArrangements.git
 ```
+and edit line 5 in CMakeLists.txt according to your just-installed TMesh_Kernel.
+Once done, you may build the executable as follows:
+```
+mkdir build
+cd build
+cmake ..
+```
+This will produce an appropriate building configuration for your system.
+On Windows MSVC, this will produce a mesh_arrangement.sln file.
+On Linux/OSx, this will produce a Makefile. 
+Use it as usual to compile mesh_arrangement.
 
-At the moment, you also need to download and install the **TMesh_Kernel library** (https://github.com/MarcoAttene/TMesh_Kernel). Follow the instructions in the readme. The FAST MODE is sufficient.
-
-The header-only **Cinolib library** is included as a submodule in the folder *external/Cinolib*. To run the pipeline correctly, you must define the symbol `CINOLIB_USES_EXACT_PREDICATES` at compilation time, and also add the file `Cinolib/external/predicates/shewchuk.c` in your project.
-
-Also the **Indirect Predicates** used in the code are included as a submodule in the folder *external/IndirectPredicates*. You need to add the files `implicit_point.h/.cpp`, `numerics.h/.cpp` and `/predicates/indirect_predicates.h/.cpp` in your project.
-
-In this repository, a Qt project is present: please, check **flags** and **includes** in the .pro file if you want to use a different tool.
+Alternatively, you may build mesh_arrangement using the Qt project included: please, check **flags** and **includes** in the .pro file if you want to use a different tool.
 You need to replace the `[TMesh_Kernel path]` with the path in your computer.
 In the main.cpp file a single function `solveIntersections(...)` is called. It contains the entire pipeline.
 
