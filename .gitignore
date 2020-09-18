@@ -1,6 +1,5 @@
 
 .DS_Store
 external/IndirectPredicates
-external/Cinolib
 *.pro.user
 *.pro
