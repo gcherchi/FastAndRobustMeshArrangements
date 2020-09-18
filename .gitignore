@@ -5,3 +5,4 @@ external/Cinolib
 external/TMesh_Kernel
 build/
 *.pro.user
+*.pro
