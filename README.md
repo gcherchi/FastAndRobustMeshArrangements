@@ -8,17 +8,10 @@ This is the code we used for the experiments in the paper "**Fast and Robust Mes
 | --- |
 
 ## Usage
-At the moment, you first need to clone the **TMesh_Kernel library**:
-```
-git clone https://github.com/MarcoAttene/TMesh_Kernel
-```
-and compile it in FAST mode (see TMesh_Kernel Readme file for instructions).
-
-When done with TMesh_Kernel, you need to clone this repository, including submodules, with:
+Clone this repository, including submodules, with:
 ```
 git clone --recursive https://github.com/gcherchi/FastAndRobustMeshArrangements.git
 ```
-and edit line 5 in CMakeLists.txt according to your just-installed TMesh_Kernel.
 Once done, you may build the executable as follows:
 ```
 mkdir build
@@ -29,6 +22,8 @@ This will produce an appropriate building configuration for your system.
 On Windows MSVC, this will produce a mesh_arrangement.sln file.
 On Linux/OSx, this will produce a Makefile. 
 Use it as usual to compile mesh_arrangement.
+
+|:warning: WARNING: Apparently, CLANG does not support a fully IEEE compliant floating point environment. The only way we found to guarantee correctness on this compiler was to disable all optimizations. Please be aware of this fact should you notice a performance degradation in your experiments. |
 
 Alternatively, you may build mesh_arrangement using the Qt project included: please, check **flags** and **includes** in the .pro file if you want to use a different tool.
 You need to replace the `[TMesh_Kernel path]` with the path in your computer.
