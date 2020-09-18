@@ -24,6 +24,7 @@ On Linux/OSx, this will produce a Makefile.
 Use it as usual to compile mesh_arrangement.
 
 |:warning: WARNING: Apparently, CLANG does not support a fully IEEE compliant floating point environment. The only way we found to guarantee correctness on this compiler was to disable all optimizations. Please be aware of this fact should you notice a performance degradation in your experiments. |
+| --- |
 
 Alternatively, you may build mesh_arrangement using the Qt project included: please, check **flags** and **includes** in the .pro file if you want to use a different tool.
 You need to replace the `[TMesh_Kernel path]` with the path in your computer.
