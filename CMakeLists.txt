@@ -1,13 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Uncomment and adapt the following definition after having downloaded
-# TMesh_Kernel and compiled it is FAST mode.
-#set(TMESH_KERNEL_LOCATION "D:/TMesh_Kernel")
-
-if(NOT DEFINED TMESH_KERNEL_LOCATION)
-  message(FATAL_ERROR "TMESH_KERNEL_LOCATION is undefined. Please set it on line 5 in CMakeLists.txt")
-endif(NOT DEFINED TMESH_KERNEL_LOCATION)
-
 # set the project name
 project(mesh_arrangement)
 
@@ -27,6 +19,11 @@ add_executable(${PROJECT_NAME}
     external/IndirectPredicates/implicit_point.cpp
     external/IndirectPredicates/numerics.cpp
     external/IndirectPredicates/predicates/indirect_predicates.cpp
+	external/TMesh_Kernel/src/coordinates.cpp
+	external/TMesh_Kernel/src/mixedPredicates.cpp
+	external/TMesh_Kernel/src/orientation.cpp
+	external/TMesh_Kernel/src/point.cpp
+	external/TMesh_Kernel/src/tmesh.cpp
 )
 
 # Compiler-specific options
@@ -35,17 +32,16 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	target_compile_options(${PROJECT_NAME} PUBLIC -frounding-math)
 # use intrinsic functions (CHECK WHAT TO DO FOR GCC !!!!!!!!)
 #	target_compile_options(${PROJECT_NAME} PUBLIC "/Oi")
-# link against TMesh_Kernel
-	target_link_libraries(${PROJECT_NAME} ${TMESH_KERNEL_LOCATION}/build/kernel_Fast64.a)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 # grant IEEE 754 compliance
 	target_compile_options(${PROJECT_NAME} PUBLIC "/fp:strict")
 # use intrinsic functions
 	target_compile_options(${PROJECT_NAME} PUBLIC "/Oi")
 # turn off annoying warnings
 	target_compile_options(${PROJECT_NAME} PUBLIC "/D _CRT_SECURE_NO_WARNINGS")
-# link against TMesh_Kernel
-	target_link_libraries(${PROJECT_NAME} ${TMESH_KERNEL_LOCATION}/build/Release/kernel_Fast64.lib)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+# grant IEEE 754 compliance
+	target_compile_options(${PROJECT_NAME} PUBLIC -O0)
 endif()
 
 # Public include directory
@@ -55,14 +51,16 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	external/Cinolib/include/
 	external/IndirectPredicates/
 	external/IndirectPredicates/predicates/
-	${TMESH_KERNEL_LOCATION}/include/
+	external/TMesh_Kernel/include/
 )
 
 # preprocessor definitions
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC -DIS64BITPLATFORM)
+endif()
+
 target_compile_definitions(${PROJECT_NAME} PUBLIC
 	CINOLIB_USES_EXACT_PREDICATES
-	IS64BITPLATFORM
 	DATA_PATH="./data/"
 )
-
 
