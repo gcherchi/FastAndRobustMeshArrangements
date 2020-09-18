@@ -28,10 +28,6 @@ We tested our code on MacOS (CLANG 10.0 64 bit), Linux (GCC 7.3.0 64 bit) and Wi
 |:warning: WARNING: Apparently, CLANG does not support a fully IEEE compliant floating point environment. The only way we found to guarantee correctness on this compiler was to disable all optimizations. Please be aware of this fact should you notice a performance degradation in your experiments. |
 | --- |
 
-Alternatively, you may build mesh_arrangement using the Qt project included: please, check **flags** and **includes** in the .pro file if you want to use a different tool.
-You need to replace the `[TMesh_Kernel path]` with the path in your computer.
-In the main.cpp file a single function `solveIntersections(...)` is called. It contains the entire pipeline.
-
 ## Citing us
 If you use our code in your academic projects, please cite our paper using the following BibTeX entry:
 ```
