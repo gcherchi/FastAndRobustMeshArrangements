@@ -44,8 +44,17 @@
 #include "intersections_detection/intersection_classification.h"
 #include "triangulation/triangulation.h"
 
-void solveIntersections(const std::vector<double> &in_coords, const std::vector< unsigned int> &in_tris,
-                         std::vector<double> &out_coords, std::vector< unsigned int> &out_tris)
+#include <chrono>
+
+inline void report_elapsed(const char *what, std::chrono::system_clock::time_point& chrono_start, std::chrono::system_clock::time_point& end)
+{
+    end = std::chrono::system_clock::now();
+    std::cout << what << ": " << (end - chrono_start).count() / 10000000.0 << " seconds\n";
+    chrono_start = end;
+}
+
+void solveIntersections(const std::vector<double>& in_coords, const std::vector< unsigned int>& in_tris,
+    std::vector<double>& out_coords, std::vector< unsigned int>& out_tris, bool verbose =false)
 {
     T_MESH::TMesh::init();
     initFPU();
@@ -56,20 +65,47 @@ void solveIntersections(const std::vector<double> &in_coords, const std::vector<
     AuxiliaryStructure g;
     const double multiplier = 67108864.0;
 
-    fillTMeshStructure(tm, in_coords, in_tris, multiplier);
+    if (verbose)
+    {
+        std::chrono::system_clock::time_point chrono_start, start, end = std::chrono::system_clock::now();
+        chrono_start = start = end;
 
-    detectIntersectionsBSP(tm, g.intersectionList());
+        fillTMeshStructure(tm, in_coords, in_tris, multiplier);
+        report_elapsed("fillTMeshStructure", chrono_start, end);
 
-    convertTMeshToTriangleSoup(tm, ts);
-    tm.clear();
+        detectIntersectionsBSP(tm, g.intersectionList());
+        report_elapsed("detectIntersectionsBSP", chrono_start, end);
 
-    g.initFromTriangleSoup(ts);
+        convertTMeshToTriangleSoup(tm, ts);
+        tm.clear();
+        report_elapsed("convertTMeshToTriangleSoup", chrono_start, end);
 
-    classifyIntersections(ts, g);
+        g.initFromTriangleSoup(ts);
+        report_elapsed("initFromTriangleSoup", chrono_start, end);
 
-    triangulation(ts, g, out_tris);
+        classifyIntersections(ts, g);
+        report_elapsed("classifyIntersections", chrono_start, end);
 
-    ts.createDoubleVectorOfCoords(out_coords, multiplier);
+        triangulation(ts, g, out_tris);
+        report_elapsed("triangulation", chrono_start, end);
+
+        ts.createDoubleVectorOfCoords(out_coords, multiplier);
+        report_elapsed("createDoubleVectorOfCoords", chrono_start, end);
+
+        report_elapsed("TOTAL elapsed", start, end);
+    }
+    else
+    {
+        fillTMeshStructure(tm, in_coords, in_tris, multiplier);
+        detectIntersectionsBSP(tm, g.intersectionList());
+        convertTMeshToTriangleSoup(tm, ts);
+        tm.clear();
+        g.initFromTriangleSoup(ts);
+        classifyIntersections(ts, g);
+        triangulation(ts, g, out_tris);
+        ts.createDoubleVectorOfCoords(out_coords, multiplier);
+    }
+
 }
 
 #endif // SOLVE_INTERSECTIONS_H

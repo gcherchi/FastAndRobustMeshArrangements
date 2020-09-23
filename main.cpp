@@ -44,11 +44,18 @@
 
 int main(int argc, char *argv[])
 {
+    bool verbose = false;
     std::string file_in;
     if (argc == 1)
-        file_in = std::string(DATA_PATH) + "two_spheres.stl";
-    else
-        file_in = argv[1];
+    {
+        std::cout << "USAGE: " << argv[0] << " filename.stl [-v]\n";
+        std::cout << "\tResolves intersections in filename.stl and saves the result to filename_OUT.obj\n";
+        std::cout << "\tIf -v is used, elapsed time is reported for all the main steps.\n";
+        return 1;
+    }
+    else file_in = argv[1];
+
+    if (argc > 2 && std::string(argv[2]) == "-v") verbose = true;
 
     //::::::: Loading file data ::::::::::::::::::::::::::::::::::::
     std::vector<cinolib::vec3d> cinolib_verts;
@@ -69,7 +76,7 @@ int main(int argc, char *argv[])
     std::vector<double> out_coords;
     std::vector<uint> out_tris;
 
-    solveIntersections(in_coords, in_tris, out_coords, out_tris);
+    solveIntersections(in_coords, in_tris, out_coords, out_tris, verbose);
 
     //::::::: Save final result :::::::::::::::::::::::::::::::::::
     std::string file_out = file_in.substr(0, file_in.length()-4) + "_OUT.obj";
