@@ -285,9 +285,11 @@ inline void TriangleSoup::createDoubleVectorOfCoords(std::vector<double> &coords
 
     for(auto &v : orig_vertices)
     {
-        coords.push_back(v.X() / multiplier);
-        coords.push_back(v.Y() / multiplier);
-        coords.push_back(v.Z() / multiplier);
+        v.set(v.X() / multiplier, v.Y() / multiplier, v.Z() / multiplier);
+
+        coords.push_back(v.X());
+        coords.push_back(v.Y());
+        coords.push_back(v.Z());
     }
 
     for(auto &v : impl_vertices)

@@ -1,7 +1,5 @@
 #include "solve_intersections.h"
 
-#include "postprocessing/post_processing.h"
-
 void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels,
                         std::vector<double> &out_coords, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels)
 {
@@ -11,7 +9,6 @@ void meshArrangementPipeline(const std::vector<double> &in_coords, const std::ve
     AuxiliaryStructure g;
     const double multiplier = 67108864.0;
 
-
     mergeDuplicatedVertices(in_coords, in_tris, multiplier, out_coords, out_tris);
 
     out_labels = in_labels;
@@ -19,7 +16,7 @@ void meshArrangementPipeline(const std::vector<double> &in_coords, const std::ve
 
     ts = TriangleSoup(out_coords, out_tris, out_labels);
 
-    detectIntersectionsOctree(ts, out_tris, g.intersectionList());
+    detectIntersectionsWithOctree(ts, out_tris, g.intersectionList());
 
     g.initFromTriangleSoup(ts);
 

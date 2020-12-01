@@ -13,10 +13,7 @@ void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::ve
 
 void removeDegenerateAndDuplicatedTriangles(const std::vector<double> &in_coords, std::vector<uint> &tris, std::vector<std::bitset<NBIT> > &labels);
 
-void detectIntersectionsOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::vector<std::vector<uint> > &intersection_list);
-
-
-void parseFileName(const std::string &filename, string &file_in, string &file_out);
+void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::vector<std::vector<uint> > &intersection_list);
 
 
 #endif // PREPROCESSING_H

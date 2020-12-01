@@ -82,7 +82,7 @@ void removeDegenerateAndDuplicatedTriangles(const std::vector<double> &in_coords
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void detectIntersectionsOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::vector<std::vector<uint> > &intersection_list)
+void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::vector<std::vector<uint> > &intersection_list)
 {
     std::vector<cinolib::vec3d> verts(ts.numVerts());
 
@@ -100,25 +100,5 @@ void detectIntersectionsOctree(TriangleSoup &ts, const std::vector<uint> &in_tri
         intersection_list[p.second].push_back(p.first);
     }
 }
-
-//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-void parseFileName(const std::string &filename, std::string &file_in, std::string &file_out)
-{
-    uint pos = static_cast<uint>(filename.length());
-
-    while(pos > 0 && filename[pos] != '/')
-        pos--;
-
-    if(pos == 0) file_in = filename;
-    else file_in = filename.substr(pos+1);
-
-    file_out = filename.substr(0, filename.length()-4);
-    //std::string ext = file_in.substr(file_in.length()-3);
-    string ext = "obj";
-    file_out = file_out + "_OUT." + ext;
-}
-
-
 
 

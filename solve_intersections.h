@@ -6,7 +6,6 @@
 #include "structures/triangle_soup.h"
 #include "intersections_detection/intersection_classification.h"
 #include "triangulation/triangulation.h"
-#include "postprocessing/post_processing.h"
 
 #include <bitset>
 
@@ -21,8 +20,6 @@ void solveIntersections(const std::vector<double> &in_coords, const std::vector<
 // With labels info
 void solveIntersections(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector<uint> &in_labels,
                         std::vector<double> &out_coords, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels, uint &num_labels);
-
-
 
 
 

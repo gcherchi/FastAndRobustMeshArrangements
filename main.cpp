@@ -25,7 +25,7 @@ int main(int argc, char **argv)
         return -1;
     }
     #else
-    filename = std::string(DATA_PATH) + "40509.stl";
+    filename = std::string(DATA_PATH) + "two_spheres.stl";
     #endif
 
     //::::::: Loading file data ::::::::::::::::::::::::::::::::::::
