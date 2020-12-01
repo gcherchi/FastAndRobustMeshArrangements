@@ -1,54 +1,13 @@
-/*****************************************************************************************
- *              MIT License                                                              *
- *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
- *                                                                                       *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
- * software and associated documentation files (the "Software"), to deal in the Software *
- * without restriction, including without limitation the rights to use, copy, modify,    *
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to    *
- * permit persons to whom the Software is furnished to do so, subject to the following   *
- * conditions:                                                                           *
- *                                                                                       *
- * The above copyright notice and this permission notice shall be included in all copies *
- * or substantial portions of the Software.                                              *
- *                                                                                       *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,   *
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A         *
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT    *
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION     *
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE        *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                *
- *                                                                                       *
- * Authors:                                                                              *
- *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
- *                                                                                       *
- *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
- *      http://pers.ge.imati.cnr.it/livesu/                                              *
- *                                                                                       *
- *      Riccardo Scateni (riccardo@unica.it)                                             *
- *      https://people.unica.it/riccardoscateni/                                         *
- *                                                                                       *
- *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
- *      https://www.cnr.it/en/people/marco.attene/                                       *
- *                                                                                       *
- * ***************************************************************************************/
-
 #ifndef INTERSECTIONS_GRAPH_H
 #define INTERSECTIONS_GRAPH_H
 
-#include <vector>
+#include "structures/triangle_soup.h"
+
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
-#include <iostream>
-#include "structures/triangle_soup.h"
-
-typedef unsigned int uint;
 
 typedef std::pair<uint, uint> UIPair;
-
 
 struct lessThanForSet
 {
@@ -99,9 +58,9 @@ class AuxiliaryStructure
 
         inline void initFromTriangleSoup(TriangleSoup &ts);
 
-        inline const std::vector<uint> &triangleIntersectionList(const uint &t_id) const;
+        inline std::vector< std::vector<uint> > &intersectionList();
 
-        inline std::vector<std::vector<uint> > &intersectionList();
+        inline const std::vector<uint> &triangleIntersectionList(const uint &t_id) const;
 
         inline void clearStructure();
 
@@ -111,8 +70,7 @@ class AuxiliaryStructure
 
         inline bool addSegmentInTriangle(const uint &t_id, const UIPair &seg);
 
-        inline void addTrianglesInSegment(const UIPair &seg, const std::vector<uint> &triangles);
-        inline void addTrianglesInSegment(const UIPair &seg, const std::set<uint> &triangles);
+        inline void addTrianglesInSegment(const UIPair &seg, const uint &tA_id, const uint &tB_id);
 
         inline void splitSegmentInSubSegments(const uint &orig_v0, const uint &orig_v1, const uint &midpoint);
 
@@ -137,6 +95,8 @@ class AuxiliaryStructure
         inline std::pair<uint, bool> addVertexInSortedList(const std::pair<const genericPoint *, uint> &vtx_pair);
 
         inline bool addVisitedPolygonPocket(const std::set<uint> &polygon);
+
+        inline int addVisitedPolygonPocket(const std::set<uint> &polygon, const uint &pos);
 
         inline uint numIntersections() const;
 
@@ -166,11 +126,17 @@ class AuxiliaryStructure
 
         std::set< std::set<uint> > visited_pockets;
 
+        std::map< std::set<uint>, uint> pockets_map;
+
         inline UIPair uniquePair(const UIPair &uip) const;
 };
 
 
-#include "aux_structure.tpp"
+#include "aux_structure.cpp"
 
 
 #endif // INTERSECTIONS_GRAPH_H
+
+
+
+

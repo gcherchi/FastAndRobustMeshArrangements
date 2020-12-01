@@ -1,46 +1,14 @@
-/*****************************************************************************************
- *              MIT License                                                              *
- *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
- *                                                                                       *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
- * software and associated documentation files (the "Software"), to deal in the Software *
- * without restriction, including without limitation the rights to use, copy, modify,    *
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to    *
- * permit persons to whom the Software is furnished to do so, subject to the following   *
- * conditions:                                                                           *
- *                                                                                       *
- * The above copyright notice and this permission notice shall be included in all copies *
- * or substantial portions of the Software.                                              *
- *                                                                                       *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,   *
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A         *
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT    *
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION     *
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE        *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                *
- *                                                                                       *
- * Authors:                                                                              *
- *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
- *                                                                                       *
- *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
- *      http://pers.ge.imati.cnr.it/livesu/                                              *
- *                                                                                       *
- *      Riccardo Scateni (riccardo@unica.it)                                             *
- *      https://people.unica.it/riccardoscateni/                                         *
- *                                                                                       *
- *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
- *      https://www.cnr.it/en/people/marco.attene/                                       *
- *                                                                                       *
- * ***************************************************************************************/
-
 #include "triangulation.h"
 
-void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &new_tris)
+#include <stack>
+#include <numeric>
+
+void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels)
 {
+    new_labels.clear();
     new_tris.clear();
     new_tris.reserve(2 * 3 * ts.numTris());
+    new_labels.reserve(2 * ts.numTris());
 
     #pragma omp parallel for schedule(dynamic)
     for(uint t_id = 0; t_id < ts.numTris(); t_id++)
@@ -53,7 +21,7 @@ void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &n
                              ts.tri(t_id),
                              ts.triPlane(t_id));
 
-            triangulateSingleTriangle(ts, subm, t_id, g, new_tris);
+            triangulateSingleTriangle(ts, subm, t_id, g, new_tris, new_labels);
         }
         else
         {
@@ -62,6 +30,7 @@ void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &n
                 new_tris.push_back(ts.triVertID(t_id, 0));
                 new_tris.push_back(ts.triVertID(t_id, 1));
                 new_tris.push_back(ts.triVertID(t_id, 2));
+                new_labels.push_back(ts.triLabel(t_id));
             }
         }
     }
@@ -69,7 +38,7 @@ void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &n
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const uint &t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris)
+void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const uint &t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels)
 {
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                                  POINTS AND SEGMENTS RECOVERY
@@ -117,33 +86,35 @@ void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const uint &
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                      POCKETS IN COPLANAR TRIANGLES SOLVING
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    std::vector<bool> valid_tris(subm.numTris(), true);
 
     if(g.triangleHasCoplanars(t_id))
     {
         #pragma omp critical
         {
-            solvePocketsInCoplanarTriangle(subm, g, valid_tris);
+            solvePocketsInCoplanarTriangle(subm, g, new_tris, new_labels, ts.triLabel(t_id));
         }
     }
-
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-     *                     NEW TRIANGLE CREATION (for final mesh)
-     * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-
-    #pragma omp critical
+    else
     {
-        for(uint ti = 0; ti < subm.numTris(); ti++)
+        /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+         *                     NEW TRIANGLE CREATION (for final mesh)
+         * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+        #pragma omp critical
         {
-            if(valid_tris[ti])
+            for(uint ti = 0; ti < subm.numTris(); ti++)
             {
                 const uint *tri = subm.tri(ti);
                 new_tris.push_back(subm.vertOrigID(tri[0]));
                 new_tris.push_back(subm.vertOrigID(tri[1]));
                 new_tris.push_back(subm.vertOrigID(tri[2]));
+                new_labels.push_back(ts.triLabel(t_id));
             }
         }
+
     }
+
+
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -970,7 +941,7 @@ const std::set<uint> &segmentTrianglesList(const UIPair &seg, const CustomUnorde
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void solvePocketsInCoplanarTriangle(const FastTrimesh &subm, AuxiliaryStructure &g, std::vector<bool> &valid_tris)
+void solvePocketsInCoplanarTriangle(const FastTrimesh &subm, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, const std::bitset<NBIT> &label)
 {
     std::vector< std::vector<uint> > tri_pockets;
     std::vector< std::set<uint> > polygons;
@@ -985,13 +956,26 @@ void solvePocketsInCoplanarTriangle(const FastTrimesh &subm, AuxiliaryStructure 
         for(auto &p : polygons[p_id]) // conversion from new to original vertices ids
             curr_p.insert(subm.vertOrigID(p));
 
-        bool ins = g.addVisitedPolygonPocket(curr_p);
+        int pos = g.addVisitedPolygonPocket(curr_p, static_cast<uint>(new_labels.size()));
 
-        if(!ins) // pocket already present
+        if(pos == -1) //pocket not added yet
         {
             const std::vector<uint> &tri_list = tri_pockets[p_id];
             for(auto &t : tri_list)
-                valid_tris[t] = false;
+            {
+                const uint *tri = subm.tri(t);
+                new_tris.push_back(subm.vertOrigID(tri[0]));
+                new_tris.push_back(subm.vertOrigID(tri[1]));
+                new_tris.push_back(subm.vertOrigID(tri[2]));
+                new_labels.push_back(label);
+            }
+        }
+        else //pocket already present
+        {
+            uint num_tris = static_cast<uint>(curr_p.size() - 2);
+
+            for(uint i = 0; i < num_tris; i++)
+                new_labels[static_cast<uint>(pos) + i] |= label;
         }
     }
 }

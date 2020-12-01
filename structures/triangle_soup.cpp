@@ -1,46 +1,6 @@
-/*****************************************************************************************
- *              MIT License                                                              *
- *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
- *                                                                                       *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
- * software and associated documentation files (the "Software"), to deal in the Software *
- * without restriction, including without limitation the rights to use, copy, modify,    *
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to    *
- * permit persons to whom the Software is furnished to do so, subject to the following   *
- * conditions:                                                                           *
- *                                                                                       *
- * The above copyright notice and this permission notice shall be included in all copies *
- * or substantial portions of the Software.                                              *
- *                                                                                       *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,   *
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A         *
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT    *
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION     *
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE        *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                *
- *                                                                                       *
- * Authors:                                                                              *
- *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
- *                                                                                       *
- *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
- *      http://pers.ge.imati.cnr.it/livesu/                                              *
- *                                                                                       *
- *      Riccardo Scateni (riccardo@unica.it)                                             *
- *      https://people.unica.it/riccardoscateni/                                         *
- *                                                                                       *
- *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
- *      https://www.cnr.it/en/people/marco.attene/                                       *
- *                                                                                       *
- * ***************************************************************************************/
-
-#ifndef TRIANGLE_SOUP_TPP
-#define TRIANGLE_SOUP_TPP
-
 #include "triangle_soup.h"
 
-inline void TriangleSoup::init(const std::vector<double> &coords, const std::vector<uint> &tris)
+inline void TriangleSoup::init(const std::vector<double> &coords, const std::vector<uint> &tris, const std::vector<std::bitset<NBIT> > &labels)
 {
     num_orig_vtxs = static_cast<uint>(coords.size() /3);
     orig_vertices.resize(num_orig_vtxs);
@@ -55,15 +15,16 @@ inline void TriangleSoup::init(const std::vector<double> &coords, const std::vec
     }
 
     // traingles
-    for(uint t_id = 0; t_id < tris.size(); t_id += 3)
+    for(uint t_id = 0; t_id < tris.size() /3; t_id++)
     {
-        uint v0_id = tris[t_id], v1_id = tris[t_id + 1], v2_id = tris[t_id + 2];
+        uint v0_id = tris[3 * t_id], v1_id = tris[3* t_id + 1], v2_id = tris[3 * t_id + 2];
         if(v0_id == v1_id && v1_id == v2_id && v2_id == v0_id) continue; // degenerate triangle
 
-        triangles.emplace_back(v0_id, v1_id, v2_id,
+        triangles.emplace_back(v0_id, v1_id, v2_id, labels[t_id],
                                intToPlane(genericPoint::maxComponentInTriangleNormal(vertX(v0_id), vertY(v0_id), vertZ(v0_id),
                                                                                      vertX(v1_id), vertY(v1_id), vertZ(v1_id),
                                                                                      vertX(v2_id), vertY(v2_id), vertZ(v2_id))));
+
         // edges
         addEdge(v0_id, v1_id);
         addEdge(v1_id, v2_id);
@@ -165,6 +126,14 @@ inline uint TriangleSoup::addVert(genericPoint* gp)
 {
     impl_vertices.push_back(gp);
     return static_cast<uint>(num_orig_vtxs + impl_vertices.size() -1);
+}
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+inline void TriangleSoup::setVert(const uint &v_id, const double &x, const double &y, const double &z)
+{
+    assert(v_id < (num_orig_vtxs + impl_vertices.size()) && "vtx id out of range of original points");
+    orig_vertices[v_id].set(x, y, z);
 }
 
 /*******************************************************************************************************
@@ -330,6 +299,23 @@ inline void TriangleSoup::createDoubleVectorOfCoords(std::vector<double> &coords
         coords.push_back(y / multiplier);
         coords.push_back(z / multiplier);
     }
+
+}
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+inline void TriangleSoup::setTriLabel(const uint &t_id, const std::bitset<NBIT> &l)
+{
+    assert(t_id < triangles.size() && "t_id out of range");
+    triangles[t_id].label = l;
+}
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+inline std::bitset<NBIT> TriangleSoup::triLabel(const uint &t_id) const
+{
+    assert(t_id < triangles.size() && "t_id out of range");
+    return triangles[t_id].label;
 }
 
 /*******************************************************************************************************
@@ -371,5 +357,3 @@ inline Edge TriangleSoup::uniqueEdge(const uint &v0_id, const uint &v1_id) const
     return {v1_id, v0_id};
 }
 
-
-#endif // TRIANGLE_SOUP_TPP

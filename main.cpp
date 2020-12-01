@@ -1,68 +1,39 @@
-/*****************************************************************************************
- *              MIT License                                                              *
- *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
- *                                                                                       *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
- * software and associated documentation files (the "Software"), to deal in the Software *
- * without restriction, including without limitation the rights to use, copy, modify,    *
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to    *
- * permit persons to whom the Software is furnished to do so, subject to the following   *
- * conditions:                                                                           *
- *                                                                                       *
- * The above copyright notice and this permission notice shall be included in all copies *
- * or substantial portions of the Software.                                              *
- *                                                                                       *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,   *
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A         *
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT    *
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION     *
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE        *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                *
- *                                                                                       *
- * Authors:                                                                              *
- *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
- *                                                                                       *
- *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
- *      http://pers.ge.imati.cnr.it/livesu/                                              *
- *                                                                                       *
- *      Riccardo Scateni (riccardo@unica.it)                                             *
- *      https://people.unica.it/riccardoscateni/                                         *
- *                                                                                       *
- *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
- *      https://www.cnr.it/en/people/marco.attene/                                       *
- *                                                                                       *
- * ***************************************************************************************/
+#include <QApplication>
+#include <cinolib/gui/qt/qt_gui_tools.h>
+#include <iostream>
 
 #include "solve_intersections.h"
-#include "cinolib/io/read_STL.h"
-#include "cinolib/io/write_OBJ.h"
-#include <iostream>
+
+#include <cinolib/io/read_STL.h>
+#include <cinolib/find_intersections.h>
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-    bool verbose = false;
-    std::string file_in;
-    if (argc == 1)
-    {
-        std::cout << "USAGE: " << argv[0] << " filename.stl [-v]\n";
-        std::cout << "\tResolves intersections in filename.stl and saves the result to filename_OUT.obj\n";
-        std::cout << "\tIf -v is used, elapsed time is reported for all the main steps.\n";
-        return 1;
-    }
-    else file_in = argv[1];
+    #ifdef DBG_MODE
+    QApplication a(argc, argv);
+    #endif
 
-    if (argc > 2 && std::string(argv[2]) == "-v") verbose = true;
+    std::string filename;
+
+    #ifndef DBG_MODE
+    if(argc > 1) filename = argv[1];
+    else
+    {
+        std::cout << "input file missing" << std::endl;
+        return -1;
+    }
+    #else
+    filename = std::string(DATA_PATH) + "40509.stl";
+    #endif
 
     //::::::: Loading file data ::::::::::::::::::::::::::::::::::::
     std::vector<cinolib::vec3d> cinolib_verts;
     std::vector<double> in_coords;
     std::vector<uint> in_tris;
 
-    cinolib::read_STL(file_in.c_str(), cinolib_verts, in_tris, false);
+    cinolib::read_STL(filename.c_str(), cinolib_verts, in_tris, false);
 
     for(auto &v : cinolib_verts)
     {
@@ -72,16 +43,35 @@ int main(int argc, char *argv[])
     }
 
     //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
     std::vector<double> out_coords;
     std::vector<uint> out_tris;
 
-    solveIntersections(in_coords, in_tris, out_coords, out_tris, verbose);
+    solveIntersections(in_coords, in_tris, out_coords, out_tris);
 
-    //::::::: Save final result :::::::::::::::::::::::::::::::::::
-    std::string file_out = file_in.substr(0, file_in.length()-4) + "_OUT.obj";
-    cinolib::write_OBJ(file_out.c_str(), out_coords, out_tris, {});
+    cinolib::DrawableTrimesh<> m(out_coords, out_tris);
 
+    for(uint e = 0; e < m.num_edges(); e++) m.edge_data(e).flags = 0;
+    m.updateGL();
+
+    /* ----------------------------------------
+     * Visualization stuff
+     * -------------------------------------- */
+    #ifdef DBG_MODE
+
+    cinolib::GLcanvas gui;
+    gui.push_obj(&m);
+    gui.show();
+
+    // CMD+1 to show tri-mesh controls.
+    cinolib::SurfaceMeshControlPanel<cinolib::DrawableTrimesh<>> panel(&m, &gui);
+
+    QApplication::connect(new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_1), &gui), &QShortcut::activated, [&](){panel.show();});
+
+    return a.exec();
+    #else
     return 0;
+    #endif
 }
+
+
 

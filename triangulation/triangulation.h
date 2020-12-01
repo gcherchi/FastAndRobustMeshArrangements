@@ -1,40 +1,3 @@
-/*****************************************************************************************
- *              MIT License                                                              *
- *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
- *                                                                                       *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
- * software and associated documentation files (the "Software"), to deal in the Software *
- * without restriction, including without limitation the rights to use, copy, modify,    *
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to    *
- * permit persons to whom the Software is furnished to do so, subject to the following   *
- * conditions:                                                                           *
- *                                                                                       *
- * The above copyright notice and this permission notice shall be included in all copies *
- * or substantial portions of the Software.                                              *
- *                                                                                       *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,   *
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A         *
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT    *
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION     *
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE        *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                *
- *                                                                                       *
- * Authors:                                                                              *
- *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
- *                                                                                       *
- *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
- *      http://pers.ge.imati.cnr.it/livesu/                                              *
- *                                                                                       *
- *      Riccardo Scateni (riccardo@unica.it)                                             *
- *      https://people.unica.it/riccardoscateni/                                         *
- *                                                                                       *
- *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
- *      https://www.cnr.it/en/people/marco.attene/                                       *
- *                                                                                       *
- * ***************************************************************************************/
-
 #ifndef TRIANGULATION_H
 #define TRIANGULATION_H
 
@@ -42,10 +5,6 @@
 #include "structures/triangle_soup.h"
 #include "structures/fast_trimesh.h"
 #include "structures/tree.h"
-
-#include <vector>
-#include <stack>
-#include <numeric>
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 
@@ -64,9 +23,9 @@ inline bool lessThanP(std::pair<const genericPoint*, uint> &a, std::pair<const g
 }
 
 
-void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &new_tris);
+void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector<std::bitset<NBIT> > &new_labels);
 
-void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const uint &t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris);
+void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const uint &t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector<std::bitset<NBIT> > &new_labels);
 
 void splitSingleTriangle(const TriangleSoup &ts, FastTrimesh &subm, const std::set<uint> &points);
 
@@ -113,7 +72,7 @@ void splitSegmentInSubSegments(const uint &v_start, const uint &v_stop, const ui
 
 const std::set<uint> &segmentTrianglesList(const UIPair &seg, const CustomUnorderedPairPairMap &sub_segments_map, const AuxiliaryStructure &g);
 
-void solvePocketsInCoplanarTriangle(const FastTrimesh &subm, AuxiliaryStructure &g, std::vector<bool> &valid_tris);
+void solvePocketsInCoplanarTriangle(const FastTrimesh &subm, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector<std::bitset<NBIT> > &new_labels, const std::bitset<NBIT> &label);
 
 void findPocketsInTriangle(const FastTrimesh &subm, std::vector<std::vector<uint> > &tri_pockets, std::vector<std::set<uint> > &polygons);
 

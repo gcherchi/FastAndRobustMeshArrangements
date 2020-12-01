@@ -1,53 +1,18 @@
-/*****************************************************************************************
- *              MIT License                                                              *
- *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
- *                                                                                       *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
- * software and associated documentation files (the "Software"), to deal in the Software *
- * without restriction, including without limitation the rights to use, copy, modify,    *
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to    *
- * permit persons to whom the Software is furnished to do so, subject to the following   *
- * conditions:                                                                           *
- *                                                                                       *
- * The above copyright notice and this permission notice shall be included in all copies *
- * or substantial portions of the Software.                                              *
- *                                                                                       *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,   *
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A         *
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT    *
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION     *
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE        *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                *
- *                                                                                       *
- * Authors:                                                                              *
- *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
- *                                                                                       *
- *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
- *      http://pers.ge.imati.cnr.it/livesu/                                              *
- *                                                                                       *
- *      Riccardo Scateni (riccardo@unica.it)                                             *
- *      https://people.unica.it/riccardoscateni/                                         *
- *                                                                                       *
- *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
- *      https://www.cnr.it/en/people/marco.attene/                                       *
- *                                                                                       *
- * ***************************************************************************************/
-
 #ifndef TRIANGLESOUP_H
 #define TRIANGLESOUP_H
 
 #include "common.h"
-#include "cinolib/geometry/vec3.h"
-#include "implicit_point.h"
+#include "indirect_predicates/implicit_point.h"
+
+#include <cinolib/geometry/vec3.h>
 
 #include <vector>
 #include <map>
+#include <bitset>
 
 struct Tri
 {
-    Tri(const uint &_t0_id, const uint &_t1_id, const uint &_t2_id, const Plane &_p) : p(_p)
+    Tri(const uint &_t0_id, const uint &_t1_id, const uint &_t2_id, const std::bitset<NBIT> &_l, const Plane &_p) : label(_l), p(_p)
     {
         v[0] = _t0_id;
         v[1] = _t1_id;
@@ -55,6 +20,7 @@ struct Tri
     }
 
     uint v[3];
+    std::bitset<NBIT> label = 0;
     Plane p;
 };
 
@@ -70,9 +36,9 @@ class TriangleSoup
     public:
         TriangleSoup(){}
 
-        TriangleSoup(const std::vector<double> &coords, std::vector<uint> &tris)
+        TriangleSoup(const std::vector<double> &coords, const std::vector<uint> &tris, const std::vector< std::bitset<NBIT> > &labels)
         {
-            init(coords, tris);
+            init(coords, tris, labels);
         }
 
         ~TriangleSoup()
@@ -81,12 +47,13 @@ class TriangleSoup
                 delete impl_vertices[v];
         }
 
-        inline void init(const std::vector<double> &coords, const std::vector<uint> &tris);
+        inline void init(const std::vector<double> &coords, const std::vector<uint> &tris, const std::vector< std::bitset<NBIT> > &labels);
 
         inline uint numVerts() const;
         inline uint numTris() const;
         inline uint numEdges() const;
 
+        //inline uint numOrigVertices() const;
         inline uint numOrigTriangles() const;
 
         // VERTICES
@@ -101,6 +68,8 @@ class TriangleSoup
         inline cinolib::vec3d vertCinolib(const uint &v_id) const;
 
         inline uint addVert(genericPoint* gp);
+
+        inline void setVert(const uint &v_id, const double &x, const double &y, const double &z);
 
         // EDGES
         inline int edgeID(const uint &v0_id, const uint &v1_id) const;
@@ -134,6 +103,10 @@ class TriangleSoup
 
         inline void createDoubleVectorOfCoords(std::vector<double> &coords, const double &multiplier);
 
+        inline void setTriLabel(const uint &t_id, const std::bitset<NBIT> &l);
+
+        inline std::bitset<NBIT> triLabel(const uint &t_id) const;
+
         // JOLLY POINTS
         inline const genericPoint* jollyPoint(const uint &off) const;
 
@@ -158,6 +131,6 @@ class TriangleSoup
         inline Edge uniqueEdge(const uint &v0_id, const uint &v1_id) const;
 };
 
-#include "triangle_soup.tpp"
+#include "triangle_soup.cpp"
 
 #endif // TRIANGLESOUP_H

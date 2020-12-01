@@ -1,44 +1,5 @@
-/*****************************************************************************************
- *              MIT License                                                              *
- *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
- *                                                                                       *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
- * software and associated documentation files (the "Software"), to deal in the Software *
- * without restriction, including without limitation the rights to use, copy, modify,    *
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to    *
- * permit persons to whom the Software is furnished to do so, subject to the following   *
- * conditions:                                                                           *
- *                                                                                       *
- * The above copyright notice and this permission notice shall be included in all copies *
- * or substantial portions of the Software.                                              *
- *                                                                                       *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,   *
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A         *
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT    *
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION     *
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE        *
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                *
- *                                                                                       *
- * Authors:                                                                              *
- *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
- *                                                                                       *
- *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
- *      http://pers.ge.imati.cnr.it/livesu/                                              *
- *                                                                                       *
- *      Riccardo Scateni (riccardo@unica.it)                                             *
- *      https://people.unica.it/riccardoscateni/                                         *
- *                                                                                       *
- *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
- *      https://www.cnr.it/en/people/marco.attene/                                       *
- *                                                                                       *
- * ***************************************************************************************/
-
-#ifndef AUX_STRUCTURE_TPP
-#define AUX_STRUCTURE_TPP
-
 #include "aux_structure.h"
+
 
 inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
 {
@@ -64,17 +25,17 @@ inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::vector<uint> &AuxiliaryStructure::triangleIntersectionList(const uint &t_id) const
+std::vector<std::vector<uint> > &AuxiliaryStructure::intersectionList()
 {
-    assert(t_id < tri2tri.size());
-    return tri2tri[t_id];
+    return tri2tri;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline std::vector< std::vector<uint> > &AuxiliaryStructure::intersectionList()
+inline const std::vector<uint> &AuxiliaryStructure::triangleIntersectionList(const uint &t_id) const
 {
-    return tri2tri;
+    assert(t_id < tri2tri.size());
+    return tri2tri[t_id];
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -118,7 +79,7 @@ inline bool AuxiliaryStructure::addSegmentInTriangle(const uint &t_id, const UIP
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, const std::vector<uint> &triangles)
+inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, const uint &tA_id, const uint &tB_id)
 {
     UIPair key_seg = uniquePair(seg);
     std::set<uint> tris;
@@ -128,18 +89,10 @@ inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, const s
     if(f != seg2tris.end())
         tris = f->second;
 
-    for(uint t : triangles)
-        tris.insert(t);
+    tris.insert(tA_id);
+    tris.insert(tB_id);
 
     seg2tris[key_seg] = tris;
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, const std::set<uint> &triangles)
-{
-    const std::vector<uint> triangles_vec(triangles.begin(), triangles.end());
-    addTrianglesInSegment(seg, triangles_vec);
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -254,6 +207,22 @@ inline bool AuxiliaryStructure::addVisitedPolygonPocket(const std::set<uint> &po
     return visited_pockets.insert(polygon).second;
 }
 
+
+//it returns -1 if the pocket is not already present,
+// the i-index of the corresponding triangles in the new_label array otherwise
+inline int AuxiliaryStructure::addVisitedPolygonPocket(const std::set<uint> &polygon, const uint &pos)
+{
+    auto poly_it = pockets_map.find(polygon);
+
+    if(poly_it == pockets_map.end()) // polygon not present yet
+    {
+        pockets_map[polygon] = pos;
+        return -1;
+    }
+
+    return static_cast<int>(poly_it->second);
+}
+
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline uint AuxiliaryStructure::numIntersections() const
@@ -291,5 +260,3 @@ inline UIPair AuxiliaryStructure::uniquePair(const UIPair &uip) const
     return std::make_pair(uip.second, uip.first);
 }
 
-
-#endif // AUX_STRUCTURE_TPP
