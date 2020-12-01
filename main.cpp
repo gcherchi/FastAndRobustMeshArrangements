@@ -3,9 +3,7 @@
 #include <iostream>
 
 #include "solve_intersections.h"
-
-#include <cinolib/io/read_STL.h>
-#include <cinolib/find_intersections.h>
+#include "io_functions.h"
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
