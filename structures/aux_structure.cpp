@@ -25,7 +25,7 @@ inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-std::vector<std::vector<uint> > &AuxiliaryStructure::intersectionList()
+inline std::vector<std::vector<uint> > &AuxiliaryStructure::intersectionList()
 {
     return tri2tri;
 }

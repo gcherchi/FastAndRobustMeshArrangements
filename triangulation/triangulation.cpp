@@ -3,7 +3,7 @@
 #include <stack>
 #include <numeric>
 
-void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels)
+inline void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels)
 {
     new_labels.clear();
     new_tris.clear();
@@ -38,7 +38,7 @@ void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &n
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const uint &t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels)
+inline void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const uint &t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels)
 {
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                                  POINTS AND SEGMENTS RECOVERY
@@ -119,7 +119,7 @@ void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const uint &
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void splitSingleTriangle(const TriangleSoup &ts, FastTrimesh &subm, const std::set<uint> &points)
+inline void splitSingleTriangle(const TriangleSoup &ts, FastTrimesh &subm, const std::set<uint> &points)
 {
     if(points.empty()) return;
 
@@ -156,7 +156,7 @@ void splitSingleTriangle(const TriangleSoup &ts, FastTrimesh &subm, const std::s
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void splitSingleTriangleWithTree(const TriangleSoup &ts, FastTrimesh &subm, const std::set<uint> &points)
+inline void splitSingleTriangleWithTree(const TriangleSoup &ts, FastTrimesh &subm, const std::set<uint> &points)
 {
     if(points.empty()) return;
 
@@ -198,7 +198,7 @@ void splitSingleTriangleWithTree(const TriangleSoup &ts, FastTrimesh &subm, cons
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-int findContainingTriangle(const FastTrimesh &subm, const uint &p_id)
+inline int findContainingTriangle(const FastTrimesh &subm, const uint &p_id)
 {
     for(uint t_id = 0; t_id < subm.numTris(); t_id++)
     {
@@ -212,12 +212,12 @@ int findContainingTriangle(const FastTrimesh &subm, const uint &p_id)
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-const Node &findContainingTriangleInTree(const FastTrimesh &subm, const uint &p_id, const Tree &tree)
+inline const Node &findContainingTriangleInTree(const FastTrimesh &subm, const uint &p_id, const Tree &tree)
 {
     return innerFindContainingTriangleInTree(tree, 0, subm, subm.vert(p_id));
 }
 
-const Node &innerFindContainingTriangleInTree(const Tree &tree, const uint &root_id, const FastTrimesh &subm, const genericPoint *p)
+inline const Node &innerFindContainingTriangleInTree(const Tree &tree, const uint &root_id, const FastTrimesh &subm, const genericPoint *p)
 {
     const Node &root = tree.getNode(root_id);
     assert(genericPoint::pointInTriangle(*p, *subm.vert(root.v0), *subm.vert(root.v1), *subm.vert(root.v2)) && "the leaf does not contain the point");
@@ -244,7 +244,7 @@ const Node &innerFindContainingTriangleInTree(const Tree &tree, const uint &root
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void splitSingleEdge(const TriangleSoup &ts, FastTrimesh &subm, const uint &v0_id, const uint &v1_id, std::vector<uint> &points)
+inline void splitSingleEdge(const TriangleSoup &ts, FastTrimesh &subm, const uint &v0_id, const uint &v1_id, std::vector<uint> &points)
 {
     if(points.empty()) return;
 
@@ -283,8 +283,7 @@ void splitSingleEdge(const TriangleSoup &ts, FastTrimesh &subm, const uint &v0_i
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-void addConstraintSegmentsInSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, AuxiliaryStructure &g, std::vector<UIPair> &segment_list)
+inline void addConstraintSegmentsInSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, AuxiliaryStructure &g, std::vector<UIPair> &segment_list)
 {
     int orientation = subm.triOrientation(0);
 
@@ -305,7 +304,7 @@ void addConstraintSegmentsInSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void addConstraintSegment(TriangleSoup &ts, FastTrimesh &subm, const uint &v0_id, const uint &v1_id, const int orientation,
+inline void addConstraintSegment(TriangleSoup &ts, FastTrimesh &subm, const uint &v0_id, const uint &v1_id, const int orientation,
                           AuxiliaryStructure &g, std::vector<UIPair> &segment_list, CustomUnorderedPairPairMap &sub_segs_map)
 {
     int e_id = subm.edgeID(v0_id, v1_id);
@@ -352,7 +351,7 @@ void addConstraintSegment(TriangleSoup &ts, FastTrimesh &subm, const uint &v0_id
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void findIntersectingElements(TriangleSoup &ts, FastTrimesh &subm, const uint &v_start, const uint &v_stop, std::vector<uint> &intersected_edges, std::vector<uint> &intersected_tris,
+inline void findIntersectingElements(TriangleSoup &ts, FastTrimesh &subm, const uint &v_start, const uint &v_stop, std::vector<uint> &intersected_edges, std::vector<uint> &intersected_tris,
                               AuxiliaryStructure &g, std::vector<UIPair> &segment_list, CustomUnorderedPairPairMap &sub_seg_map)
 {
     uint orig_vstart = subm.vertOrigID(v_start);
@@ -513,9 +512,8 @@ void findIntersectingElements(TriangleSoup &ts, FastTrimesh &subm, const uint &v
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
 template<typename iterator>
-void boundaryWalker(const FastTrimesh &subm, const uint &v_start, const uint &v_stop, iterator curr_p, iterator curr_e, std::vector<uint> &h)
+inline void boundaryWalker(const FastTrimesh &subm, const uint &v_start, const uint &v_stop, iterator curr_p, iterator curr_e, std::vector<uint> &h)
 {
     h.clear();
     h.push_back(v_start);
@@ -561,7 +559,7 @@ void boundaryWalker(const FastTrimesh &subm, const uint &v_start, const uint &v_
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void earcut(const FastTrimesh &subm, std::vector<uint> &poly, std::vector<uint> &tris, const Plane &ref_p, const int &orientation)
+inline void earcut(const FastTrimesh &subm, std::vector<uint> &poly, std::vector<uint> &tris, const Plane &ref_p, const int &orientation)
 {
     if(poly.size() < 3) return;
 
@@ -620,7 +618,7 @@ void earcut(const FastTrimesh &subm, std::vector<uint> &poly, std::vector<uint> 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void earcutLinear(const FastTrimesh &subm, const std::vector<uint> &poly, std::vector<uint> &tris, const int &orientation)
+inline void earcutLinear(const FastTrimesh &subm, const std::vector<uint> &poly, std::vector<uint> &tris, const int &orientation)
 {
     assert(poly.size() >= 3 && "no valid poly dimension");
 
@@ -715,8 +713,7 @@ void earcutLinear(const FastTrimesh &subm, const std::vector<uint> &poly, std::v
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-uint createTPI(TriangleSoup &ts, FastTrimesh &subm, const UIPair &e0, const UIPair &e1, AuxiliaryStructure &g, const CustomUnorderedPairPairMap &sub_segs_map)
+inline uint createTPI(TriangleSoup &ts, FastTrimesh &subm, const UIPair &e0, const UIPair &e1, AuxiliaryStructure &g, const CustomUnorderedPairPairMap &sub_segs_map)
 {
     std::vector<uint> t0_ids = {subm.vertOrigID(0), subm.vertOrigID(1), subm.vertOrigID(2)};
 
@@ -752,7 +749,7 @@ uint createTPI(TriangleSoup &ts, FastTrimesh &subm, const UIPair &e0, const UIPa
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-std::vector<const genericPoint *> computeTriangleOfSegment(const TriangleSoup &ts, const UIPair &seg, std::vector<uint> &ref_t,
+inline std::vector<const genericPoint *> computeTriangleOfSegment(const TriangleSoup &ts, const UIPair &seg, std::vector<uint> &ref_t,
                                                      const AuxiliaryStructure &g, const CustomUnorderedPairPairMap &sub_segs_map)
 {
     const std::set<uint> &e_tris = segmentTrianglesList(seg, sub_segs_map, g);
@@ -787,8 +784,7 @@ std::vector<const genericPoint *> computeTriangleOfSegment(const TriangleSoup &t
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-std::vector<const genericPoint *> computeTriangleOfSegmentInCoplanarCase(const TriangleSoup &ts, const UIPair &seg, const std::set<uint> &tris, const std::vector<uint> &ref_t)
+inline std::vector<const genericPoint *> computeTriangleOfSegmentInCoplanarCase(const TriangleSoup &ts, const UIPair &seg, const std::set<uint> &tris, const std::vector<uint> &ref_t)
 {
     std::vector<const genericPoint *> res;
     uint e0 = seg.first, e1 = seg.second;
@@ -850,7 +846,7 @@ std::vector<const genericPoint *> computeTriangleOfSegmentInCoplanarCase(const T
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-bool vectorsAreEqual(std::vector<uint> &v0, std::vector<uint> &v1)
+inline bool vectorsAreEqual(std::vector<uint> &v0, std::vector<uint> &v1)
 {
     assert(v0.size() == v1.size());
 
@@ -865,7 +861,7 @@ bool vectorsAreEqual(std::vector<uint> &v0, std::vector<uint> &v1)
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-bool fastPointOnLine(const FastTrimesh &subm, const uint &e_id, const uint &p_id)
+inline bool fastPointOnLine(const FastTrimesh &subm, const uint &e_id, const uint &p_id)
 {
     const uint &ev0_id = subm.edgeVertID(e_id, 0);
     const uint &ev1_id = subm.edgeVertID(e_id, 1);
@@ -882,7 +878,7 @@ bool fastPointOnLine(const FastTrimesh &subm, const uint &e_id, const uint &p_id
 
 // check whether edges {e00,e01} and {e10,e11} intersect
 // at a point that is inside both segments
-bool segmentsIntersectInside(const FastTrimesh &subm, const uint &e00_id, const uint &e01_id, const uint &e10_id, const uint &e11_id)
+inline bool segmentsIntersectInside(const FastTrimesh &subm, const uint &e00_id, const uint &e01_id, const uint &e10_id, const uint &e11_id)
 {
     return genericPoint::innerSegmentsCross(*subm.vert(e00_id), *subm.vert(e01_id),
                                               *subm.vert(e10_id), *subm.vert(e11_id));
@@ -890,15 +886,14 @@ bool segmentsIntersectInside(const FastTrimesh &subm, const uint &e00_id, const 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-bool pointInsideSegment(const FastTrimesh &subm, const uint &ev0_id, const uint &ev1_id, const uint &p_id)
+inline bool pointInsideSegment(const FastTrimesh &subm, const uint &ev0_id, const uint &ev1_id, const uint &p_id)
 {
     return genericPoint::pointInInnerSegment(*subm.vert(p_id), *subm.vert(ev0_id), *subm.vert(ev1_id));
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-void splitSegmentInSubSegments(const uint &v_start, const uint &v_stop, const uint &mid_point, CustomUnorderedPairPairMap &sub_segments_map)
+inline void splitSegmentInSubSegments(const uint &v_start, const uint &v_stop, const uint &mid_point, CustomUnorderedPairPairMap &sub_segments_map)
 {
     UIPair orig_seg, sub_seg0, sub_seg1;
     (v_start < v_stop) ? orig_seg = std::make_pair(v_start, v_stop) : orig_seg = std::make_pair(v_stop, v_start);
@@ -922,8 +917,7 @@ void splitSegmentInSubSegments(const uint &v_start, const uint &v_stop, const ui
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-const std::set<uint> &segmentTrianglesList(const UIPair &seg, const CustomUnorderedPairPairMap &sub_segments_map, const AuxiliaryStructure &g)
+inline const std::set<uint> &segmentTrianglesList(const UIPair &seg, const CustomUnorderedPairPairMap &sub_segments_map, const AuxiliaryStructure &g)
 {
     UIPair key_seg;
     (seg.first < seg.second) ? key_seg = seg : key_seg = std::make_pair(seg.second, seg.first);
@@ -938,10 +932,10 @@ const std::set<uint> &segmentTrianglesList(const UIPair &seg, const CustomUnorde
 
 }
 
-
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void solvePocketsInCoplanarTriangle(const FastTrimesh &subm, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, const std::bitset<NBIT> &label)
+inline void solvePocketsInCoplanarTriangle(const FastTrimesh &subm, AuxiliaryStructure &g, std::vector<uint> &new_tris,
+                                           std::vector< std::bitset<NBIT> > &new_labels, const std::bitset<NBIT> &label)
 {
     std::vector< std::vector<uint> > tri_pockets;
     std::vector< std::set<uint> > polygons;
@@ -982,8 +976,7 @@ void solvePocketsInCoplanarTriangle(const FastTrimesh &subm, AuxiliaryStructure 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
-void findPocketsInTriangle(const FastTrimesh &subm, std::vector< std::vector<uint> > &tri_pockets, std::vector< std::set<uint> > &tri_polygons)
+inline void findPocketsInTriangle(const FastTrimesh &subm, std::vector< std::vector<uint> > &tri_pockets, std::vector< std::set<uint> > &tri_polygons)
 {
      std::vector<bool> visited(subm.numTris(), false);
 
@@ -1034,7 +1027,7 @@ void findPocketsInTriangle(const FastTrimesh &subm, std::vector< std::vector<uin
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-int customOrient2D(const genericPoint *p0, const genericPoint *p1, const genericPoint *p2, const Plane &ref_p)
+inline int customOrient2D(const genericPoint *p0, const genericPoint *p1, const genericPoint *p2, const Plane &ref_p)
 {
     switch (ref_p)
     {
@@ -1048,7 +1041,7 @@ int customOrient2D(const genericPoint *p0, const genericPoint *p1, const generic
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void sortedVertexListAlongSegment(const TriangleSoup &ts, const std::set<uint> &point_list,
+inline void sortedVertexListAlongSegment(const TriangleSoup &ts, const std::set<uint> &point_list,
                                   const uint &v0_id, const uint &v1_id, std::vector<uint> &out_point_list)
 {
     if(point_list.size() == 0) return;

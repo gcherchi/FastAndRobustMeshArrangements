@@ -1,9 +1,9 @@
 #include "pre_processing.h"
 
-#include "cinolib/find_intersections.h"
+#include <cinolib/find_intersections.h>
 
-void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const double &multiplier,
-                             std::vector<double> &out_coords, std::vector<uint> &out_tris)
+inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const double &multiplier,
+                                    std::vector<double> &out_coords, std::vector<uint> &out_tris)
 {
     out_coords.reserve(in_coords.size());
     out_tris.reserve(in_tris.size());
@@ -32,7 +32,7 @@ void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::ve
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void removeDegenerateAndDuplicatedTriangles(const std::vector<double> &in_coords, std::vector<uint> &tris, std::vector< std::bitset<NBIT> > &labels)
+inline void removeDegenerateAndDuplicatedTriangles(const std::vector<double> &in_coords, std::vector<uint> &tris, std::vector< std::bitset<NBIT> > &labels)
 {
     uint num_orig_tris = static_cast<uint>(tris.size() / 3);
     uint t_off = 0;
@@ -82,7 +82,7 @@ void removeDegenerateAndDuplicatedTriangles(const std::vector<double> &in_coords
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::vector<std::vector<uint> > &intersection_list)
+inline void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::vector<std::vector<uint> > &intersection_list)
 {
     std::vector<cinolib::vec3d> verts(ts.numVerts());
 

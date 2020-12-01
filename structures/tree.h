@@ -27,9 +27,9 @@ class Tree
 {
     public:
 
-        Tree() {}
+        inline Tree() {}
 
-        Tree(const uint &size)
+        inline Tree(const uint &size)
         {
             nodes.reserve(size);
         }
@@ -67,9 +67,9 @@ class Tree
 
 
     private:
+
         std::vector<Node> nodes;
 };
-
 
 
 

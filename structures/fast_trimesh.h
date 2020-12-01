@@ -41,9 +41,10 @@ struct iTri
 class FastTrimesh
 {
     public:
-        FastTrimesh(){}
 
-        FastTrimesh(const genericPoint* tv0, const genericPoint* tv1, const genericPoint *tv2,
+        inline FastTrimesh(){}
+
+        inline FastTrimesh(const genericPoint* tv0, const genericPoint* tv1, const genericPoint *tv2,
                     const uint *tv_id, const Plane &ref_p)
         {
             addVert(tv0, tv_id[0]);

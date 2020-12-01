@@ -1,5 +1,7 @@
 #include "fast_trimesh.h"
 
+#include <unordered_set>
+
 inline void FastTrimesh::preAllocateSpace(const uint &estimated_num_verts)
 {
     vertices.reserve(estimated_num_verts);
@@ -10,7 +12,6 @@ inline void FastTrimesh::preAllocateSpace(const uint &estimated_num_verts)
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 
 inline uint FastTrimesh::numVerts() const
 {
@@ -489,7 +490,7 @@ inline void FastTrimesh::splitEdge(const uint  &e_id, const uint &v_id, Tree &tr
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void FastTrimesh::splitTri(const uint &t_id, const uint &v_id)
+inline void FastTrimesh::splitTri(const uint &t_id, const uint &v_id)
 {
     assert(t_id < triangles.size() && "tri id out of range");
     assert(v_id < vertices.size() && "vtx id out of range");
@@ -503,7 +504,7 @@ void FastTrimesh::splitTri(const uint &t_id, const uint &v_id)
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void FastTrimesh::splitTri(const uint &t_id, const uint &v_id, Tree &tree)
+inline void FastTrimesh::splitTri(const uint &t_id, const uint &v_id, Tree &tree)
 {
     assert(t_id < triangles.size() && "tri id out of range");
     assert(v_id < vertices.size() && "vtx id out of range");

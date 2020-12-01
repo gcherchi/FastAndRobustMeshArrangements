@@ -17,22 +17,6 @@ struct lessThanForSet
     }
 };
 
-
-struct VectorHash
-{
-    inline size_t operator()(const std::vector<uint>& v) const
-    {
-        std::hash<uint> hasher;
-        size_t seed = 0;
-        for (uint i : v) seed ^= hasher(i) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-
-        return seed;
-    }
-};
-
-typedef std::unordered_set< std::vector<uint>, VectorHash > CustomUnorderedVectorSet;
-
-
 struct PairHash
 {
     inline size_t operator()(const UIPair &p) const
@@ -54,7 +38,7 @@ class AuxiliaryStructure
 {
     public:
 
-        AuxiliaryStructure() {}
+        inline AuxiliaryStructure() {}
 
         inline void initFromTriangleSoup(TriangleSoup &ts);
 
@@ -133,7 +117,6 @@ class AuxiliaryStructure
 
 
 #include "aux_structure.cpp"
-
 
 #endif // INTERSECTIONS_GRAPH_H
 

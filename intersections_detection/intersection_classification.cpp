@@ -1,8 +1,6 @@
 #include "intersection_classification.h"
 
-using namespace cinolib;
-
-void classifyIntersections(TriangleSoup &ts, AuxiliaryStructure &g)
+inline void classifyIntersections(TriangleSoup &ts, AuxiliaryStructure &g)
 {
     for(uint tA_id = 0; tA_id < g.intersectionList().size(); tA_id++)
     {
@@ -21,7 +19,7 @@ void classifyIntersections(TriangleSoup &ts, AuxiliaryStructure &g)
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void checkTriangleTriangleIntersections(TriangleSoup &ts, AuxiliaryStructure &g, const uint &tA_id, const uint &tB_id)
+inline void checkTriangleTriangleIntersections(TriangleSoup &ts, AuxiliaryStructure &g, const uint &tA_id, const uint &tB_id)
 {
     std::set<uint> v_tmp; // temporary vtx list for final symbolic edge creation
     bool coplanar_tris = false;
@@ -31,9 +29,9 @@ void checkTriangleTriangleIntersections(TriangleSoup &ts, AuxiliaryStructure &g,
      *      check of tB respect to tA
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
     double orBA[3];
-    orBA[0] = orient3d(ts.triVertPtr(tB_id, 0), ts.triVertPtr(tA_id, 0), ts.triVertPtr(tA_id, 1), ts.triVertPtr(tA_id, 2));
-    orBA[1] = orient3d(ts.triVertPtr(tB_id, 1), ts.triVertPtr(tA_id, 0), ts.triVertPtr(tA_id, 1), ts.triVertPtr(tA_id, 2));
-    orBA[2] = orient3d(ts.triVertPtr(tB_id, 2), ts.triVertPtr(tA_id, 0), ts.triVertPtr(tA_id, 1), ts.triVertPtr(tA_id, 2));
+    orBA[0] = cinolib::orient3d(ts.triVertPtr(tB_id, 0), ts.triVertPtr(tA_id, 0), ts.triVertPtr(tA_id, 1), ts.triVertPtr(tA_id, 2));
+    orBA[1] = cinolib::orient3d(ts.triVertPtr(tB_id, 1), ts.triVertPtr(tA_id, 0), ts.triVertPtr(tA_id, 1), ts.triVertPtr(tA_id, 2));
+    orBA[2] = cinolib::orient3d(ts.triVertPtr(tB_id, 2), ts.triVertPtr(tA_id, 0), ts.triVertPtr(tA_id, 1), ts.triVertPtr(tA_id, 2));
     normalizeOrientations(orBA);
 
     if(sameOrientation(orBA[0], orBA[1]) && sameOrientation(orBA[1], orBA[2]) && (orBA[0] != 0.0)) return;   //no intersection found
@@ -110,9 +108,9 @@ void checkTriangleTriangleIntersections(TriangleSoup &ts, AuxiliaryStructure &g,
     }
     else
     {
-        orAB[0] = orient3d(ts.triVertPtr(tA_id, 0), ts.triVertPtr(tB_id, 0), ts.triVertPtr(tB_id, 1), ts.triVertPtr(tB_id, 2));
-        orAB[1] = orient3d(ts.triVertPtr(tA_id, 1), ts.triVertPtr(tB_id, 0), ts.triVertPtr(tB_id, 1), ts.triVertPtr(tB_id, 2));
-        orAB[2] = orient3d(ts.triVertPtr(tA_id, 2), ts.triVertPtr(tB_id, 0), ts.triVertPtr(tB_id, 1), ts.triVertPtr(tB_id, 2));
+        orAB[0] = cinolib::orient3d(ts.triVertPtr(tA_id, 0), ts.triVertPtr(tB_id, 0), ts.triVertPtr(tB_id, 1), ts.triVertPtr(tB_id, 2));
+        orAB[1] = cinolib::orient3d(ts.triVertPtr(tA_id, 1), ts.triVertPtr(tB_id, 0), ts.triVertPtr(tB_id, 1), ts.triVertPtr(tB_id, 2));
+        orAB[2] = cinolib::orient3d(ts.triVertPtr(tA_id, 2), ts.triVertPtr(tB_id, 0), ts.triVertPtr(tB_id, 1), ts.triVertPtr(tB_id, 2));
         normalizeOrientations(orAB);
 
         if(sameOrientation(orAB[0], orAB[1]) && sameOrientation(orAB[1], orAB[2]) && (orAB[0] != 0.0)) return;   //no intersection
@@ -181,7 +179,7 @@ void checkTriangleTriangleIntersections(TriangleSoup &ts, AuxiliaryStructure &g,
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const uint &e1_id, AuxiliaryStructure &g)
+inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const uint &e1_id, AuxiliaryStructure &g)
 {
     uint jolly_id = noCoplanarJollyPointID(ts, ts.edgeVertPtr(e1_id, 0),
                                                ts.edgeVertPtr(e1_id, 1),
@@ -219,7 +217,7 @@ uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const uint &e1_
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const uint &e1_id, const uint &t_id, AuxiliaryStructure &g)
+inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const uint &e1_id, const uint &t_id, AuxiliaryStructure &g)
 {
     implicitPoint3D_LPI *tmp_i = new implicitPoint3D_LPI(ts.edgeVert(e0_id, 0)->toExplicit3D(),
                                                          ts.edgeVert(e0_id, 1)->toExplicit3D(),
@@ -253,7 +251,7 @@ uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const uint &e1_
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-uint addEdgeCrossTriInters(TriangleSoup &ts, const uint &e_id, const uint &t_id, AuxiliaryStructure &g)
+inline uint addEdgeCrossTriInters(TriangleSoup &ts, const uint &e_id, const uint &t_id, AuxiliaryStructure &g)
 {
     implicitPoint3D_LPI *tmp_i = new implicitPoint3D_LPI(ts.edgeVert(e_id, 0)->toExplicit3D(),
                                                          ts.edgeVert(e_id, 1)->toExplicit3D(),
@@ -286,7 +284,7 @@ uint addEdgeCrossTriInters(TriangleSoup &ts, const uint &e_id, const uint &t_id,
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void addSymbolicSegment(const TriangleSoup &ts, const uint &v0_id, const uint &v1_id, const uint &tA_id, const uint &tB_id, AuxiliaryStructure &g)
+inline void addSymbolicSegment(const TriangleSoup &ts, const uint &v0_id, const uint &v1_id, const uint &tA_id, const uint &tB_id, AuxiliaryStructure &g)
 {
     assert(v0_id != v1_id && "trying to add a 0-lenght symbolic edge");
 
@@ -303,7 +301,7 @@ void addSymbolicSegment(const TriangleSoup &ts, const uint &v0_id, const uint &v
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-uint noCoplanarJollyPointID(const TriangleSoup &ts, const double *v0, const double *v1, const double *v2)
+inline uint noCoplanarJollyPointID(const TriangleSoup &ts, const double *v0, const double *v1, const double *v2)
 {
     for(uint jp_id = 0; jp_id < 4; jp_id++) // we are looking for a joppy point not aligned with the triangle
     {
@@ -321,7 +319,7 @@ uint noCoplanarJollyPointID(const TriangleSoup &ts, const double *v0, const doub
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, const uint &e_v0, const uint &e_v1,
+inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, const uint &e_v0, const uint &e_v1,
                                           const uint &e_t_id, const uint &o_t_id,
                                           AuxiliaryStructure &g, std::set<uint> &il) // il -> intersection list
 {
@@ -331,29 +329,29 @@ void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, const uint &e_v0, co
 
 
     // e_v0 position
-    PointInSimplex v0_inters = point_in_triangle_3d(ts.vertPtr(e_v0), ts.triVertPtr(o_t_id, 0), ts.triVertPtr(o_t_id, 1), ts.triVertPtr(o_t_id, 2));
-    if(v0_inters == ON_VERT0 || v0_inters == ON_VERT1 || v0_inters == ON_VERT2)
+    cinolib::PointInSimplex v0_inters = cinolib::point_in_triangle_3d(ts.vertPtr(e_v0), ts.triVertPtr(o_t_id, 0), ts.triVertPtr(o_t_id, 1), ts.triVertPtr(o_t_id, 2));
+    if(v0_inters == cinolib::ON_VERT0 || v0_inters == cinolib::ON_VERT1 || v0_inters == cinolib::ON_VERT2)
     {
         v0_in_vtx = true; // v0 in a vertex
         il.insert(e_v0);
     }
-    else if(v0_inters == ON_EDGE0) v0_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 0)); // v0 in seg0
-    else if(v0_inters == ON_EDGE1) v0_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 1)); // v0 in seg1
-    else if(v0_inters == ON_EDGE2) v0_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 2)); // v0 in seg2
-    else if(v0_inters == STRICTLY_INSIDE) v0_in_tri = true; // v0 inside tri
+    else if(v0_inters == cinolib::ON_EDGE0) v0_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 0)); // v0 in seg0
+    else if(v0_inters == cinolib::ON_EDGE1) v0_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 1)); // v0 in seg1
+    else if(v0_inters == cinolib::ON_EDGE2) v0_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 2)); // v0 in seg2
+    else if(v0_inters == cinolib::STRICTLY_INSIDE) v0_in_tri = true; // v0 inside tri
 
 
     // e_v1 position
-    PointInSimplex v1_inters = point_in_triangle_3d(ts.vertPtr(e_v1), ts.triVertPtr(o_t_id, 0), ts.triVertPtr(o_t_id, 1), ts.triVertPtr(o_t_id, 2));
-    if(v1_inters == ON_VERT0 || v1_inters == ON_VERT1 || v1_inters == ON_VERT2)
+    cinolib::PointInSimplex v1_inters = cinolib::point_in_triangle_3d(ts.vertPtr(e_v1), ts.triVertPtr(o_t_id, 0), ts.triVertPtr(o_t_id, 1), ts.triVertPtr(o_t_id, 2));
+    if(v1_inters == cinolib::ON_VERT0 || v1_inters == cinolib::ON_VERT1 || v1_inters == cinolib::ON_VERT2)
     {
         v1_in_vtx = true; // v1 in a vertex
         il.insert(e_v1);
     }
-    else if(v1_inters == ON_EDGE0) v1_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 0)); // v1 in seg0
-    else if(v1_inters == ON_EDGE1) v1_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 1)); // v1 in seg1
-    else if(v1_inters == ON_EDGE2) v1_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 2)); // v1 in seg2
-    else if(v1_inters == STRICTLY_INSIDE) v1_in_tri = true; // v1 inside tri
+    else if(v1_inters == cinolib::ON_EDGE0) v1_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 0)); // v1 in seg0
+    else if(v1_inters == cinolib::ON_EDGE1) v1_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 1)); // v1 in seg1
+    else if(v1_inters == cinolib::ON_EDGE2) v1_in_seg = static_cast<int>(ts.triEdgeID(o_t_id, 2)); // v1 in seg2
+    else if(v1_inters == cinolib::STRICTLY_INSIDE) v1_in_tri = true; // v1 inside tri
 
     if(v0_in_vtx && v1_in_vtx) return;
 
@@ -440,17 +438,17 @@ void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, const uint &e_v0, co
     int o_t_e1 = static_cast<int>(ts.triEdgeID(o_t_id, 1));
     int o_t_e2 = static_cast<int>(ts.triEdgeID(o_t_id, 2));
 
-    bool tv0_in_edge = point_in_segment_3d(ts.triVertPtr(o_t_id, 0), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) != STRICTLY_OUTSIDE;
-    bool tv1_in_edge = point_in_segment_3d(ts.triVertPtr(o_t_id, 1), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) != STRICTLY_OUTSIDE;
-    bool tv2_in_edge = point_in_segment_3d(ts.triVertPtr(o_t_id, 2), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) != STRICTLY_OUTSIDE;
+    bool tv0_in_edge = cinolib::point_in_segment_3d(ts.triVertPtr(o_t_id, 0), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) != cinolib::STRICTLY_OUTSIDE;
+    bool tv1_in_edge = cinolib::point_in_segment_3d(ts.triVertPtr(o_t_id, 1), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) != cinolib::STRICTLY_OUTSIDE;
+    bool tv2_in_edge = cinolib::point_in_segment_3d(ts.triVertPtr(o_t_id, 2), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) != cinolib::STRICTLY_OUTSIDE;
 
     int seg0_cross = -1, seg1_cross = -1, seg2_cross = -1;
     int curr_e_id = ts.edgeID(e_v0, e_v1);
 
     if(v0_in_seg != o_t_e0 && v1_in_seg != o_t_e0 && !tv0_in_edge && !tv1_in_edge &&
-       segment_segment_intersect_3d(ts.vertPtr(e_v0), ts.vertPtr(e_v1), ts.triVertPtr(o_t_id, 0), ts.triVertPtr(o_t_id, 1)) == INTERSECT &&
-       point_in_segment_3d(ts.triVertPtr(o_t_id, 0), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == STRICTLY_OUTSIDE &&
-       point_in_segment_3d(ts.triVertPtr(o_t_id, 1), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == STRICTLY_OUTSIDE) // edge e cross seg 0
+       cinolib::segment_segment_intersect_3d(ts.vertPtr(e_v0), ts.vertPtr(e_v1), ts.triVertPtr(o_t_id, 0), ts.triVertPtr(o_t_id, 1)) == cinolib::INTERSECT &&
+       cinolib::point_in_segment_3d(ts.triVertPtr(o_t_id, 0), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == cinolib::STRICTLY_OUTSIDE &&
+       cinolib::point_in_segment_3d(ts.triVertPtr(o_t_id, 1), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == cinolib::STRICTLY_OUTSIDE) // edge e cross seg 0
     {
         seg0_cross = static_cast<int>(addEdgeCrossEdgeInters(ts, static_cast<uint>(o_t_e0), static_cast<uint>(curr_e_id), g));
         il.insert(static_cast<uint>(seg0_cross));
@@ -474,9 +472,9 @@ void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, const uint &e_v0, co
     }
 
     if(v0_in_seg != o_t_e1 && v1_in_seg != o_t_e1 && !tv1_in_edge && !tv2_in_edge &&
-       segment_segment_intersect_3d(ts.vertPtr(e_v0), ts.vertPtr(e_v1), ts.triVertPtr(o_t_id, 1), ts.triVertPtr(o_t_id, 2)) == INTERSECT &&
-       point_in_segment_3d(ts.triVertPtr(o_t_id, 1), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == STRICTLY_OUTSIDE &&
-       point_in_segment_3d(ts.triVertPtr(o_t_id, 2), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == STRICTLY_OUTSIDE) // edge e cross seg 1
+       cinolib::segment_segment_intersect_3d(ts.vertPtr(e_v0), ts.vertPtr(e_v1), ts.triVertPtr(o_t_id, 1), ts.triVertPtr(o_t_id, 2)) == cinolib::INTERSECT &&
+       cinolib::point_in_segment_3d(ts.triVertPtr(o_t_id, 1), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == cinolib::STRICTLY_OUTSIDE &&
+       cinolib::point_in_segment_3d(ts.triVertPtr(o_t_id, 2), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == cinolib::STRICTLY_OUTSIDE) // edge e cross seg 1
     {
         seg1_cross = static_cast<int>(addEdgeCrossEdgeInters(ts, static_cast<uint>(o_t_e1), static_cast<uint>(curr_e_id), g));
         il.insert(static_cast<uint>(seg1_cross));
@@ -500,9 +498,9 @@ void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, const uint &e_v0, co
     }
 
     if(v0_in_seg != o_t_e2 && v1_in_seg != o_t_e2 && !tv2_in_edge && !tv0_in_edge &&
-       segment_segment_intersect_3d(ts.vertPtr(e_v0), ts.vertPtr(e_v1), ts.triVertPtr(o_t_id, 2), ts.triVertPtr(o_t_id, 0)) == INTERSECT &&
-       point_in_segment_3d(ts.triVertPtr(o_t_id, 2), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == STRICTLY_OUTSIDE &&
-       point_in_segment_3d(ts.triVertPtr(o_t_id, 0), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == STRICTLY_OUTSIDE) // edge e cross seg2
+       cinolib::segment_segment_intersect_3d(ts.vertPtr(e_v0), ts.vertPtr(e_v1), ts.triVertPtr(o_t_id, 2), ts.triVertPtr(o_t_id, 0)) == cinolib::INTERSECT &&
+       cinolib::point_in_segment_3d(ts.triVertPtr(o_t_id, 2), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == cinolib::STRICTLY_OUTSIDE &&
+       cinolib::point_in_segment_3d(ts.triVertPtr(o_t_id, 0), ts.vertPtr(e_v0), ts.vertPtr(e_v1)) == cinolib::STRICTLY_OUTSIDE) // edge e cross seg2
     {
         seg2_cross = static_cast<int>(addEdgeCrossEdgeInters(ts, static_cast<uint>(o_t_e2), static_cast<uint>(curr_e_id), g));
         il.insert(static_cast<uint>(seg2_cross));
@@ -556,23 +554,23 @@ void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, const uint &e_v0, co
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void checkSingleNoCoplanarEdgeIntersection(TriangleSoup &ts, const uint &e_id, const uint &t_id,
+inline void checkSingleNoCoplanarEdgeIntersection(TriangleSoup &ts, const uint &e_id, const uint &t_id,
                                            std::set<uint> &v_tmp, AuxiliaryStructure &g, std::set<uint> &li) // li -> intersection list
 {
 
-    SimplexIntersection inters = segment_triangle_intersect_3d(ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1),
-                                                               ts.triVertPtr(t_id, 0), ts.triVertPtr(t_id, 1), ts.triVertPtr(t_id, 2));
+    cinolib::SimplexIntersection inters = cinolib::segment_triangle_intersect_3d(ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1),
+                                                                                 ts.triVertPtr(t_id, 0), ts.triVertPtr(t_id, 1), ts.triVertPtr(t_id, 2));
 
-    if(inters == DO_NOT_INTERSECT || inters == SIMPLICIAL_COMPLEX) return; // no intersection found
+    if(inters == cinolib::DO_NOT_INTERSECT || inters == cinolib::SIMPLICIAL_COMPLEX) return; // no intersection found
 
-    if(point_in_segment_3d(ts.triVertPtr(t_id, 0), ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1)) == STRICTLY_INSIDE ||
-       point_in_segment_3d(ts.triVertPtr(t_id, 1), ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1)) == STRICTLY_INSIDE ||
-       point_in_segment_3d(ts.triVertPtr(t_id, 2), ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1)) == STRICTLY_INSIDE)
+    if(cinolib::point_in_segment_3d(ts.triVertPtr(t_id, 0), ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1)) == cinolib::STRICTLY_INSIDE ||
+       cinolib::point_in_segment_3d(ts.triVertPtr(t_id, 1), ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1)) == cinolib::STRICTLY_INSIDE ||
+       cinolib::point_in_segment_3d(ts.triVertPtr(t_id, 2), ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1)) == cinolib::STRICTLY_INSIDE)
         return;
 
     // the edge intersect the tri in seg 0
-    if(segment_segment_intersect_3d(ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1),
-                                    ts.triVertPtr(t_id, 0), ts.triVertPtr(t_id, 1)) == INTERSECT)
+    if(cinolib::segment_segment_intersect_3d(ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1),
+                                             ts.triVertPtr(t_id, 0), ts.triVertPtr(t_id, 1)) == cinolib::INTERSECT)
     {
         uint e_id2 = ts.triEdgeID(t_id, 0);
         uint int_point = addEdgeCrossEdgeInters(ts, e_id, e_id2, t_id, g);
@@ -582,8 +580,8 @@ void checkSingleNoCoplanarEdgeIntersection(TriangleSoup &ts, const uint &e_id, c
     }
 
     // the edge intersect the tri in seg 1
-    if(segment_segment_intersect_3d(ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1),
-                                    ts.triVertPtr(t_id, 1), ts.triVertPtr(t_id, 2)) == INTERSECT)
+    if(cinolib::segment_segment_intersect_3d(ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1),
+                                             ts.triVertPtr(t_id, 1), ts.triVertPtr(t_id, 2)) == cinolib::INTERSECT)
     {
         uint e_id2 = ts.triEdgeID(t_id, 1);
         uint int_point = addEdgeCrossEdgeInters(ts, e_id, e_id2, t_id, g);
@@ -593,8 +591,8 @@ void checkSingleNoCoplanarEdgeIntersection(TriangleSoup &ts, const uint &e_id, c
     }
 
     // the edge intersect the tri in seg 2
-    if(segment_segment_intersect_3d(ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1),
-                                    ts.triVertPtr(t_id, 2), ts.triVertPtr(t_id, 0)) == INTERSECT)
+    if(cinolib::segment_segment_intersect_3d(ts.edgeVertPtr(e_id, 0), ts.edgeVertPtr(e_id, 1),
+                                             ts.triVertPtr(t_id, 2), ts.triVertPtr(t_id, 0)) == cinolib::INTERSECT)
     {
         uint e_id2 = ts.triEdgeID(t_id, 2);
         uint int_point = addEdgeCrossEdgeInters(ts, e_id, e_id2, t_id, g);
@@ -611,15 +609,15 @@ void checkSingleNoCoplanarEdgeIntersection(TriangleSoup &ts, const uint &e_id, c
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void checkVtxInTriangleIntersection(TriangleSoup &ts, const uint &v_id, const uint &t_id, std::set<uint> &v_tmp, AuxiliaryStructure &g, std::set<uint> &li) // li -> intersection list
+inline void checkVtxInTriangleIntersection(TriangleSoup &ts, const uint &v_id, const uint &t_id, std::set<uint> &v_tmp, AuxiliaryStructure &g, std::set<uint> &li) // li -> intersection list
 {
-    PointInSimplex inters = point_in_triangle_3d(ts.vertPtr(v_id), ts.triVertPtr(t_id, 0), ts.triVertPtr(t_id, 1), ts.triVertPtr(t_id, 2));
+    cinolib::PointInSimplex inters = cinolib::point_in_triangle_3d(ts.vertPtr(v_id), ts.triVertPtr(t_id, 0), ts.triVertPtr(t_id, 1), ts.triVertPtr(t_id, 2));
 
     switch(inters)
     {
-        case STRICTLY_OUTSIDE: return;
+        case cinolib::STRICTLY_OUTSIDE: return;
 
-        case ON_EDGE0:
+        case cinolib::ON_EDGE0:
         {
             uint e_id = ts.triEdgeID(t_id, 0);
             g.addVertexInEdge(e_id, v_id);
@@ -627,7 +625,7 @@ void checkVtxInTriangleIntersection(TriangleSoup &ts, const uint &v_id, const ui
             v_tmp.insert(v_id);
         } break;
 
-        case ON_EDGE1:
+        case cinolib::ON_EDGE1:
         {
             uint e_id = ts.triEdgeID(t_id, 1);
             g.addVertexInEdge(e_id, v_id);
@@ -635,7 +633,7 @@ void checkVtxInTriangleIntersection(TriangleSoup &ts, const uint &v_id, const ui
             v_tmp.insert(v_id);
         } break;
 
-        case ON_EDGE2:
+        case cinolib::ON_EDGE2:
         {
             uint e_id = ts.triEdgeID(t_id, 2);
             g.addVertexInEdge(e_id, v_id);
@@ -643,16 +641,16 @@ void checkVtxInTriangleIntersection(TriangleSoup &ts, const uint &v_id, const ui
             v_tmp.insert(v_id);
         } break;
 
-        case STRICTLY_INSIDE:
+        case cinolib::STRICTLY_INSIDE:
         {
             g.addVertexInTriangle(t_id, v_id);
             li.insert(v_id);
             v_tmp.insert(v_id);
         } break;
 
-        case ON_VERT0:
-        case ON_VERT1:
-        case ON_VERT2:
+        case cinolib::ON_VERT0:
+        case cinolib::ON_VERT1:
+        case cinolib::ON_VERT2:
         {
             v_tmp.insert(v_id);
             li.insert(v_id);
@@ -665,7 +663,7 @@ void checkVtxInTriangleIntersection(TriangleSoup &ts, const uint &v_id, const ui
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void propagateCoplanarTrianlesIntersections(TriangleSoup &ts, AuxiliaryStructure &g)
+inline void propagateCoplanarTrianlesIntersections(TriangleSoup &ts, AuxiliaryStructure &g)
 {
     for(uint t_id = 0; t_id < ts.numTris(); t_id++)
     {
@@ -711,7 +709,7 @@ void propagateCoplanarTrianlesIntersections(TriangleSoup &ts, AuxiliaryStructure
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void normalizeOrientations(double o[])
+inline void normalizeOrientations(double o[])
 {
     if(o[0] < 0) o[0] = -1;
     else if(o[0] > 0) o[0] = 1;
@@ -725,7 +723,7 @@ void normalizeOrientations(double o[])
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-bool sameOrientation(const double &o1, const double &o2)
+inline bool sameOrientation(const double &o1, const double &o2)
 {
     if(o1 < 0.0 && o2 < 0.0) return true;
     if(o1 > 0.0 && o2 > 0.0) return true;
@@ -736,7 +734,7 @@ bool sameOrientation(const double &o1, const double &o2)
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // 1 if all edges are coplanar to the triangle, -1 otherwise
-bool allCoplanarEdges(const double o[])
+inline bool allCoplanarEdges(const double o[])
 {
     if(o[0] == 0.0 && o[1] == 0.0 && o[2] == 0.0)
         return true;
@@ -746,7 +744,7 @@ bool allCoplanarEdges(const double o[])
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // if there is a coplanar edge return its id, -1 otherwise
-int singleCoplanarEdge(const double o[])
+inline int singleCoplanarEdge(const double o[])
 {
     if(o[0] == 0.0 && o[1] == 0.0 && o[2] != 0.0) return 0;
     if(o[1] == 0.0 && o[2] == 0.0 && o[0] != 0.0) return 1;
@@ -757,7 +755,7 @@ int singleCoplanarEdge(const double o[])
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // if there is a vertex in the plane and the opposite edge doesn't intersect the plane return the vtx id, -1 otherwise
-int vtxInPlaneAndOppositeEdgeOnSameSide(const double o[])
+inline int vtxInPlaneAndOppositeEdgeOnSameSide(const double o[])
 {
     if(o[0] == 0.0 && o[1] == o[2] && o[1] != 0.0) return 0;
     if(o[1] == 0.0 && o[0] == o[2] && o[0] != 0.0) return 1;
@@ -768,7 +766,7 @@ int vtxInPlaneAndOppositeEdgeOnSameSide(const double o[])
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // if there is a vertex in the plane and the opposite edge intersect the plane return the vtx id, -1 otherwise
-int vtxInPlaneAndOppositeEdgeCrossPlane(const double o[])
+inline int vtxInPlaneAndOppositeEdgeCrossPlane(const double o[])
 {
     if(o[0] == 0.0 && o[1] != o[2] && o[1] != 0.0 && o[2] != 0.0) return 0;
     if(o[1] == 0.0 && o[0] != o[2] && o[0] != 0.0 && o[2] != 0.0) return 1;
@@ -779,7 +777,7 @@ int vtxInPlaneAndOppositeEdgeCrossPlane(const double o[])
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 // if there is a vertex on one side and the opposite edge on the other return the relative informations, -1 otherwise
-int vtxOnASideAndOppositeEdgeOnTheOther(const double o[], uint &opp_v0, uint &opp_v1)
+inline int vtxOnASideAndOppositeEdgeOnTheOther(const double o[], uint &opp_v0, uint &opp_v1)
 {
     if(o[0] == 0.0 || o[1] == 0.0 || o[2] == 0.0) return -1; // one vtx on the plane
 
@@ -806,7 +804,7 @@ int vtxOnASideAndOppositeEdgeOnTheOther(const double o[], uint &opp_v0, uint &op
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-bool genericPointInsideTriangle(const TriangleSoup &ts, const uint &p_id, const uint &t_id, const bool &strict)
+inline bool genericPointInsideTriangle(const TriangleSoup &ts, const uint &p_id, const uint &t_id, const bool &strict)
 {
     const genericPoint *p = ts.vert(p_id);
     const genericPoint *tv0 = ts.triVert(t_id, 0);

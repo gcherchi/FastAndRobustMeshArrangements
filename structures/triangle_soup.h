@@ -26,22 +26,18 @@ struct Tri
 
 typedef std::pair<uint, uint> Edge;
 
-typedef struct
-{
-    double coords[3];
-} Vptr;
-
 class TriangleSoup
 {
     public:
-        TriangleSoup(){}
 
-        TriangleSoup(const std::vector<double> &coords, const std::vector<uint> &tris, const std::vector< std::bitset<NBIT> > &labels)
+        inline TriangleSoup(){}
+
+        inline TriangleSoup(const std::vector<double> &coords, const std::vector<uint> &tris, const std::vector< std::bitset<NBIT> > &labels)
         {
             init(coords, tris, labels);
         }
 
-        ~TriangleSoup()
+        inline ~TriangleSoup()
         {
             for(uint v = 0; v < impl_vertices.size(); v++)
                 delete impl_vertices[v];
@@ -113,6 +109,7 @@ class TriangleSoup
         inline genericPoint* jollyPoint(const uint &off);
 
     private:
+
         std::vector<explicitPoint3D>  orig_vertices;
         std::vector<genericPoint*>    impl_vertices;
         std::vector<Edge>             edges;

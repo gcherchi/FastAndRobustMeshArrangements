@@ -1,6 +1,6 @@
 #include "solve_intersections.h"
 
-void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels,
+inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels,
                         std::vector<double> &out_coords, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels)
 {
     setlocale(LC_NUMERIC, "en_US.UTF-8"); // make sure "." is the decimal separator
@@ -31,7 +31,7 @@ void meshArrangementPipeline(const std::vector<double> &in_coords, const std::ve
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void solveIntersections(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, std::vector<double> &out_coords, std::vector<uint> &out_tris)
+inline void solveIntersections(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, std::vector<double> &out_coords, std::vector<uint> &out_tris)
 {
     uint num_tris = static_cast<uint>(in_tris.size() / 3);
     std::vector< std::bitset<NBIT>> tmp_in_labels(num_tris), out_labels;
@@ -41,7 +41,7 @@ void solveIntersections(const std::vector<double> &in_coords, const std::vector<
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void solveIntersections(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector<uint> &in_labels,
+inline void solveIntersections(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector<uint> &in_labels,
                                   std::vector<double> &out_coords, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels, uint &num_labels)
 {
     std::vector< std::bitset<NBIT>> tmp_in_labels(in_labels.size());
