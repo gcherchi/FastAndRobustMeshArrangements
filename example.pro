@@ -38,7 +38,6 @@ INCLUDEPATH     += external/Cinolib/external/eigen
 
 # CINOLIB
 INCLUDEPATH     += external/Cinolib/include
-DEPENDPATH      += external/Cinolib/include
 
 unix:macx{
 
