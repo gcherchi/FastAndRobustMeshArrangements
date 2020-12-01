@@ -9,52 +9,28 @@
 
 int main(int argc, char **argv)
 {
-    #ifdef DBG_MODE
     QApplication a(argc, argv);
-    #endif
 
     std::string filename;
 
-    #ifndef DBG_MODE
-    if(argc > 1) filename = argv[1];
+    if(argc > 1)
+        filename = argv[1];
     else
     {
-        std::cout << "input file missing" << std::endl;
-        return -1;
-    }
-    #else
-    filename = std::string(DATA_PATH) + "two_spheres.stl";
-    #endif
+        //std::cout << "input file missing" << std::endl;
+        //return -1;
 
-    //::::::: Loading file data ::::::::::::::::::::::::::::::::::::
-    std::vector<cinolib::vec3d> cinolib_verts;
-    std::vector<double> in_coords;
-    std::vector<uint> in_tris;
-
-    cinolib::read_STL(filename.c_str(), cinolib_verts, in_tris, false);
-
-    for(auto &v : cinolib_verts)
-    {
-        in_coords.push_back(v.x());
-        in_coords.push_back(v.y());
-        in_coords.push_back(v.z());
+        filename = std::string(DATA_PATH) + "two_spheres.stl";
     }
 
-    //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    std::vector<double> out_coords;
-    std::vector<uint> out_tris;
+    std::vector<double> in_coords, out_coords;
+    std::vector<uint> in_tris, out_tris;
+
+    load(filename, in_coords, in_tris);
 
     solveIntersections(in_coords, in_tris, out_coords, out_tris);
 
     cinolib::DrawableTrimesh<> m(out_coords, out_tris);
-
-    for(uint e = 0; e < m.num_edges(); e++) m.edge_data(e).flags = 0;
-    m.updateGL();
-
-    /* ----------------------------------------
-     * Visualization stuff
-     * -------------------------------------- */
-    #ifdef DBG_MODE
 
     cinolib::GLcanvas gui;
     gui.push_obj(&m);
@@ -66,9 +42,6 @@ int main(int argc, char **argv)
     QApplication::connect(new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_1), &gui), &QShortcut::activated, [&](){panel.show();});
 
     return a.exec();
-    #else
-    return 0;
-    #endif
 }
 
 
