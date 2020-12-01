@@ -1,10 +1,10 @@
 # Fast and Robust Mesh Arrangements using Floating-point Arithmetic
 
-This is the code we used for the experiments in the paper "**Fast and Robust Mesh Arrangements using Floating-point Arithmetic**" by G. Cherchi, M. Livesu, R. Scateni and M. Attene (ACM TOG, SIGGRAPH Asia 2020). 
+This is a <b>header-only</b> version of the code we used for the experiments in the paper "**Fast and Robust Mesh Arrangements using Floating-point Arithmetic**" by G. Cherchi, M. Livesu, R. Scateni and M. Attene (ACM TOG, SIGGRAPH Asia 2020). 
 
 <p align="center"><img src="teaser_img.png"></p>
 
-|:warning: WARNING: We are rewriting portions of the code to be more efficient. The code is therefore subject to continuous updates. We are also preparing an easy to use header-only version of our algorithm. It will be released as soon as possible.  |
+|:warning: WARNING: We are rewriting portions of the code to be more efficient. The code is therefore subject to continuous updates.  |
 | --- |
 
 ## Usage
