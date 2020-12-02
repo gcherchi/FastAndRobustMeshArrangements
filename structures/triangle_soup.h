@@ -2,7 +2,7 @@
 #define TRIANGLESOUP_H
 
 #include "common.h"
-#include "indirect_predicates/implicit_point.h"
+#include <implicit_point.h>
 
 #include <cinolib/geometry/vec3.h>
 

@@ -1,7 +1,7 @@
 #ifndef FASTTRIMESH_H
 #define FASTTRIMESH_H
 
-#include "indirect_predicates/implicit_point.h"
+#include <implicit_point.h>
 #include "structures/tree.h"
 #include "common.h"
 

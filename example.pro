@@ -10,17 +10,10 @@ DEFINES         += IS64BITPLATFORM
 
 SOURCES         +=  main.cpp \
                     external/Cinolib/external/predicates/shewchuk.c \
-                    indirect_predicates/implicit_point.cpp \
-                    indirect_predicates/numerics.cpp \
-                    indirect_predicates/predicates/indirect_predicates.cpp \
-                    intersections_detection/intersection_classification.cpp \
+                    external/IndirectPredicates/implicit_point.cpp \
+                    external/IndirectPredicates/numerics.cpp \
+                    external/IndirectPredicates/predicates/indirect_predicates.cpp \
 
-
-HEADERS         +=  \
-                    intersections_detection/intersection_classification.h \
-                    indirect_predicates/implicit_point.h \
-                    indirect_predicates/numerics.h \
-                    indirect_predicates/predicates/indirect_predicates.h \ \
 
 #INDIRECT PREDICATES
 INCLUDEPATH     += external/IndirectPredicates/predicates
