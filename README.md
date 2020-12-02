@@ -17,6 +17,7 @@ Once done, you may build the executable as follows:
 mkdir build
 cd build
 cmake ..
+make
 ```
 This will produce an appropriate building configuration for your system.
 On Windows MSVC, this will produce a mesh_arrangement.sln file.
