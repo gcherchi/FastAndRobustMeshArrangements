@@ -15,12 +15,12 @@ SOURCES         +=  main.cpp \
                     external/IndirectPredicates/predicates/indirect_predicates.cpp \
 
 
-# CODE FOR MESH ARRANGEMENTS
-INCLUDEPATH     += code/
+# PROJECT CODE
+INCLUDEPATH     += code
 
 #INDIRECT PREDICATES
 INCLUDEPATH     += external/IndirectPredicates/predicates
-INCLUDEPATH     += external/IndirectPredicates/
+INCLUDEPATH     += external/IndirectPredicates
 
 #EIGEN
 INCLUDEPATH     += external/Cinolib/external/eigen

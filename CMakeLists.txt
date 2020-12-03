@@ -37,11 +37,11 @@ endif()
 # Public include directory
 target_include_directories(${PROJECT_NAME} PUBLIC
 	./
+	code/
 	external/Cinolib/external/eigen/
 	external/Cinolib/include/
 	external/IndirectPredicates/
 	external/IndirectPredicates/predicates/
-	code/
 )
 
 # preprocessor definitions
