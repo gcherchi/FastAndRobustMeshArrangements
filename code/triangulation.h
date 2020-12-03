@@ -1,10 +1,10 @@
 #ifndef TRIANGULATION_H
 #define TRIANGULATION_H
 
-#include "structures/aux_structure.h"
-#include "structures/triangle_soup.h"
-#include "structures/fast_trimesh.h"
-#include "structures/tree.h"
+#include "aux_structure.h"
+#include "triangle_soup.h"
+#include "fast_trimesh.h"
+#include "tree.h"
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 

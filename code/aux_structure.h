@@ -1,7 +1,7 @@
 #ifndef INTERSECTIONS_GRAPH_H
 #define INTERSECTIONS_GRAPH_H
 
-#include "structures/triangle_soup.h"
+#include "triangle_soup.h"
 
 #include <set>
 #include <unordered_set>

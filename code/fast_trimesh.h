@@ -2,7 +2,7 @@
 #define FASTTRIMESH_H
 
 #include <implicit_point.h>
-#include "structures/tree.h"
+#include "tree.h"
 #include "common.h"
 
 #include <set>

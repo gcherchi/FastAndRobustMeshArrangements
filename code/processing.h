@@ -1,7 +1,7 @@
 #ifndef PREPROCESSING_H
 #define PREPROCESSING_H
 
-#include "structures/triangle_soup.h"
+#include "triangle_soup.h"
 
 #include <cinolib/octree.h>
 #include <cinolib/predicates.h>

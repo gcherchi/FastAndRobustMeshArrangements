@@ -1,8 +1,8 @@
 #ifndef INTERSECTION_CLASSIFICATION_H
 #define INTERSECTION_CLASSIFICATION_H
 
-#include "structures/triangle_soup.h"
-#include "structures/aux_structure.h"
+#include "triangle_soup.h"
+#include "aux_structure.h"
 
 #include <cinolib/predicates.h>
 

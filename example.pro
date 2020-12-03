@@ -15,6 +15,9 @@ SOURCES         +=  main.cpp \
                     external/IndirectPredicates/predicates/indirect_predicates.cpp \
 
 
+# CODE FOR MESH ARRANGEMENTS
+INCLUDEPATH     += code/
+
 #INDIRECT PREDICATES
 INCLUDEPATH     += external/IndirectPredicates/predicates
 INCLUDEPATH     += external/IndirectPredicates/

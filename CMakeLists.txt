@@ -41,6 +41,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 	external/Cinolib/include/
 	external/IndirectPredicates/
 	external/IndirectPredicates/predicates/
+	code/
 )
 
 # preprocessor definitions
