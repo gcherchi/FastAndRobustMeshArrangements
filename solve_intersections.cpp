@@ -23,8 +23,6 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
     triangulation(ts, g, out_tris, out_labels);
 
     ts.createDoubleVectorOfCoords(out_coords, multiplier);
-
-    g.clearStructure();
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

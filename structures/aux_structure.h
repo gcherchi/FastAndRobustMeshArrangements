@@ -42,11 +42,9 @@ class AuxiliaryStructure
 
         inline void initFromTriangleSoup(TriangleSoup &ts);
 
-        inline std::vector< std::vector<uint> > &intersectionList();
+        inline std::set< std::pair<uint, uint> > &intersectionList();
 
-        inline const std::vector<uint> &triangleIntersectionList(const uint &t_id) const;
-
-        inline void clearStructure();
+        inline const std::set<std::pair<uint, uint> > &intersectionList() const;
 
         inline bool addVertexInTriangle(const uint &t_id, const uint &v_id);
 
@@ -64,9 +62,9 @@ class AuxiliaryStructure
 
         inline bool triangleHasCoplanars(const uint &t_id) const;
 
-        inline bool triangleHasIntersections(const uint &t_id) const;
+        inline void setTriangleHasIntersections(const uint &t_id);
 
-        inline const std::vector< std::vector<uint> > &intersectionList() const;
+        inline bool triangleHasIntersections(const uint &t_id) const;
 
         inline const std::set<uint> &trianglePointsList(const uint &t_id) const;
 
@@ -93,22 +91,24 @@ class AuxiliaryStructure
 
     private:
 
-        uint num_original_vtx;
-        uint num_original_tris;
-        int num_intersections;
-        uint num_tpi;
+        uint    num_original_vtx;
+        uint    num_original_tris;
+        int     num_intersections;
+        uint    num_tpi;
 
-        std::vector< std::vector<uint> > coplanar_tris;
+        std::set< std::pair<uint, uint> >    intersection_list;
+        std::vector< std::vector<uint> >    coplanar_tris;
 
-        std::vector< std::set<uint> > tri2pts;
-        std::vector< std::set<uint> > edge2pts;
-        std::vector< std::vector<uint> > tri2tri;
-        std::vector< std::set<UIPair> > tri2segs;
-        CustomUnorderedPairSetMap seg2tris;
+        std::vector< std::set<uint> >       tri2pts;
+        std::vector< std::set<uint> >       edge2pts;
+        std::vector< std::set<UIPair> >     tri2segs;
+        CustomUnorderedPairSetMap           seg2tris;
+
+        std::vector<bool>                   tri_has_intersections;
 
         std::set< std::pair<const genericPoint*, uint> , lessThanForSet> sorted_vtx;
 
-        std::set< std::set<uint> > visited_pockets;
+        std::set< std::set<uint> >      visited_pockets;
 
         std::map< std::set<uint>, uint> pockets_map;
 

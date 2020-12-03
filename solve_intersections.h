@@ -1,7 +1,7 @@
 #ifndef SOLVE_INTERSECTIONS_H
 #define SOLVE_INTERSECTIONS_H
 
-#include "preprocessing/pre_processing.h"
+#include "processing/processing.h"
 #include "structures/aux_structure.h"
 #include "structures/triangle_soup.h"
 #include "intersections_detection/intersection_classification.h"

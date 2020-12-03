@@ -12,9 +12,9 @@ inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const 
 
 inline void removeDegenerateAndDuplicatedTriangles(const std::vector<double> &in_coords, std::vector<uint> &tris, std::vector<std::bitset<NBIT> > &labels);
 
-inline void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::vector<std::vector<uint> > &intersection_list);
+inline void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::set<std::pair<uint, uint> > &intersection_list);
 
 
-#include "pre_processing.cpp"
+#include "processing.cpp"
 
 #endif // PREPROCESSING_H

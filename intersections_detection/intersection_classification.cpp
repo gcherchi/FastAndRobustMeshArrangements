@@ -2,15 +2,14 @@
 
 inline void classifyIntersections(TriangleSoup &ts, AuxiliaryStructure &g)
 {
-    for(uint tA_id = 0; tA_id < g.intersectionList().size(); tA_id++)
+    for(auto &pair : g.intersectionList())
     {
-        for(const uint &tB_id : g.triangleIntersectionList(tA_id))
-        {
-            if(tA_id < tB_id)   //we check the intersection between t1 and t2 only once
-            {
-                checkTriangleTriangleIntersections(ts, g, tA_id, tB_id);
-            }
-        }
+        uint tA_id = pair.first, tB_id = pair.second;
+
+        g.setTriangleHasIntersections(tA_id);
+        g.setTriangleHasIntersections(tB_id);
+
+        checkTriangleTriangleIntersections(ts, g, tA_id, tB_id);
     }
 
     // Coplanar triangles intersections propagation

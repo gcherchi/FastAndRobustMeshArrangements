@@ -12,6 +12,7 @@ inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
     tri2pts.resize(ts.numTris());
     edge2pts.resize(ts.numEdges());
     tri2segs.resize(ts.numTris());
+    tri_has_intersections.resize(ts.numTris(), false);
 
     num_intersections = 0;
     num_tpi = 0;
@@ -25,31 +26,16 @@ inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline std::vector<std::vector<uint> > &AuxiliaryStructure::intersectionList()
+inline std::set<std::pair<uint, uint> > &AuxiliaryStructure::intersectionList()
 {
-    return tri2tri;
+    return intersection_list;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::vector<uint> &AuxiliaryStructure::triangleIntersectionList(const uint &t_id) const
+inline const std::set<std::pair<uint, uint> > &AuxiliaryStructure::intersectionList() const
 {
-    assert(t_id < tri2tri.size());
-    return tri2tri[t_id];
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline void AuxiliaryStructure::clearStructure()
-{
-    coplanar_tris.clear();
-    tri2pts.clear();
-    edge2pts.clear();
-    tri2tri.clear();
-    tri2segs.clear();
-    seg2tris.clear();
-    sorted_vtx.clear();
-    visited_pockets.clear();
+    return intersection_list;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -137,18 +123,20 @@ inline bool AuxiliaryStructure::triangleHasCoplanars(const uint &t_id) const
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline bool AuxiliaryStructure::triangleHasIntersections(const uint &t_id) const
+inline void AuxiliaryStructure::setTriangleHasIntersections(const uint &t_id)
 {
-    assert(t_id < tri2tri.size());
-    return tri2tri[t_id].size() > 0;
+    assert(t_id < tri_has_intersections.size());
+    tri_has_intersections[t_id] = true;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::vector< std::vector<uint> > &AuxiliaryStructure::intersectionList() const
+inline bool AuxiliaryStructure::triangleHasIntersections(const uint &t_id) const
 {
-    return tri2tri;
+    assert(t_id < tri_has_intersections.size());
+    return tri_has_intersections[t_id];
 }
+
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 

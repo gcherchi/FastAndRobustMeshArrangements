@@ -1,4 +1,4 @@
-#include "pre_processing.h"
+#include "processing.h"
 
 #include <cinolib/find_intersections.h>
 
@@ -82,23 +82,14 @@ inline void removeDegenerateAndDuplicatedTriangles(const std::vector<double> &in
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::vector<std::vector<uint> > &intersection_list)
+inline void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::set<std::pair<uint, uint> > &intersection_list)
 {
     std::vector<cinolib::vec3d> verts(ts.numVerts());
 
     for(uint v_id = 0; v_id < ts.numVerts(); v_id++)
         verts[v_id] = ts.vertCinolib(v_id);
 
-    std::set< std::pair<uint, uint> > tmp_inters;
-    cinolib::find_intersections(verts, in_tris, tmp_inters);
-
-    intersection_list.resize(ts.numTris());
-
-    for(auto &p : tmp_inters)
-    {
-        intersection_list[p.first].push_back(p.second);
-        intersection_list[p.second].push_back(p.first);
-    }
+    cinolib::find_intersections(verts, in_tris, intersection_list);
 }
 
 
