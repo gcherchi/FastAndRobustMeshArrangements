@@ -20,7 +20,8 @@ add_executable(${PROJECT_NAME}
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 # grant IEEE 754 compliance
 	target_compile_options(${PROJECT_NAME} PUBLIC -frounding-math)
-# use intrinsic functions (CHECK WHAT TO DO FOR GCC !!!!!!!!)
+	find_package(Threads)
+	target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 #	target_compile_options(${PROJECT_NAME} PUBLIC "/Oi")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 # grant IEEE 754 compliance
