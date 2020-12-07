@@ -1,18 +1,10 @@
 #include "triangle_soup.h"
 
-inline void TriangleSoup::init(const std::vector<double> &coords, const std::vector<uint> &tris, const std::vector<std::bitset<NBIT> > &labels)
+inline void TriangleSoup::init(const std::vector<uint> &tris, const std::vector<std::bitset<NBIT> > &labels)
 {
-    num_orig_vtxs = static_cast<uint>(coords.size() /3);
-    orig_vertices.resize(num_orig_vtxs);
+    num_orig_vtxs = static_cast<uint>(orig_vertices.size());
     triangles.reserve(tris.size() / 3);
     edges.reserve(tris.size());
-
-    // vertices
-    for(uint v_id = 0; v_id < num_orig_vtxs; v_id++)
-    {
-        uint off = v_id *3;
-        orig_vertices[v_id] = explicitPoint3D(coords[off], coords[off +1], coords[off +2]);
-    }
 
     // traingles
     for(uint t_id = 0; t_id < tris.size() /3; t_id++)

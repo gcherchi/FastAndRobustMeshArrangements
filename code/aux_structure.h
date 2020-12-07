@@ -9,11 +9,11 @@
 
 typedef std::pair<uint, uint> UIPair;
 
-struct lessThanForSet
+struct lessThanForMap
 {
-    bool operator()(const std::pair<const genericPoint*, uint> &a, const std::pair<const genericPoint*,uint> &b) const
+    bool operator()(const genericPoint* a, const genericPoint* b) const
     {
-        return (genericPoint::lessThan(*a.first, *b.first) < 0);
+        return (genericPoint::lessThan(*a, *b) < 0);
     }
 };
 
@@ -74,7 +74,8 @@ class AuxiliaryStructure
 
         inline const std::set<uint> &segmentTrianglesList(const UIPair &seg) const;
 
-        inline std::pair<uint, bool> addVertexInSortedList(const std::pair<const genericPoint *, uint> &vtx_pair);
+        //inline std::pair<uint, bool> addVertexInSortedList(const std::pair<const genericPoint *, uint> &vtx_pair);
+        inline std::pair<uint, bool> addVertexInSortedList(const genericPoint *v, const uint &pos);
 
         inline bool addVisitedPolygonPocket(const std::set<uint> &polygon);
 
@@ -106,7 +107,7 @@ class AuxiliaryStructure
 
         std::vector<bool>                   tri_has_intersections;
 
-        std::set< std::pair<const genericPoint*, uint> , lessThanForSet> sorted_vtx;
+        std::map< const genericPoint*, uint, lessThanForMap> v_map;
 
         std::set< std::set<uint> >      visited_pockets;
 

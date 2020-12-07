@@ -727,7 +727,8 @@ inline uint createTPI(TriangleSoup &ts, FastTrimesh &subm, const UIPair &e0, con
 
 
     // we check if the new tpi as already been inserted
-    std::pair<uint, bool> ins = g.addVertexInSortedList(std::make_pair(new_v, ts.numVerts()));
+    //std::pair<uint, bool> ins = g.addVertexInSortedList(std::make_pair(new_v, ts.numVerts()));
+    std::pair<uint, bool> ins = g.addVertexInSortedList(new_v, ts.numVerts());
 
     if(ins.second == false) //vtx already present
     {

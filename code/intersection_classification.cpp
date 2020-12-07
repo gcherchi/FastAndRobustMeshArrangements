@@ -192,7 +192,8 @@ inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const ui
 
     uint new_v_id;
     uint pos = ts.numVerts();
-    std::pair<uint, bool> ins = g.addVertexInSortedList(std::make_pair(tmp_i, pos)); // check if the intersection already exists
+    //std::pair<uint, bool> ins = g.addVertexInSortedList(std::make_pair(tmp_i, pos)); // check if the intersection already exists
+    std::pair<uint, bool> ins = g.addVertexInSortedList(tmp_i, pos); // check if the intersection already exists
 
     if(ins.second) // new vertex
     {
@@ -226,7 +227,8 @@ inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const ui
 
     uint new_v_id;
     uint pos = ts.numVerts();
-    std::pair<uint, bool> ins = g.addVertexInSortedList(std::make_pair(tmp_i, pos)); // check if the intersection already exists
+    //std::pair<uint, bool> ins = g.addVertexInSortedList(std::make_pair(tmp_i, pos)); // check if the intersection already exists
+    std::pair<uint, bool> ins = g.addVertexInSortedList(tmp_i, pos); // check if the intersection already exists
 
     if(ins.second) // new vertex
     {
@@ -259,7 +261,8 @@ inline uint addEdgeCrossTriInters(TriangleSoup &ts, const uint &e_id, const uint
                                                          ts.triVert(t_id, 2)->toExplicit3D());
     uint new_v_id;
     uint pos = ts.numVerts();
-    std::pair<uint, bool> ins = g.addVertexInSortedList(std::make_pair(tmp_i, pos)); // check if the intersection already exists
+    //std::pair<uint, bool> ins = g.addVertexInSortedList(std::make_pair(tmp_i, pos)); // check if the intersection already exists
+    std::pair<uint, bool> ins = g.addVertexInSortedList(tmp_i, pos); // check if the intersection already exists
 
     if(ins.second) // new vertex
     {

@@ -15,8 +15,6 @@ int main(int argc, char **argv)
     {
         std::cout << "input file missing" << std::endl;
         return -1;
-
-        //filename = std::string(DATA_PATH) + "two_spheres.stl";
     }
 
     std::vector<double> in_coords, out_coords;

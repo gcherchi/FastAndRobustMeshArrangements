@@ -3,16 +3,17 @@
 inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels,
                         std::vector<double> &out_coords, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels)
 {
-    TriangleSoup ts;
     AuxiliaryStructure g;
     const double multiplier = 67108864.0;
 
-    mergeDuplicatedVertices(in_coords, in_tris, multiplier, out_coords, out_tris);
+    std::vector<explicitPoint3D> expl_verts;
+    std::vector<genericPoint*>   impl_verts;
 
-    out_labels = in_labels;
-    removeDegenerateAndDuplicatedTriangles(out_coords, out_tris, out_labels);
+    mergeDuplicatedVertices(in_coords, in_tris, multiplier, expl_verts, out_tris);
 
-    ts = TriangleSoup(out_coords, out_tris, out_labels);
+    removeDegenerateAndDuplicatedTriangles(expl_verts, in_labels, out_tris, out_labels);
+
+    TriangleSoup ts(expl_verts, impl_verts, out_tris, out_labels);
 
     detectIntersectionsWithOctree(ts, out_tris, g.intersectionList());
 

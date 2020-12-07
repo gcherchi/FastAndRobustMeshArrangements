@@ -30,11 +30,9 @@ class TriangleSoup
 {
     public:
 
-        inline TriangleSoup(){}
-
-        inline TriangleSoup(const std::vector<double> &coords, const std::vector<uint> &tris, const std::vector< std::bitset<NBIT> > &labels)
+        inline TriangleSoup(std::vector<explicitPoint3D> &exp_vec, std::vector<genericPoint*> &impl_vec, const std::vector<uint> &tris, const std::vector< std::bitset<NBIT> > &labels) : orig_vertices(exp_vec), impl_vertices(impl_vec)
         {
-            init(coords, tris, labels);
+            init(tris, labels);
         }
 
         inline ~TriangleSoup()
@@ -43,7 +41,7 @@ class TriangleSoup
                 delete impl_vertices[v];
         }
 
-        inline void init(const std::vector<double> &coords, const std::vector<uint> &tris, const std::vector< std::bitset<NBIT> > &labels);
+        inline void init(const std::vector<uint> &tris, const std::vector< std::bitset<NBIT> > &labels);
 
         inline uint numVerts() const;
         inline uint numTris() const;
@@ -110,8 +108,8 @@ class TriangleSoup
 
     private:
 
-        std::vector<explicitPoint3D>  orig_vertices;
-        std::vector<genericPoint*>    impl_vertices;
+        std::vector<explicitPoint3D>& orig_vertices;
+        std::vector<genericPoint*>&   impl_vertices;
         std::vector<Edge>             edges;
         std::vector<Tri>              triangles;
 

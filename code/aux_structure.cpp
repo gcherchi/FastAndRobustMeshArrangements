@@ -19,7 +19,7 @@ inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
 
     for(uint v_id = 0; v_id < ts.numVerts(); v_id++)
     {
-        std::pair<uint, bool> ins = addVertexInSortedList(std::make_pair(ts.vert(v_id), v_id));
+        std::pair<uint, bool> ins = addVertexInSortedList(ts.vert(v_id), v_id);
         assert(ins.second && "Error: Duplicated vertex in starting mesh");
     }
 }
@@ -176,16 +176,12 @@ inline const std::set<uint> &AuxiliaryStructure::segmentTrianglesList(const UIPa
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline std::pair<uint, bool> AuxiliaryStructure::addVertexInSortedList(const std::pair<const genericPoint*, uint> &vtx_pair)
+inline std::pair<uint, bool> AuxiliaryStructure::addVertexInSortedList(const genericPoint *v, const uint &pos)
 {
-    std::pair<uint, bool> res;
-    auto ins = sorted_vtx.insert(vtx_pair);
+    auto ins = v_map.insert({v, pos});
 
-    res.second = ins.second;
-    if(ins.second == false) // vertex not added (already present)
-        res.first = ins.first->second;
-
-    return res;
+    return std::make_pair(ins.first->second, // the position of v (pos if first time, or the previous saved positionotherwise)
+                          ins.second);       // the result of the insert operation /true or false)
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
