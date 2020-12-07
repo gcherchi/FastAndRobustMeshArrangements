@@ -3,9 +3,12 @@
 inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels,
                         std::vector<double> &out_coords, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels)
 {
+    initFPU();
+
     AuxiliaryStructure g;
     const double multiplier = 67108864.0;
 
+    //to put outside as result
     std::vector<explicitPoint3D> expl_verts;
     std::vector<genericPoint*>   impl_verts;
 

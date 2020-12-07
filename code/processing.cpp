@@ -49,11 +49,10 @@ inline void removeDegenerateAndDuplicatedTriangles(const std::vector<explicitPoi
             std::vector<uint> tri = {v0_id, v1_id, v2_id};
             std::sort(tri.begin(), tri.end());
 
-            auto tri_it = tris_map.find(tri);
+            auto ins = tris_map.insert({tri, l_off});
 
-            if(tri_it == tris_map.end()) // first time for tri v0, v1, v2
+            if(ins.second) // first time for tri v0, v1, v2
             {
-                tris_map[tri] = l_off;
                 labels[l_off] = l;
                 l_off++;
 
@@ -64,7 +63,8 @@ inline void removeDegenerateAndDuplicatedTriangles(const std::vector<explicitPoi
             }
             else
             {
-                labels[tri_it->second] |= l; // label for duplicates
+                uint pos = ins.first->second;
+                labels[pos] |= l; // label for duplicates
             }
         }
     }
