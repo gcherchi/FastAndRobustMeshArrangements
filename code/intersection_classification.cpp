@@ -200,7 +200,7 @@ inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const ui
         double x, y, z;
         assert(tmp_i->getApproxXYZCoordinates(x, y, z) && "LPI point badly formed");
 
-        new_v_id = ts.addVert(tmp_i); // add new vertex in mesh
+        new_v_id = ts.addImplVert(tmp_i); // add new vertex in mesh
         assert(new_v_id == pos);
     }
     else // already present vertex
@@ -235,7 +235,7 @@ inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const ui
         double x, y, z;
         assert(tmp_i->getApproxXYZCoordinates(x, y, z) && "LPI point badly formed");
 
-        new_v_id = ts.addVert(tmp_i); // add new vertex in mesh
+        new_v_id = ts.addImplVert(tmp_i); // add new vertex in mesh
         assert(new_v_id == pos);
     }
     else // already present vertex
@@ -269,7 +269,7 @@ inline uint addEdgeCrossTriInters(TriangleSoup &ts, const uint &e_id, const uint
         double x, y, z;
         assert(tmp_i->getApproxXYZCoordinates(x, y, z) && "LPI point badly formed");
 
-        new_v_id = ts.addVert(tmp_i);   // add vertex in mesh
+        new_v_id = ts.addImplVert(tmp_i);   // add vertex in mesh
         assert(new_v_id == pos);
     }
     else // already present vertex

@@ -740,7 +740,7 @@ inline uint createTPI(TriangleSoup &ts, FastTrimesh &subm, const UIPair &e0, con
     double x, y, z;
     assert(new_v->getApproxXYZCoordinates(x, y, z) && "TPI point badly formed");
 
-    uint v_id = ts.addVert(new_v);
+    uint v_id = ts.addImplVert(new_v);
 
     g.incrementNumIntersections(1);
     g.incrementNumTPI(1);

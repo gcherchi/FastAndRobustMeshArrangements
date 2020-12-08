@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include <chrono>
 
 inline std::string ts(const double &n)
 {
@@ -47,6 +48,17 @@ inline void saveStatisticsOnFile(const std::string &file_in, const double &time)
     }
 
     ofs.close();
+}
+
+inline static std::chrono::time_point<std::chrono::system_clock> startChrono()
+{
+    return std::chrono::system_clock::now();
+}
+
+inline double stopChrono(std::chrono::time_point<std::chrono::system_clock> &start)
+{
+    auto time = std::chrono::system_clock::now() - start;
+    return std::chrono::duration <double, std::milli> (time).count() / 1000;
 }
 
 

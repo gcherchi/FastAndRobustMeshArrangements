@@ -1,5 +1,7 @@
 #include "solve_intersections.h"
 
+#include "debug.h"
+
 inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels,
                         std::vector<double> &out_coords, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels)
 {
@@ -11,6 +13,7 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
     //to put outside as result
     std::vector<explicitPoint3D> expl_verts;
     std::vector<genericPoint*>   impl_verts;
+    std::vector<uint>            new_tris;
 
     mergeDuplicatedVertices(in_coords, in_tris, multiplier, expl_verts, out_tris);
 
@@ -24,8 +27,9 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
 
     classifyIntersections(ts, g);
 
-    triangulation(ts, g, out_tris, out_labels);
+    triangulation(ts, g, new_tris, out_labels);
 
+    out_tris = new_tris;
     ts.createDoubleVectorOfCoords(out_coords, multiplier);
 }
 

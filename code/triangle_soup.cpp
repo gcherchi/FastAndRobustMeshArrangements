@@ -1,29 +1,27 @@
 #include "triangle_soup.h"
 
-inline void TriangleSoup::init(const std::vector<uint> &tris, const std::vector<std::bitset<NBIT> > &labels)
+inline void TriangleSoup::init()
 {
     num_orig_vtxs = static_cast<uint>(orig_vertices.size());
-    triangles.reserve(tris.size() / 3);
-    edges.reserve(tris.size());
+    num_orig_tris = static_cast<uint>(triangles.size() / 3);
+
+    edges.reserve(numVerts() + numTris());
+    tri_planes.resize(numTris());
 
     // traingles
-    for(uint t_id = 0; t_id < tris.size() /3; t_id++)
+    for(uint t_id = 0; t_id < num_orig_tris; t_id++)
     {
-        uint v0_id = tris[3 * t_id], v1_id = tris[3* t_id + 1], v2_id = tris[3 * t_id + 2];
-        if(v0_id == v1_id && v1_id == v2_id && v2_id == v0_id) continue; // degenerate triangle
+        uint v0_id = triVertID(t_id, 0), v1_id = triVertID(t_id, 1), v2_id = triVertID(t_id, 2);
 
-        triangles.emplace_back(v0_id, v1_id, v2_id, labels[t_id],
-                               intToPlane(genericPoint::maxComponentInTriangleNormal(vertX(v0_id), vertY(v0_id), vertZ(v0_id),
-                                                                                     vertX(v1_id), vertY(v1_id), vertZ(v1_id),
-                                                                                     vertX(v2_id), vertY(v2_id), vertZ(v2_id))));
+        tri_planes[t_id] = intToPlane(genericPoint::maxComponentInTriangleNormal(vertX(v0_id), vertY(v0_id), vertZ(v0_id),
+                                                                                 vertX(v1_id), vertY(v1_id), vertZ(v1_id),
+                                                                                 vertX(v2_id), vertY(v2_id), vertZ(v2_id)));
 
         // edges
         addEdge(v0_id, v1_id);
         addEdge(v1_id, v2_id);
         addEdge(v2_id, v0_id);
     }
-
-    num_orig_tris = static_cast<uint>(triangles.size());
 
     initJollyPoints();
 }
@@ -41,7 +39,7 @@ inline uint TriangleSoup::numVerts() const
 
 inline uint TriangleSoup::numTris() const
 {
-    return static_cast<uint>(triangles.size());
+    return static_cast<uint>(triangles.size() / 3);
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -114,7 +112,7 @@ inline cinolib::vec3d TriangleSoup::vertCinolib(const uint &v_id) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline uint TriangleSoup::addVert(genericPoint* gp)
+inline uint TriangleSoup::addImplVert(genericPoint* gp)
 {
     impl_vertices.push_back(gp);
     return static_cast<uint>(num_orig_vtxs + impl_vertices.size() -1);
@@ -122,7 +120,7 @@ inline uint TriangleSoup::addVert(genericPoint* gp)
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void TriangleSoup::setVert(const uint &v_id, const double &x, const double &y, const double &z)
+inline void TriangleSoup::setExplVert(const uint &v_id, const double &x, const double &y, const double &z)
 {
     assert(v_id < (num_orig_vtxs + impl_vertices.size()) && "vtx id out of range of original points");
     orig_vertices[v_id].set(x, y, z);
@@ -162,7 +160,7 @@ inline const double* TriangleSoup::edgeVertPtr(const uint &e_id, const uint &off
 
 inline uint TriangleSoup::edgeOppositeToVert(const uint &t_id, const uint &v_id) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
+    assert(t_id < numTris() && "t_id out of range");
     assert(v_id < (num_orig_vtxs + impl_vertices.size()) && "vtx id out of range");
 
     int e_id = -1;
@@ -192,50 +190,59 @@ inline void TriangleSoup::addEdge(const uint &v0_id, const uint &v1_id)
  *      TRIANGLES
  * ****************************************************************************************************/
 
+void TriangleSoup::setTrisVector(std::vector<uint> &tris)
+{
+    triangles = tris;
+}
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 inline const uint* TriangleSoup::tri(const uint &t_id) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
-    return triangles[t_id].v;
+    assert(t_id < numTris() && "t_id out of range");
+    return &triangles[ 3 * t_id];
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline uint TriangleSoup::triVertID(const uint &t_id, const uint &off) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
-    return triangles[t_id].v[off];
+    assert(t_id < numTris() && "t_id out of range");
+    return triangles[3 * t_id + off];
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline const genericPoint* TriangleSoup::triVert(const uint &t_id, const uint &off) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
-    return vert(triangles[t_id].v[off]);
+    assert(t_id < numTris() && "t_id out of range");
+    return vert(triangles[3 * t_id + off]);
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline const double* TriangleSoup::triVertPtr(const uint &t_id, const uint &off) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
-    return vertPtr(triangles[t_id].v[off]);
+    assert(t_id < numTris() && "t_id out of range");
+    return vertPtr(triangles[3 * t_id + off]);
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline cinolib::vec3d TriangleSoup::triVertCinolib(const uint &t_id, const uint &off) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
-    return vertCinolib(triangles[t_id].v[off]);
+    assert(t_id < numTris() && "t_id out of range");
+    return vertCinolib(triangles[3 * t_id + off]);
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline uint TriangleSoup::triEdgeID(const uint &t_id, const uint &off) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
-    int e_id = edgeID(triangles[t_id].v[off], triangles[t_id].v[(off +1) %3]);
+    assert(t_id < numTris() && "t_id out of range");
+    int e_id = edgeID(triangles[3 * t_id + off],
+                      triangles[3 * t_id + ((off +1) %3)]);
+
     assert(e_id >= 0 && "no triangle edge found");
     return static_cast<uint>(e_id);
 }
@@ -244,20 +251,20 @@ inline uint TriangleSoup::triEdgeID(const uint &t_id, const uint &off) const
 
 inline Plane TriangleSoup::triPlane(const uint &t_id) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
-    return triangles[t_id].p;
+    assert(t_id < numTris() && "t_id out of range");
+    return tri_planes[t_id];
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline bool TriangleSoup::triContainsVert(const uint &t_id, const uint &v_id) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
+    assert(t_id < numTris() && "t_id out of range");
     assert(v_id < (num_orig_vtxs + impl_vertices.size()) && "v_id out of range");
 
-    if(triangles[t_id].v[0] == v_id) return true;
-    if(triangles[t_id].v[1] == v_id) return true;
-    if(triangles[t_id].v[2] == v_id) return true;
+    if(triangles[3 * t_id]     == v_id) return true;
+    if(triangles[3 * t_id + 1] == v_id) return true;
+    if(triangles[3 * t_id + 2] == v_id) return true;
     return false;
 }
 
@@ -298,18 +305,10 @@ inline void TriangleSoup::createDoubleVectorOfCoords(std::vector<double> &coords
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void TriangleSoup::setTriLabel(const uint &t_id, const std::bitset<NBIT> &l)
-{
-    assert(t_id < triangles.size() && "t_id out of range");
-    triangles[t_id].label = l;
-}
-
-//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 inline std::bitset<NBIT> TriangleSoup::triLabel(const uint &t_id) const
 {
-    assert(t_id < triangles.size() && "t_id out of range");
-    return triangles[t_id].label;
+    assert(t_id < numTris() && "t_id out of range");
+    return tri_labels[t_id];
 }
 
 /*******************************************************************************************************
