@@ -7,14 +7,17 @@
 #include <cinolib/predicates.h>
 
 
+inline double computeMultiplier(const std::vector<double> &coords);
+
 inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const double &multiplier,
                                     std::vector<explicitPoint3D> &verts, std::vector<uint> &tris);
 
-inline void removeDegenerateAndDuplicatedTriangles(const std::vector<explicitPoint3D> &verts, const std::vector<std::bitset<NBIT> > &in_labels,
+inline void removeDegenerateAndDuplicatedTriangles(const std::vector<genericPoint *> &verts, const std::vector<std::bitset<NBIT> > &in_labels,
                                                    std::vector<uint> &tris, std::vector<std::bitset<NBIT> > &labels);
 
-inline void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::set<std::pair<uint, uint> > &intersection_list);
+inline void freePointsMemory(std::vector<genericPoint*> &points);
 
+inline void computeApproximateCoordinates(const std::vector<genericPoint *> &vertices, std::vector<double> &coords, const double &multiplier);
 
 #include "processing.cpp"
 

@@ -1,5 +1,20 @@
 #include "intersection_classification.h"
 
+#include <cinolib/find_intersections.h>
+
+
+inline void detectIntersections(const TriangleSoup &ts, std::set<std::pair<uint, uint> > &intersection_list)
+{
+    std::vector<cinolib::vec3d> verts(ts.numVerts() -4); // we exclude jolly points
+
+    for(uint v_id = 0; v_id < ts.numVerts() -4; v_id++)
+        verts[v_id] = cinolib::vec3d(ts.vertX(v_id), ts.vertY(v_id), ts.vertZ(v_id));
+
+    cinolib::find_intersections(verts, ts.trisVector(), intersection_list);
+}
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 inline void classifyIntersections(TriangleSoup &ts, AuxiliaryStructure &g)
 {
     for(auto &pair : g.intersectionList())
@@ -303,11 +318,9 @@ inline void addSymbolicSegment(const TriangleSoup &ts, const uint &v0_id, const 
 
 inline uint noCoplanarJollyPointID(const TriangleSoup &ts, const double *v0, const double *v1, const double *v2)
 {
-    for(uint jp_id = 0; jp_id < 4; jp_id++) // we are looking for a joppy point not aligned with the triangle
+    for(uint jp_id = 0; jp_id < 4; jp_id++) // we are looking for a jolly point not aligned with the triangle
     {
-        double jp[3] = {ts.jollyPoint(jp_id)->toExplicit3D().X(),
-                        ts.jollyPoint(jp_id)->toExplicit3D().Y(),
-                        ts.jollyPoint(jp_id)->toExplicit3D().Z()};
+        const double *jp = ts.jollyPoint(jp_id)->toExplicit3D().ptr();
 
         if(cinolib::orient3d(v0, v1, v2, jp) != 0.0)
             return jp_id;

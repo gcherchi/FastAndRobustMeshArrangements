@@ -16,19 +16,19 @@ class TriangleSoup
 {
     public:
 
-        inline TriangleSoup(std::vector<explicitPoint3D> &exp_vec, std::vector<genericPoint*> &impl_vec, std::vector<uint> &tris, std::vector< std::bitset<NBIT> > &labels)
-            : orig_vertices(exp_vec), impl_vertices(impl_vec), triangles(tris), tri_labels(labels)
+        inline TriangleSoup(std::vector<genericPoint*> &in_vertices, std::vector<uint> &in_tris, std::vector< std::bitset<NBIT> > &labels, const double &multiplier)
+            : vertices(in_vertices), triangles(in_tris), tri_labels(labels)
         {
-            init();
+            init(multiplier);
         }
 
         inline ~TriangleSoup()
         {
-            for(uint v = 0; v < impl_vertices.size(); v++)
-                delete impl_vertices[v];
+//            for(uint v = 0; v < impl_vertices.size(); v++)
+//                delete impl_vertices[v];
         }
 
-        inline void init();
+        inline void init(const double &multiplier);
 
         inline uint numVerts() const;
         inline uint numTris() const;
@@ -46,11 +46,7 @@ class TriangleSoup
         inline double vertY(const uint &v_id) const;
         inline double vertZ(const uint &v_id) const;
 
-        inline cinolib::vec3d vertCinolib(const uint &v_id) const;
-
         inline uint addImplVert(genericPoint* gp);
-
-        inline void setExplVert(const uint &v_id, const double &x, const double &y, const double &z);
 
         // EDGES
         inline int edgeID(const uint &v0_id, const uint &v1_id) const;
@@ -64,7 +60,7 @@ class TriangleSoup
         inline void addEdge(const uint &v0_id, const uint &v1_id);
 
         // TRIANGLES
-        inline void setTrisVector(std::vector<uint> &tris);
+        inline const std::vector<uint>& trisVector() const;
 
         inline const uint* tri(const uint &t_id) const;
 
@@ -74,8 +70,6 @@ class TriangleSoup
 
         inline const double* triVertPtr(const uint &t_id, const uint &off) const;
 
-        inline cinolib::vec3d triVertCinolib(const uint &t_id, const uint &off) const;
-
         inline uint triEdgeID(const uint &t_id, const uint &off) const;
 
         inline Plane triPlane(const uint &t_id) const;
@@ -84,19 +78,14 @@ class TriangleSoup
 
         inline bool triContainsEdge(const uint t_id, const uint &ev0_id, const uint &ev1_id) const;
 
-        inline void createDoubleVectorOfCoords(std::vector<double> &coords, const double &multiplier);
-
         inline std::bitset<NBIT> triLabel(const uint &t_id) const;
 
         // JOLLY POINTS
         inline const genericPoint* jollyPoint(const uint &off) const;
 
-        inline genericPoint* jollyPoint(const uint &off);
-
     private:
 
-        std::vector<explicitPoint3D>    &orig_vertices;
-        std::vector<genericPoint*>      &impl_vertices;
+        std::vector<genericPoint*>      &vertices;
 
         std::vector<Edge>               edges;
 
@@ -106,13 +95,11 @@ class TriangleSoup
 
         std::map<Edge, uint> edge_map;
 
-        std::vector<explicitPoint3D>  jolly_points;
-
         uint num_orig_vtxs;
         uint num_orig_tris;
 
         // PRIVATE METHODS
-        inline void initJollyPoints();
+        inline void initJollyPoints(const double &multiplier);
 
         inline Edge uniqueEdge(const uint &v0_id, const uint &v1_id) const;
 };

@@ -12,15 +12,15 @@ inline std::string ts(const double &n)
     return s;
 }
 
-inline void saveStatisticsOnFile(const std::string &file_in, const double &time)
+inline void saveStatisticsOnFile(const std::string &file_in, const double &time, double max)
 {
     std::string filename = "log.csv";
 
-    std::string header = "model; time\n";
+    std::string header = "model; time; max_coord\n";
 
     std::string data = file_in.substr(0, file_in.length() - 4); // model name without extension
 
-    data = data + ";" + ts(time) + "\n";
+    data = data + ";" + ts(time) + ";" + ts(max) + "\n";
 
     std::ifstream ifs;
     bool exists;

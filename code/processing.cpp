@@ -1,9 +1,21 @@
 #include "processing.h"
 
-#include <cinolib/find_intersections.h>
 
-inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const double &multiplier,
-                                    std::vector<explicitPoint3D> &verts, std::vector<uint> &tris)
+
+inline double computeMultiplier(const std::vector<double> &coords)
+{
+    double max = *std::max_element(coords.begin(), coords.end());
+    double min = *std::max_element(coords.begin(), coords.end());
+
+    double abs_max = std::max(std::abs(max), std::abs(min));
+
+    //...
+}
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::vector<uint> &in_tris,
+                                    std::vector<genericPoint*> &verts, std::vector<uint> &tris)
 {
     verts.reserve(in_coords.size() / 3);
     tris.reserve(in_tris.size());
@@ -12,12 +24,11 @@ inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const 
 
     for(const uint &v_id : in_tris)
     {
-        std::vector<double> v = {in_coords[(3 * v_id)] * multiplier,
-                                 in_coords[(3 * v_id) +1] * multiplier,
-                                 in_coords[(3 * v_id) +2] * multiplier};
+        std::vector<double> v = {in_coords[(3 * v_id)], in_coords[(3 * v_id) +1], in_coords[(3 * v_id) +2]};
 
         auto ins = v_map.insert({v, v_map.size()});
-        if(ins.second) verts.emplace_back(v[0], v[1], v[2]); // new vtx added
+        if(ins.second)
+            verts.push_back(new explicitPoint3D(v[0], v[1], v[2])); // new vtx added
 
         tris.push_back(ins.first->second);
     }
@@ -26,7 +37,7 @@ inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const 
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void removeDegenerateAndDuplicatedTriangles(const std::vector<explicitPoint3D> &verts, const std::vector<std::bitset<NBIT> > &in_labels,
+inline void removeDegenerateAndDuplicatedTriangles(const std::vector<genericPoint*> &verts, const std::vector<std::bitset<NBIT> > &in_labels,
                                                    std::vector<uint> &tris, std::vector< std::bitset<NBIT> > &labels)
 {
     labels = in_labels;
@@ -44,7 +55,9 @@ inline void removeDegenerateAndDuplicatedTriangles(const std::vector<explicitPoi
         uint v2_id = tris[(3 * t_id) +2];
         std::bitset<NBIT> l = labels[t_id];
 
-        if(!cinolib::points_are_colinear_3d(verts[v0_id].ptr(), verts[v1_id].ptr(), verts[v2_id].ptr())) // good triangle
+        if(!cinolib::points_are_colinear_3d(verts[v0_id]->toExplicit3D().ptr(),
+                                            verts[v1_id]->toExplicit3D().ptr(),
+                                            verts[v2_id]->toExplicit3D().ptr())) // good triangle
         {
             std::vector<uint> tri = {v0_id, v1_id, v2_id};
             std::sort(tri.begin(), tri.end());
@@ -76,16 +89,35 @@ inline void removeDegenerateAndDuplicatedTriangles(const std::vector<explicitPoi
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void detectIntersectionsWithOctree(TriangleSoup &ts, const std::vector<uint> &in_tris, std::set<std::pair<uint, uint> > &intersection_list)
+void freePointsMemory(std::vector<genericPoint *> &points)
 {
-    std::vector<cinolib::vec3d> verts(ts.numVerts());
-
-    for(uint v_id = 0; v_id < ts.numVerts(); v_id++)
-        verts[v_id] = ts.vertCinolib(v_id);
-
-    cinolib::find_intersections(verts, in_tris, intersection_list);
+    for(uint p = 0; p < points.size(); p++)
+        delete points[p];
 }
 
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+void computeApproximateCoordinates(const std::vector<genericPoint *> &vertices, std::vector<double> &coords, const double &multiplier)
+{
+    coords.reserve(3 * vertices.size());
+
+    for(auto &v : vertices)
+    {
+        if(v->isExplicit3D())
+        {
+            coords.push_back(v->toExplicit3D().X() / multiplier);
+            coords.push_back(v->toExplicit3D().Y() / multiplier);
+            coords.push_back(v->toExplicit3D().Z() / multiplier);
+        }
+        else
+        {
+            double x, y, z;
+            v->getApproxXYZCoordinates(x, y, z);
+            coords.push_back(x / multiplier);
+            coords.push_back(y / multiplier);
+            coords.push_back(z / multiplier);
+        }
+    }
+}
 
 

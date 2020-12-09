@@ -8,6 +8,10 @@
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 
+
+
+inline void detectIntersections(const TriangleSoup &ts, std::set<std::pair<uint, uint> > &intersection_list);
+
 inline void classifyIntersections(TriangleSoup &ts, AuxiliaryStructure &g);
 
 inline void checkTriangleTriangleIntersections(TriangleSoup &ts, AuxiliaryStructure &g, const uint &tA_id, const uint &tB_id);
