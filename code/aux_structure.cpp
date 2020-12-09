@@ -196,44 +196,11 @@ inline bool AuxiliaryStructure::addVisitedPolygonPocket(const std::set<uint> &po
 // the i-index of the corresponding triangles in the new_label array otherwise
 inline int AuxiliaryStructure::addVisitedPolygonPocket(const std::set<uint> &polygon, const uint &pos)
 {
-    auto poly_it = pockets_map.find(polygon);
+    auto poly_it = pockets_map.insert({polygon, pos});
 
-    if(poly_it == pockets_map.end()) // polygon not present yet
-    {
-        pockets_map[polygon] = pos;
-        return -1;
-    }
+    if(poly_it.second) return -1; // polygon not present yet
 
-    return static_cast<int>(poly_it->second);
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline uint AuxiliaryStructure::numIntersections() const
-{
-    if(num_intersections < 0) return 0;
-    return static_cast<uint>(num_intersections);
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline void AuxiliaryStructure::incrementNumTPI(const uint &num)
-{
-    num_tpi += num;
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline void AuxiliaryStructure::incrementNumIntersections(const uint &num)
-{
-    num_intersections += num;
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline uint AuxiliaryStructure::numTPI() const
-{
-    return num_tpi;
+    return static_cast<int>(poly_it.first->second);
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -158,8 +158,6 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, AuxiliaryStruct
 
     final_check:
 
-    g.incrementNumIntersections(static_cast<uint>(li.size()));
-
     if(coplanar_tris)
         assert(v_tmp.size() <= 3 && "more than 3 intersection points in coplanar triangles");
     else

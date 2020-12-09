@@ -81,15 +81,6 @@ class AuxiliaryStructure
 
         inline int addVisitedPolygonPocket(const std::set<uint> &polygon, const uint &pos);
 
-        inline uint numIntersections() const;
-
-        inline void incrementNumTPI(const uint &num);
-
-        inline void incrementNumIntersections(const uint &num);
-
-        inline uint numTPI() const;
-
-
     private:
 
         uint    num_original_vtx;

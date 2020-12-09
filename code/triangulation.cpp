@@ -742,9 +742,6 @@ inline uint createTPI(TriangleSoup &ts, FastTrimesh &subm, const UIPair &e0, con
 
     uint v_id = ts.addImplVert(new_v);
 
-    g.incrementNumIntersections(1);
-    g.incrementNumTPI(1);
-
     return v_id;
 }
 
