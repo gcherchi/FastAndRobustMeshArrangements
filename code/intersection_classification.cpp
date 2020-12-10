@@ -5,9 +5,9 @@
 
 inline void detectIntersections(const TriangleSoup &ts, std::set<std::pair<uint, uint> > &intersection_list)
 {
-    std::vector<cinolib::vec3d> verts(ts.numVerts() -4); // we exclude jolly points
+    std::vector<cinolib::vec3d> verts(ts.numVerts());
 
-    for(uint v_id = 0; v_id < ts.numVerts() -4; v_id++)
+    for(uint v_id = 0; v_id < ts.numVerts(); v_id++)
         verts[v_id] = cinolib::vec3d(ts.vertX(v_id), ts.vertY(v_id), ts.vertZ(v_id));
 
     cinolib::find_intersections(verts, ts.trisVector(), intersection_list);

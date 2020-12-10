@@ -10,7 +10,7 @@
 #include <bitset>
 
 inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels,
-                                    std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels, double &multiplier);
+                                    std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels);
 
 
 // Without labels info (approximate coordinates)
@@ -18,7 +18,7 @@ inline void solveIntersections(const std::vector<double> &in_coords, const std::
 
 // Without labels info (exact coordinates)
 inline void solveIntersections(const std::vector<double> &in_coords, const std::vector<uint> &in_tris,
-                               std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris, double &multiplier);
+                               std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris);
 
 
 // With labels info (approximate coordinates)
@@ -27,7 +27,7 @@ inline void solveIntersections(const std::vector<double> &in_coords, const std::
 
 // With labels info (exact coordinates)
 inline void solveIntersections(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector<uint> &in_labels,
-                               std::vector<genericPoint*> &vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels, double &multiplier);
+                               std::vector<genericPoint*> &vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels);
 
 
 #include "solve_intersections.cpp"

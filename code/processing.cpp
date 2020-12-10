@@ -97,19 +97,22 @@ void freePointsMemory(std::vector<genericPoint *> &points)
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-void computeApproximateCoordinates(const std::vector<genericPoint *> &vertices, std::vector<double> &coords, const double &multiplier)
+void computeApproximateCoordinates(const std::vector<genericPoint *> &vertices, std::vector<double> &coords)
 {
-    coords.reserve(3 * vertices.size());
+    coords.reserve(3 * (vertices.size() -5));
+    double multiplier = vertices.back()->toExplicit3D().X();
 
-    for(auto &v : vertices)
+    for(uint i = 0; i < (vertices.size() - 5); i++)
     {
+        auto &v = vertices[i];
+
         if(v->isExplicit3D())
         {
             coords.push_back(v->toExplicit3D().X() / multiplier);
             coords.push_back(v->toExplicit3D().Y() / multiplier);
             coords.push_back(v->toExplicit3D().Z() / multiplier);
         }
-        else
+        else //implicit point
         {
             double x, y, z;
             v->getApproxXYZCoordinates(x, y, z);

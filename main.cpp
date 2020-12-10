@@ -25,14 +25,13 @@ int main(int argc, char **argv)
     std::vector<double> in_coords, out_coords;
     std::vector<uint> in_tris, out_tris;
     std::vector<genericPoint*> impl_points;
-    double multiplier;
 
     load(filename, in_coords, in_tris);
 
     //solveIntersections(in_coords, in_tris, out_coords, out_tris);
-    solveIntersections(in_coords, in_tris, impl_points, out_tris, multiplier);
+    solveIntersections(in_coords, in_tris, impl_points, out_tris);
 
-    computeApproximateCoordinates(impl_points, out_coords, multiplier);
+    computeApproximateCoordinates(impl_points, out_coords);
     freePointsMemory(impl_points);
 
     //save("/Users/gianmarco/Desktop/output.obj", out_coords, out_tris);

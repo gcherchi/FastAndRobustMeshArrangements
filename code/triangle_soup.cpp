@@ -267,7 +267,18 @@ inline std::bitset<NBIT> TriangleSoup::triLabel(const uint &t_id) const
 inline const genericPoint* TriangleSoup::jollyPoint(const uint &off) const
 {
     assert(off < 4 && "jolly point id out of range");
-    return vertices[num_orig_vtxs + off];
+    return jolly_points[off];
+}
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+inline void TriangleSoup::appendJollyPoints()
+{
+    vertices.push_back(jolly_points[0]);
+    vertices.push_back(jolly_points[1]);
+    vertices.push_back(jolly_points[2]);
+    vertices.push_back(jolly_points[3]);
+    vertices.push_back(jolly_points[4]);
 }
 
 /********************************************************************************************************
@@ -276,10 +287,12 @@ inline const genericPoint* TriangleSoup::jollyPoint(const uint &off) const
 
 inline void TriangleSoup::initJollyPoints(const double &multiplier)
 {
-    vertices.push_back(new explicitPoint3D(0.94280904158 * multiplier, 0.0 * multiplier, -0.333333333 * multiplier));
-    vertices.push_back(new explicitPoint3D(-0.47140452079 * multiplier, 0.81649658092 * multiplier, -0.333333333 * multiplier));
-    vertices.push_back(new explicitPoint3D(-0.47140452079 * multiplier, -0.81649658092 * multiplier, -0.333333333 * multiplier));
-    vertices.push_back(new explicitPoint3D(0.0 * multiplier, 0.0 * multiplier, 1.0 * multiplier));
+    jolly_points.reserve(5);
+    jolly_points.push_back(new explicitPoint3D(0.94280904158 * multiplier, 0.0 * multiplier, -0.333333333 * multiplier));
+    jolly_points.push_back(new explicitPoint3D(-0.47140452079 * multiplier, 0.81649658092 * multiplier, -0.333333333 * multiplier));
+    jolly_points.push_back(new explicitPoint3D(-0.47140452079 * multiplier, -0.81649658092 * multiplier, -0.333333333 * multiplier));
+    jolly_points.push_back(new explicitPoint3D(0.0 * multiplier, 0.0 * multiplier, 1.0 * multiplier));
+    jolly_points.push_back(new explicitPoint3D(multiplier, 0.0, 0.0));
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

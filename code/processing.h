@@ -17,7 +17,7 @@ inline void removeDegenerateAndDuplicatedTriangles(const std::vector<genericPoin
 
 inline void freePointsMemory(std::vector<genericPoint*> &points);
 
-inline void computeApproximateCoordinates(const std::vector<genericPoint *> &vertices, std::vector<double> &coords, const double &multiplier);
+inline void computeApproximateCoordinates(const std::vector<genericPoint *> &vertices, std::vector<double> &coords);
 
 #include "processing.cpp"
 

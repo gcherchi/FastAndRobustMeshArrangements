@@ -83,6 +83,8 @@ class TriangleSoup
         // JOLLY POINTS
         inline const genericPoint* jollyPoint(const uint &off) const;
 
+        inline void appendJollyPoints();
+
     private:
 
         std::vector<genericPoint*>      &vertices;
@@ -92,6 +94,8 @@ class TriangleSoup
         std::vector<uint>               &triangles;
         std::vector<std::bitset<NBIT>>  &tri_labels;
         std::vector<Plane>              tri_planes;
+
+        std::vector<genericPoint*>      jolly_points;
 
         std::map<Edge, uint> edge_map;
 
