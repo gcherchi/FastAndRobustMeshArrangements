@@ -14,28 +14,10 @@ inline double computeMultiplier(const std::vector<double> &coords)
     double div = R / abs_max_coord;
 
     //closest power of 2
-    uint n = static_cast<uint>(div);
-    uint pow_next, pow_prev, count = 0;
+    int e = static_cast<int>(std::round(std::log2(div)));
+    double multiplier = (e >= 0) ? static_cast<double>(1 << e) : (1.0 / (1 << (-1 * e)));
 
-    if (n && !(n & (n - 1)))
-            pow_next = n;
-    else
-    {
-        while(n != 0)
-        {
-            n >>= 1;
-            count += 1;
-        }
-
-        pow_next = 1 << count;
-    }
-
-    pow_prev = pow_next / 2;
-
-    double d_prev = div - pow_prev;
-    double d_next = pow_next - div;
-
-    return (d_prev < d_next) ? pow_prev : pow_next;
+    return multiplier;
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

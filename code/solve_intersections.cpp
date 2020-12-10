@@ -10,7 +10,8 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
     initFPU();
 
     AuxiliaryStructure g;
-    double multiplier = 67108864.0;
+    //double multiplier = 67108864.0;
+    double multiplier = computeMultiplier(in_coords);
 
     std::vector<uint> tmp_tris;
 

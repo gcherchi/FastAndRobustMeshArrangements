@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     computeApproximateCoordinates(impl_points, out_coords);
     freePointsMemory(impl_points);
 
-    //save("/Users/gianmarco/Desktop/output.obj", out_coords, out_tris);
+    save("/Users/gianmarco/Desktop/output.obj", out_coords, out_tris);
 
     return 0;
 }

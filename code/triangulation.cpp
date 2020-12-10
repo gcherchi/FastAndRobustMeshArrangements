@@ -32,8 +32,9 @@ inline void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<u
     // processing the triangles to split
 
     #pragma omp parallel for schedule(dynamic)
-    for(auto &t_id : tris_to_split)
+    for(uint t = 0; t < tris_to_split.size(); t++)
     {
+        uint t_id = tris_to_split[t];
         FastTrimesh subm(ts.triVert(t_id, 0),
                          ts.triVert(t_id, 1),
                          ts.triVert(t_id, 2),
