@@ -4,12 +4,38 @@
 
 inline double computeMultiplier(const std::vector<double> &coords)
 {
-    double max = *std::max_element(coords.begin(), coords.end());
-    double min = *std::max_element(coords.begin(), coords.end());
+    const double R = 11259470696.0; //avg_max_coord (167.78) * old_multiplier (67108864.0)
 
-    double abs_max = std::max(std::abs(max), std::abs(min));
+    double max_coord = *std::max_element(coords.begin(), coords.end());
+    double min_coord = *std::min_element(coords.begin(), coords.end());
 
-    //...
+    double abs_max_coord = std::max(std::abs(min_coord), std::abs(max_coord));
+
+    double div = R / abs_max_coord;
+
+    //closest power of 2
+    uint n = static_cast<uint>(div);
+    uint pow_next, pow_prev, count = 0;
+
+    if (n && !(n & (n - 1)))
+            pow_next = n;
+    else
+    {
+        while(n != 0)
+        {
+            n >>= 1;
+            count += 1;
+        }
+
+        pow_next = 1 << count;
+    }
+
+    pow_prev = pow_next / 2;
+
+    double d_prev = div - pow_prev;
+    double d_next = pow_next - div;
+
+    return (d_prev < d_next) ? pow_prev : pow_next;
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

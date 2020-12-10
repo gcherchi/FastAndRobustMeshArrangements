@@ -3,6 +3,8 @@
 #include <stack>
 #include <numeric>
 
+#include <cinolib/parallel_for.h>
+
 inline void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels)
 {
     new_labels.clear();
@@ -10,29 +12,35 @@ inline void triangulation(TriangleSoup &ts, AuxiliaryStructure &g, std::vector<u
     new_tris.reserve(2 * 3 * ts.numTris());
     new_labels.reserve(2 * ts.numTris());
 
-    #pragma omp parallel for schedule(dynamic)
+    std::vector<uint> tris_to_split;
+    tris_to_split.reserve(ts.numTris());
+
     for(uint t_id = 0; t_id < ts.numTris(); t_id++)
     {
         if(g.triangleHasIntersections(t_id) || g.triangleHasCoplanars(t_id))
-        {
-            FastTrimesh subm(ts.triVert(t_id, 0),
-                             ts.triVert(t_id, 1),
-                             ts.triVert(t_id, 2),
-                             ts.tri(t_id),
-                             ts.triPlane(t_id));
-
-            triangulateSingleTriangle(ts, subm, t_id, g, new_tris, new_labels);
-        }
+            tris_to_split.push_back(t_id);
         else
         {
-            #pragma omp critical
-            {
-                new_tris.push_back(ts.triVertID(t_id, 0));
-                new_tris.push_back(ts.triVertID(t_id, 1));
-                new_tris.push_back(ts.triVertID(t_id, 2));
-                new_labels.push_back(ts.triLabel(t_id));
-            }
+            // triangle without intersections directly goes to the output list
+            new_tris.push_back(ts.triVertID(t_id, 0));
+            new_tris.push_back(ts.triVertID(t_id, 1));
+            new_tris.push_back(ts.triVertID(t_id, 2));
+            new_labels.push_back(ts.triLabel(t_id));
         }
+    }
+
+    // processing the triangles to split
+
+    #pragma omp parallel for schedule(dynamic)
+    for(auto &t_id : tris_to_split)
+    {
+        FastTrimesh subm(ts.triVert(t_id, 0),
+                         ts.triVert(t_id, 1),
+                         ts.triVert(t_id, 2),
+                         ts.tri(t_id),
+                         ts.triPlane(t_id));
+
+        triangulateSingleTriangle(ts, subm, t_id, g, new_tris, new_labels);
     }
 }
 
@@ -90,9 +98,9 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const
     if(g.triangleHasCoplanars(t_id))
     {
         #pragma omp critical
-        {
+        { // start critical section...
             solvePocketsInCoplanarTriangle(subm, g, new_tris, new_labels, ts.triLabel(t_id));
-        }
+        } // end critical section
     }
     else
     {
@@ -101,7 +109,7 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
         #pragma omp critical
-        {
+        { // start critical section...
             for(uint ti = 0; ti < subm.numTris(); ti++)
             {
                 const uint *tri = subm.tri(ti);
@@ -109,7 +117,7 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, FastTrimesh &subm, const
                 new_tris.push_back(subm.vertOrigID(tri[1]));
                 new_tris.push_back(subm.vertOrigID(tri[2]));
                 new_labels.push_back(ts.triLabel(t_id));
-            }
+            } // endl critical section
         }
 
     }
@@ -470,9 +478,9 @@ inline void findIntersectingElements(TriangleSoup &ts, FastTrimesh &subm, const 
             uint orig_tpi_id;
 
             #pragma omp critical
-            {
+            { // start critical section...
                 orig_tpi_id = createTPI(ts, subm, std::make_pair(orig_vstart, orig_vstop), std::make_pair(orig_v0, orig_v1), g, sub_seg_map);
-            }
+            } // end critical section
 
             //adding the TPI in the new mesh
             uint new_tpi_id = subm.addVert(ts.vert(orig_tpi_id), orig_tpi_id);

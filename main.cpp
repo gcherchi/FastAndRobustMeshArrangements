@@ -3,6 +3,8 @@
 #include "solve_intersections.h"
 #include "io_functions.h"
 
+std::string F;
+
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 int main(int argc, char **argv)
@@ -18,9 +20,11 @@ int main(int argc, char **argv)
 
         //filename = "/Users/gianmarco/Desktop/2sphere_coarse.stl";
         //filename = "/Users/gianmarco/Desktop/coplanar5.stl";
-        filename = "/Users/gianmarco/Desktop/three_cubes.stl";
-        //filename = "/Users/gianmarco/Desktop/tri_test100.stl";
+        //filename = "/Users/gianmarco/Desktop/three_cubes.stl";
+        filename = "/Users/gianmarco/Desktop/tri_test100.stl";
     }
+
+    F = filename;
 
     std::vector<double> in_coords, out_coords;
     std::vector<uint> in_tris, out_tris;

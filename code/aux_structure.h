@@ -7,6 +7,8 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <mutex>
+
 typedef std::pair<uint, uint> UIPair;
 
 struct lessThanForMap
@@ -81,6 +83,11 @@ class AuxiliaryStructure
 
         inline int addVisitedPolygonPocket(const std::set<uint> &polygon, const uint &pos);
 
+        // mutex
+        std::mutex tri_mutex;
+        std::mutex tpi_mutex;
+
+
     private:
 
         uint    num_original_vtx;
@@ -103,6 +110,7 @@ class AuxiliaryStructure
         std::set< std::set<uint> >      visited_pockets;
 
         std::map< std::set<uint>, uint> pockets_map;
+
 
         inline UIPair uniquePair(const UIPair &uip) const;
 };

@@ -14,6 +14,8 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
 
     std::vector<uint> tmp_tris;
 
+    auto s0 = startChrono();
+
     mergeDuplicatedVertices(in_coords, in_tris, vertices, tmp_tris);
 
     removeDegenerateAndDuplicatedTriangles(vertices, in_labels, tmp_tris, out_labels);
@@ -29,6 +31,9 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
     triangulation(ts, g, out_tris, out_labels);
 
     ts.appendJollyPoints();
+
+    double t = stopChrono(s0);
+    saveStatisticsOnFile(F, t, 0);
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
