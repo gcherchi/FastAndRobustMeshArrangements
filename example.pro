@@ -51,7 +51,7 @@ QMAKE_CXXFLAGS  += -frounding-math
 }
 
 
-#DEFINES += NDEBUG
+DEFINES += NDEBUG
 
 
 
