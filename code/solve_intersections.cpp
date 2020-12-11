@@ -47,12 +47,13 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
     double multiplier = computeMultiplier(in_coords);
 
     std::vector<uint> tmp_tris;
+    std::vector< std::bitset<NBIT> > tmp_labels;
 
     mergeDuplicatedVertices(in_coords, in_tris, vertices, tmp_tris);
 
-    removeDegenerateAndDuplicatedTriangles(vertices, in_labels, tmp_tris, out_labels);
+    removeDegenerateAndDuplicatedTriangles(vertices, in_labels, tmp_tris, tmp_labels);
 
-    TriangleSoup ts(vertices, tmp_tris, out_labels, multiplier);
+    TriangleSoup ts(vertices, tmp_tris, tmp_labels, multiplier);
 
     detectIntersections(ts, g.intersectionList());
 
