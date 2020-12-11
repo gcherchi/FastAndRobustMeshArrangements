@@ -83,11 +83,10 @@ inline void loadMultipleFiles(const std::vector<std::string> &files, std::vector
 
         coords.insert(coords.end(), tmp_coords.begin(), tmp_coords.end());
 
-        for(auto &i : tmp_tris)
-        {
-            tris.push_back(i + off);
+        for(auto &i : tmp_tris) tris.push_back(i + off);
+
+        for(uint i = 0; i < tmp_tris.size() / 3; i++)
             labels.push_back(f_id);
-        }
     }
 }
 
