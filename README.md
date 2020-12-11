@@ -4,7 +4,7 @@ This is a **HEADER-ONLY** version of the code we used for the experiments in the
 
 <p align="center"><img src="teaser_img.png"></p>
 
-|:warning: WARNING: We are rewriting portions of the code to be more efficient. The code is therefore subject to continuous updates. We are also preparing an easy to use header-only version of our algorithm. It will be released as soon as possible.  |
+|:warning: WARNING: We are rewriting portions of this code to be more efficient. The code is therefore subject to continuous updates. |
 | --- |
 
 ## Usage
@@ -17,14 +17,13 @@ Once done, you may build the executable as follows (put ``Release`` or ``Debug``
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=<build type> ..
-make
 ```
 This will produce an appropriate building configuration for your system.
 On Windows MSVC, this will produce a mesh_arrangement.sln file.
 On Linux/MacOS, this will produce a Makefile. 
 Use it as usual to compile mesh_arrangement.
 
-There are 4 versions of the ``solveIntersections(...)`` function, with different output. Please, check the file ``solve_intersections.h`` for more details.
+There are 4 versions of the ``solveIntersections(...)`` function, with different outputs. Please, check the file ``solve_intersections.h`` for more details.
 
 We tested our code on MacOS (CLANG 10.0 64 bit), Linux (GCC 7.3.0 64 bit) and Windows (MSVC 2019 64 bit).
 
