@@ -35,77 +35,79 @@
  *                                                                                       *
  * ***************************************************************************************/
 
-#ifndef SOLVE_INTERSECTIONS_H
-#define SOLVE_INTERSECTIONS_H
+#ifndef TREE_H
+#define TREE_H
 
-#include "preprocessing/pre_processing.h"
-#include "structures/aux_structure.h"
-#include "structures/triangle_soup.h"
-#include "intersections_detection/intersection_classification.h"
-#include "triangulation/triangulation.h"
+#include "predicates/indirect_predicates.h"
 
-#include <chrono>
+#include <vector>
 
-inline void report_elapsed(const char *what, std::chrono::system_clock::time_point& chrono_start, std::chrono::system_clock::time_point& end)
+typedef unsigned int uint;
+
+struct Node
 {
-    end = std::chrono::system_clock::now();
-    std::cout << what << ": " << (end - chrono_start).count() / 10000000.0 << " seconds\n";
-    chrono_start = end;
-}
+    Node(){}
 
-void solveIntersections(const std::vector<double>& in_coords, const std::vector< unsigned int>& in_tris,
-    std::vector<double>& out_coords, std::vector< unsigned int>& out_tris, bool verbose =false)
-{
-    T_MESH::TMesh::init();
-    initFPU();
-    setlocale(LC_NUMERIC, "en_US.UTF-8"); // make sure "." is the decimal separator
-
-    T_MESH::nonManifoldPLC tm;
-    TriangleSoup ts;
-    AuxiliaryStructure g;
-    const double multiplier = 67108864.0;
-
-    if (verbose)
+    Node(const uint &_v0, const uint &_v1, const uint &_v2) :v0(_v0), v1(_v1), v2(_v2)
     {
-        std::chrono::system_clock::time_point chrono_start, start, end = std::chrono::system_clock::now();
-        chrono_start = start = end;
-
-        fillTMeshStructure(tm, in_coords, in_tris, multiplier);
-        report_elapsed("fillTMeshStructure", chrono_start, end);
-
-        detectIntersectionsBSP(tm, g.intersectionList());
-        report_elapsed("detectIntersectionsBSP", chrono_start, end);
-
-        convertTMeshToTriangleSoup(tm, ts);
-        tm.clear();
-        report_elapsed("convertTMeshToTriangleSoup", chrono_start, end);
-
-        g.initFromTriangleSoup(ts);
-        report_elapsed("initFromTriangleSoup", chrono_start, end);
-
-        classifyIntersections(ts, g);
-        report_elapsed("classifyIntersections", chrono_start, end);
-
-        triangulation(ts, g, out_tris);
-        report_elapsed("triangulation", chrono_start, end);
-
-        ts.createDoubleVectorOfCoords(out_coords, multiplier);
-        report_elapsed("createDoubleVectorOfCoords", chrono_start, end);
-
-        report_elapsed("TOTAL elapsed", start, end);
-    }
-    else
-    {
-        fillTMeshStructure(tm, in_coords, in_tris, multiplier);
-        detectIntersectionsBSP(tm, g.intersectionList());
-        convertTMeshToTriangleSoup(tm, ts);
-        tm.clear();
-        g.initFromTriangleSoup(ts);
-        classifyIntersections(ts, g);
-        triangulation(ts, g, out_tris);
-        ts.createDoubleVectorOfCoords(out_coords, multiplier);
+        children[0] = -1;
+        children[1] = -1;
+        children[2] = -1;
     }
 
-}
+    uint v0, v1, v2;
+    int children[3];
+};
 
-#endif // SOLVE_INTERSECTIONS_H
+
+class Tree
+{
+    public:
+
+        inline Tree() {}
+
+        inline Tree(const uint &size)
+        {
+            nodes.reserve(size);
+        }
+
+        inline uint addNode(const uint &v0, const uint &v1, const uint &v2)
+        {
+            nodes.emplace_back(v0, v1, v2);
+            return static_cast<uint>(nodes.size()) -1;
+        }
+
+        inline const Node &getNode(const uint &node_id) const
+        {
+            assert(node_id < nodes.size() && "out fo range node id");
+            return nodes[node_id];
+        }
+
+        inline void addChildren(const uint &node_id, const uint &c0, const uint &c1)
+        {
+            assert(node_id < nodes.size() && "out fo range node id");
+            assert(nodes[node_id].children[0] == -1 && "assigning no empty children list");
+
+            nodes[node_id].children[0] = static_cast<int>(c0);
+            nodes[node_id].children[1] = static_cast<int>(c1);
+        }
+
+        inline void addChildren(const uint &node_id, const uint &c0, const uint &c1, const uint &c2)
+        {
+            assert(node_id < nodes.size() && "out fo range node id");
+            assert(nodes[node_id].children[0] == -1 && "assigning no empty children list");
+
+            nodes[node_id].children[0] = static_cast<int>(c0);
+            nodes[node_id].children[1] = static_cast<int>(c1);
+            nodes[node_id].children[2] = static_cast<int>(c2);
+        }
+
+
+    private:
+
+        std::vector<Node> nodes;
+};
+
+
+
+#endif // TREE_H

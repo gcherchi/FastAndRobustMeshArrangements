@@ -38,15 +38,13 @@
 #ifndef FASTTRIMESH_H
 #define FASTTRIMESH_H
 
-#include "implicit_point.h"
-#include "structures/tree.h"
+#include <implicit_point.h>
+#include "tree.h"
 #include "common.h"
 
-#include <vector>
 #include <set>
-#include <unordered_set>
 #include <unordered_map>
-#include <algorithm>
+
 
 struct iVtx
 {
@@ -80,9 +78,10 @@ struct iTri
 class FastTrimesh
 {
     public:
-        FastTrimesh(){}
 
-        FastTrimesh(const genericPoint* tv0, const genericPoint* tv1, const genericPoint *tv2,
+        inline FastTrimesh(){}
+
+        inline FastTrimesh(const genericPoint* tv0, const genericPoint* tv1, const genericPoint *tv2,
                     const uint *tv_id, const Plane &ref_p)
         {
             addVert(tv0, tv_id[0]);
@@ -211,7 +210,7 @@ class FastTrimesh
 
 };
 
-#include "fast_trimesh.tpp"
+#include "fast_trimesh.cpp"
 
 #endif // FASTTRIMESH_H
 

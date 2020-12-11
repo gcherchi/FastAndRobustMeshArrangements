@@ -35,44 +35,19 @@
  *                                                                                       *
  * ***************************************************************************************/
 
-#include <iostream>
+#ifndef COMMON_H
+#define COMMON_H
 
-#include "solve_intersections.h"
-#include "io_functions.h"
+#define NBIT 32
 
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-int main(int argc, char **argv)
+enum Plane {XY, YZ, ZX};
+
+inline Plane intToPlane(const int &norm)
 {
-    std::string filename;
-
-    if(argc > 1)
-        filename = argv[1];
-    else
-    {
-        std::cout << "input file missing" << std::endl;
-        return -1;
-    }
-
-    std::vector<double> in_coords, out_coords;
-    std::vector<uint> in_tris, out_tris;
-    std::vector<genericPoint*> gen_points;
-
-    load(filename, in_coords, in_tris);
-
-    /*-------------------------------------------------------------------
-     * There are 4 versions of the solveIntersections function. Please
-     * refer to the solve_intersections.h file to see how to use them. */
-
-    solveIntersections(in_coords, in_tris, gen_points, out_tris);
-
-    computeApproximateCoordinates(gen_points, out_coords);
-    freePointsMemory(gen_points);
-
-    save("output.obj", out_coords, out_tris);
-
-    return 0;
+    if(norm == 0) return YZ;
+    if(norm == 1) return ZX;
+    return XY;
 }
 
-
-
+#endif // COMMON_H

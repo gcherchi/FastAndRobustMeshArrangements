@@ -35,10 +35,9 @@
  *                                                                                       *
  * ***************************************************************************************/
 
-#ifndef AUX_STRUCTURE_TPP
-#define AUX_STRUCTURE_TPP
 
 #include "aux_structure.h"
+
 
 inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
 {
@@ -51,44 +50,30 @@ inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
     tri2pts.resize(ts.numTris());
     edge2pts.resize(ts.numEdges());
     tri2segs.resize(ts.numTris());
+    tri_has_intersections.resize(ts.numTris(), false);
 
     num_intersections = 0;
     num_tpi = 0;
 
     for(uint v_id = 0; v_id < ts.numVerts(); v_id++)
     {
-        std::pair<uint, bool> ins = addVertexInSortedList(std::make_pair(ts.vert(v_id), v_id));
+        std::pair<uint, bool> ins = addVertexInSortedList(ts.vert(v_id), v_id);
         assert(ins.second && "Error: Duplicated vertex in starting mesh");
     }
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::vector<uint> &AuxiliaryStructure::triangleIntersectionList(const uint &t_id) const
+inline std::set<std::pair<uint, uint> > &AuxiliaryStructure::intersectionList()
 {
-    assert(t_id < tri2tri.size());
-    return tri2tri[t_id];
+    return intersection_list;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline std::vector< std::vector<uint> > &AuxiliaryStructure::intersectionList()
+inline const std::set<std::pair<uint, uint> > &AuxiliaryStructure::intersectionList() const
 {
-    return tri2tri;
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline void AuxiliaryStructure::clearStructure()
-{
-    coplanar_tris.clear();
-    tri2pts.clear();
-    edge2pts.clear();
-    tri2tri.clear();
-    tri2segs.clear();
-    seg2tris.clear();
-    sorted_vtx.clear();
-    visited_pockets.clear();
+    return intersection_list;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -118,7 +103,7 @@ inline bool AuxiliaryStructure::addSegmentInTriangle(const uint &t_id, const UIP
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, const std::vector<uint> &triangles)
+inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, const uint &tA_id, const uint &tB_id)
 {
     UIPair key_seg = uniquePair(seg);
     std::set<uint> tris;
@@ -128,18 +113,10 @@ inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, const s
     if(f != seg2tris.end())
         tris = f->second;
 
-    for(uint t : triangles)
-        tris.insert(t);
+    tris.insert(tA_id);
+    tris.insert(tB_id);
 
     seg2tris[key_seg] = tris;
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, const std::set<uint> &triangles)
-{
-    const std::vector<uint> triangles_vec(triangles.begin(), triangles.end());
-    addTrianglesInSegment(seg, triangles_vec);
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -184,18 +161,20 @@ inline bool AuxiliaryStructure::triangleHasCoplanars(const uint &t_id) const
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline bool AuxiliaryStructure::triangleHasIntersections(const uint &t_id) const
+inline void AuxiliaryStructure::setTriangleHasIntersections(const uint &t_id)
 {
-    assert(t_id < tri2tri.size());
-    return tri2tri[t_id].size() > 0;
+    assert(t_id < tri_has_intersections.size());
+    tri_has_intersections[t_id] = true;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::vector< std::vector<uint> > &AuxiliaryStructure::intersectionList() const
+inline bool AuxiliaryStructure::triangleHasIntersections(const uint &t_id) const
 {
-    return tri2tri;
+    assert(t_id < tri_has_intersections.size());
+    return tri_has_intersections[t_id];
 }
+
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -235,16 +214,12 @@ inline const std::set<uint> &AuxiliaryStructure::segmentTrianglesList(const UIPa
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline std::pair<uint, bool> AuxiliaryStructure::addVertexInSortedList(const std::pair<const genericPoint*, uint> &vtx_pair)
+inline std::pair<uint, bool> AuxiliaryStructure::addVertexInSortedList(const genericPoint *v, const uint &pos)
 {
-    std::pair<uint, bool> res;
-    auto ins = sorted_vtx.insert(vtx_pair);
+    auto ins = v_map.insert({v, pos});
 
-    res.second = ins.second;
-    if(ins.second == false) // vertex not added (already present)
-        res.first = ins.first->second;
-
-    return res;
+    return std::make_pair(ins.first->second, // the position of v (pos if first time, or the previous saved positionotherwise)
+                          ins.second);       // the result of the insert operation /true or false)
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -254,33 +229,16 @@ inline bool AuxiliaryStructure::addVisitedPolygonPocket(const std::set<uint> &po
     return visited_pockets.insert(polygon).second;
 }
 
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline uint AuxiliaryStructure::numIntersections() const
+//it returns -1 if the pocket is not already present,
+// the i-index of the corresponding triangles in the new_label array otherwise
+inline int AuxiliaryStructure::addVisitedPolygonPocket(const std::set<uint> &polygon, const uint &pos)
 {
-    if(num_intersections < 0) return 0;
-    return static_cast<uint>(num_intersections);
-}
+    auto poly_it = pockets_map.insert({polygon, pos});
 
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    if(poly_it.second) return -1; // polygon not present yet
 
-inline void AuxiliaryStructure::incrementNumTPI(const uint &num)
-{
-    num_tpi += num;
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline void AuxiliaryStructure::incrementNumIntersections(const uint &num)
-{
-    num_intersections += num;
-}
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline uint AuxiliaryStructure::numTPI() const
-{
-    return num_tpi;
+    return static_cast<int>(poly_it.first->second);
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -291,5 +249,3 @@ inline UIPair AuxiliaryStructure::uniquePair(const UIPair &uip) const
     return std::make_pair(uip.second, uip.first);
 }
 
-
-#endif // AUX_STRUCTURE_TPP

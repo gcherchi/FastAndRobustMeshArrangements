@@ -38,41 +38,23 @@
 #ifndef INTERSECTIONS_GRAPH_H
 #define INTERSECTIONS_GRAPH_H
 
-#include <vector>
+#include "triangle_soup.h"
+
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
-#include <iostream>
-#include "structures/triangle_soup.h"
 
-typedef unsigned int uint;
+#include <mutex>
 
 typedef std::pair<uint, uint> UIPair;
 
-
-struct lessThanForSet
+struct lessThanForMap
 {
-    bool operator()(const std::pair<const genericPoint*, uint> &a, const std::pair<const genericPoint*,uint> &b) const
+    bool operator()(const genericPoint* a, const genericPoint* b) const
     {
-        return (genericPoint::lessThan(*a.first, *b.first) < 0);
+        return (genericPoint::lessThan(*a, *b) < 0);
     }
 };
-
-
-struct VectorHash
-{
-    inline size_t operator()(const std::vector<uint>& v) const
-    {
-        std::hash<uint> hasher;
-        size_t seed = 0;
-        for (uint i : v) seed ^= hasher(i) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-
-        return seed;
-    }
-};
-
-typedef std::unordered_set< std::vector<uint>, VectorHash > CustomUnorderedVectorSet;
-
 
 struct PairHash
 {
@@ -95,15 +77,13 @@ class AuxiliaryStructure
 {
     public:
 
-        AuxiliaryStructure() {}
+        inline AuxiliaryStructure() {}
 
         inline void initFromTriangleSoup(TriangleSoup &ts);
 
-        inline const std::vector<uint> &triangleIntersectionList(const uint &t_id) const;
+        inline std::set< std::pair<uint, uint> > &intersectionList();
 
-        inline std::vector<std::vector<uint> > &intersectionList();
-
-        inline void clearStructure();
+        inline const std::set<std::pair<uint, uint> > &intersectionList() const;
 
         inline bool addVertexInTriangle(const uint &t_id, const uint &v_id);
 
@@ -111,8 +91,7 @@ class AuxiliaryStructure
 
         inline bool addSegmentInTriangle(const uint &t_id, const UIPair &seg);
 
-        inline void addTrianglesInSegment(const UIPair &seg, const std::vector<uint> &triangles);
-        inline void addTrianglesInSegment(const UIPair &seg, const std::set<uint> &triangles);
+        inline void addTrianglesInSegment(const UIPair &seg, const uint &tA_id, const uint &tB_id);
 
         inline void splitSegmentInSubSegments(const uint &orig_v0, const uint &orig_v1, const uint &midpoint);
 
@@ -122,9 +101,9 @@ class AuxiliaryStructure
 
         inline bool triangleHasCoplanars(const uint &t_id) const;
 
-        inline bool triangleHasIntersections(const uint &t_id) const;
+        inline void setTriangleHasIntersections(const uint &t_id);
 
-        inline const std::vector< std::vector<uint> > &intersectionList() const;
+        inline bool triangleHasIntersections(const uint &t_id) const;
 
         inline const std::set<uint> &trianglePointsList(const uint &t_id) const;
 
@@ -134,43 +113,50 @@ class AuxiliaryStructure
 
         inline const std::set<uint> &segmentTrianglesList(const UIPair &seg) const;
 
-        inline std::pair<uint, bool> addVertexInSortedList(const std::pair<const genericPoint *, uint> &vtx_pair);
+        //inline std::pair<uint, bool> addVertexInSortedList(const std::pair<const genericPoint *, uint> &vtx_pair);
+        inline std::pair<uint, bool> addVertexInSortedList(const genericPoint *v, const uint &pos);
 
         inline bool addVisitedPolygonPocket(const std::set<uint> &polygon);
 
-        inline uint numIntersections() const;
+        inline int addVisitedPolygonPocket(const std::set<uint> &polygon, const uint &pos);
 
-        inline void incrementNumTPI(const uint &num);
-
-        inline void incrementNumIntersections(const uint &num);
-
-        inline uint numTPI() const;
+        // mutex
+        std::mutex tri_mutex;
+        std::mutex tpi_mutex;
 
 
     private:
 
-        uint num_original_vtx;
-        uint num_original_tris;
-        int num_intersections;
-        uint num_tpi;
+        uint    num_original_vtx;
+        uint    num_original_tris;
+        int     num_intersections;
+        uint    num_tpi;
 
-        std::vector< std::vector<uint> > coplanar_tris;
+        std::set< std::pair<uint, uint> >    intersection_list;
+        std::vector< std::vector<uint> >    coplanar_tris;
 
-        std::vector< std::set<uint> > tri2pts;
-        std::vector< std::set<uint> > edge2pts;
-        std::vector< std::vector<uint> > tri2tri;
-        std::vector< std::set<UIPair> > tri2segs;
-        CustomUnorderedPairSetMap seg2tris;
+        std::vector< std::set<uint> >       tri2pts;
+        std::vector< std::set<uint> >       edge2pts;
+        std::vector< std::set<UIPair> >     tri2segs;
+        CustomUnorderedPairSetMap           seg2tris;
 
-        std::set< std::pair<const genericPoint*, uint> , lessThanForSet> sorted_vtx;
+        std::vector<bool>                   tri_has_intersections;
 
-        std::set< std::set<uint> > visited_pockets;
+        std::map< const genericPoint*, uint, lessThanForMap> v_map;
+
+        std::set< std::set<uint> >      visited_pockets;
+
+        std::map< std::set<uint>, uint> pockets_map;
+
 
         inline UIPair uniquePair(const UIPair &uip) const;
 };
 
 
-#include "aux_structure.tpp"
-
+#include "aux_structure.cpp"
 
 #endif // INTERSECTIONS_GRAPH_H
+
+
+
+

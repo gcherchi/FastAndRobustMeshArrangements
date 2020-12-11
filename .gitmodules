@@ -4,6 +4,3 @@
 [submodule "external/IndirectPredicates"]
 	path = external/IndirectPredicates
 	url = https://github.com/MarcoAttene/Indirect_Predicates.git
-[submodule "external/TMesh_Kernel"]
-	path = external/TMesh_Kernel
-	url = https://github.com/MarcoAttene/TMesh_Kernel.git

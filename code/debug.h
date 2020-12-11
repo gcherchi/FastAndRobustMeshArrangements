@@ -35,52 +35,70 @@
  *                                                                                       *
  * ***************************************************************************************/
 
-#ifndef INTERSECTION_CLASSIFICATION_H
-#define INTERSECTION_CLASSIFICATION_H
+#ifndef DEBUG_H
+#define DEBUG_H
 
-#include "structures/triangle_soup.h"
-#include "structures/aux_structure.h"
-#include "cinolib/predicates.h"
+#include <string>
+#include <fstream>
+#include <chrono>
 
-void classifyIntersections(TriangleSoup &ts, AuxiliaryStructure &g);
+inline std::string ts(const double &n)
+{
+    std::string s = std::to_string(n);
+    std::replace(s.begin(), s.end(), '.', ',');
+    return s;
+}
 
-void checkTriangleTriangleIntersections(TriangleSoup &ts, AuxiliaryStructure &g, const uint &tA_id, const uint &tB_id);
+inline void saveStatisticsOnFile(const std::string &file_in, const double &time, const double &time2)
+{
+    std::string filename = "log.csv";
 
-uint addNewIntersection(TriangleSoup &ts, const Intersection &i, const std::vector<uint> &int_elems, AuxiliaryStructure &g);
+    std::string header = "model; time; time mul\n";
 
-uint noCoplanarJollyPointID(const TriangleSoup &ts, const double *v0, const double *v1, const double *v2);
+    std::string data = file_in.substr(0, file_in.length() - 4); // model name without extension
 
-void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, const uint &e_v0, const uint &e_v1,
-                                          const uint &e_t_id, const uint &o_t_id, AuxiliaryStructure &g, std::set<uint> &il);
+    data = data + ";" + ts(time) + ";" + ts(time2) + "\n";
 
-void checkSingleNoCoplanarEdgeIntersection(TriangleSoup &ts, const uint &e_id, const uint &t_id,
-                                           std::set<uint> &v_tmp, AuxiliaryStructure &g, std::set<uint> &li);
+    std::ifstream ifs;
+    bool exists;
 
-void checkVtxInTriangleIntersection(TriangleSoup &ts, const uint &v_id, const uint &t_id, std::set<uint> &v_tmp, AuxiliaryStructure &g, std::set<uint> &li);
+    // we check if the file exist to insert the header
+    ifs.open(filename);
+    if(ifs)
+    {
+        exists = true;
+        ifs.close();
+    }
+    else
+        exists = false;
 
-void propagateCoplanarTrianlesIntersections(TriangleSoup &ts, AuxiliaryStructure &g);
+    // we inser the data
+    std::ofstream ofs;
+    ofs.open (filename, std::ofstream::out | std::ofstream::app);
 
-void normalizeOrientations(double o[]);
+    if(exists)
+        ofs << data;
+    else
+    {
+        ofs << header;
+        ofs << data;
+    }
 
-bool sameOrientation(const double &o1, const double &o2);
+    ofs.close();
+}
 
-// 1 if all edges are coplanar to the triangle, -1 otherwise
-bool allCoplanarEdges(const double o[]);
+inline static std::chrono::time_point<std::chrono::system_clock> startChrono()
+{
+    return std::chrono::system_clock::now();
+}
 
-// if there is a coplanar edge return its id, -1 otherwise
-int singleCoplanarEdge(const double o[]);
-
-// if there is a vertex in the plane and the opposite edge doesn't intersect the plane return the vtx id, -1 otherwise
-int vtxInPlaneAndOppositeEdgeOnSameSide(const double o[]);
-
-// if there is a vertex in the plane and the opposite edge intersect the plane return the vtx id, -1 otherwise
-int vtxInPlaneAndOppositeEdgeCrossPlane(const double o[]);
-
-// if there is a vertex on one side and the opposite edge on the other return the relative informations, -1 otherwise
-int vtxOnASideAndOppositeEdgeOnTheOther(const double o[], uint &opp_v0, uint &opp_v1);
+inline double stopChrono(std::chrono::time_point<std::chrono::system_clock> &start)
+{
+    auto time = std::chrono::system_clock::now() - start;
+    return std::chrono::duration <double, std::milli> (time).count() / 1000;
+}
 
 
-bool genericPointInsideTriangle(const TriangleSoup &ts, const uint &p_id, const uint &t_id, const bool &strict);
 
 
-#endif // INTERSECTION_CLASSIFICATION_H
+#endif // DEBUG_H

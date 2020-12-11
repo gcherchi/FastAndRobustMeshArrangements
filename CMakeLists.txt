@@ -11,26 +11,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_executable(${PROJECT_NAME} 
     main.cpp
     external/Cinolib/external/predicates/shewchuk.c
-    intersections_detection/intersection_classification.cpp
-    non_manifold/nmIntersections.cpp
-    non_manifold/nonManifold.cpp
-    preprocessing/pre_processing.cpp
-    triangulation/triangulation.cpp
     external/IndirectPredicates/implicit_point.cpp
     external/IndirectPredicates/numerics.cpp
     external/IndirectPredicates/predicates/indirect_predicates.cpp
-	external/TMesh_Kernel/src/coordinates.cpp
-	external/TMesh_Kernel/src/mixedPredicates.cpp
-	external/TMesh_Kernel/src/orientation.cpp
-	external/TMesh_Kernel/src/point.cpp
-	external/TMesh_Kernel/src/tmesh.cpp
 )
 
 # Compiler-specific options
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 # grant IEEE 754 compliance
 	target_compile_options(${PROJECT_NAME} PUBLIC -frounding-math)
-# use intrinsic functions (CHECK WHAT TO DO FOR GCC !!!!!!!!)
+	find_package(Threads)
+	target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 #	target_compile_options(${PROJECT_NAME} PUBLIC "/Oi")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 # grant IEEE 754 compliance
@@ -47,11 +38,11 @@ endif()
 # Public include directory
 target_include_directories(${PROJECT_NAME} PUBLIC
 	./
+	code/
 	external/Cinolib/external/eigen/
 	external/Cinolib/include/
 	external/IndirectPredicates/
 	external/IndirectPredicates/predicates/
-	external/TMesh_Kernel/include/
 )
 
 # preprocessor definitions
