@@ -35,25 +35,82 @@
  *                                                                                       *
  * ***************************************************************************************/
 
-#ifndef IO_FUNCTIONS_H
-#define IO_FUNCTIONS_H
+#include "io_functions.h"
 
-#include <cinolib/vector_serialization.h>
 
-#include <cinolib/io/read_OFF.h>
-#include <cinolib/io/read_OBJ.h>
-#include <cinolib/io/read_STL.h>
+inline void load(const std::string &filename, std::vector<double> &coords, std::vector<uint> &tris)
+{
+    std::vector<cinolib::vec3d> tmp_verts;
 
-#include <cinolib/io/write_OFF.h>
-#include <cinolib/io/write_OBJ.h>
-#include <cinolib/io/write_STL.h>
+    std::string filetype = filename.substr(filename.size() - 4, 4);
 
-inline void load(const std::string &filename, std::vector<double> &coords, std::vector<uint> &tris);
+    if (filetype.compare(".off") == 0 || filetype.compare(".OFF") == 0)
+    {
+        std::vector< std::vector<uint> > tmp_tris;
+        cinolib::read_OFF(filename.c_str(), tmp_verts, tmp_tris);
+        tris = cinolib::serialized_vids_from_polys(tmp_tris);
+    }
+    else if (filetype.compare(".obj") == 0 || filetype.compare(".OBJ") == 0)
+    {
+        std::vector< std::vector<uint> > tmp_tris;
+        cinolib::read_OBJ(filename.c_str(), tmp_verts, tmp_tris);
+        tris = cinolib::serialized_vids_from_polys(tmp_tris);
+    }
+    else if (filetype.compare(".stl") == 0 || filetype.compare(".STL") == 0)
+    {
+        cinolib::read_STL(filename.c_str(), tmp_verts, tris, false);
+    }
+    else
+    {
+        std::cerr << "ERROR: file format not supported yet " << std::endl;
+    }
 
-inline void loadMultipleFiles(const std::vector<std::string> &files, std::vector<double> &coords, std::vector<uint> &tris, std::vector<uint> &labels);
+    coords = cinolib::serialized_xyz_from_vec3d(tmp_verts);
+}
 
-inline void save(const std::string &filename, std::vector<double> &coords, std::vector<uint> &tris);
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#include "io_functions.cpp"
+inline void loadMultipleFiles(const std::vector<std::string> &files, std::vector<double> &coords, std::vector<uint> &tris, std::vector<uint> &labels)
+{
+    for(uint f_id = 0; f_id < files.size(); f_id++)
+    {
+        std::vector<double> tmp_coords;
+        std::vector<uint> tmp_tris;
 
-#endif // IO_FUNCTIONS_H
+        load(files[f_id], tmp_coords, tmp_tris);
+
+        uint off = static_cast<uint>(coords.size() / 3); // prev num verts
+
+        coords.insert(coords.end(), tmp_coords.begin(), tmp_coords.end());
+
+        for(auto &i : tmp_tris)
+        {
+            tris.push_back(i + off);
+            labels.push_back(f_id);
+        }
+    }
+}
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+inline void save(const std::string &filename, std::vector<double> &coords, std::vector<uint> &tris)
+{
+    std::string filetype = filename.substr(filename.size() - 4, 4);
+
+    std::vector< std::vector<uint> > tmp_tris = cinolib::polys_from_serialized_vids(tris, 3);
+
+    if (filetype.compare(".off") == 0 || filetype.compare(".OFF") == 0)
+    {
+        cinolib::write_OFF(filename.c_str(), coords, tmp_tris);
+    }
+    else if (filetype.compare(".obj") == 0 || filetype.compare(".OBJ") == 0)
+    {
+        cinolib::write_OBJ(filename.c_str(), coords, tmp_tris);
+    }
+    else
+    {
+        std::cerr << "ERROR: file format not supported yet " << std::endl;
+    }
+}
+
+
