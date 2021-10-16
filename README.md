@@ -1,6 +1,6 @@
 # Fast and Robust Mesh Arrangements using Floating-point Arithmetic
 
-This is a **HEADER-ONLY** version of the code we used for the experiments in the paper "**Fast and Robust Mesh Arrangements using Floating-point Arithmetic**" by [G. Cherchi](http://www.gianmarcocherchi.com), [M. Livesu](http://pers.ge.imati.cnr.it/livesu/), [R. Scateni](https://people.unica.it/riccardoscateni/) and [M. Attene](https://www.cnr.it/en/people/marco.attene) (ACM TOG, SIGGRAPH Asia 2020). 
+This is a **HEADER-ONLY** version of the code we used for the experiments in the paper ["**Fast and Robust Mesh Arrangements using Floating-point Arithmetic**"](https://dl.acm.org/doi/abs/10.1145/3414685.3417818) by [G. Cherchi](http://www.gianmarcocherchi.com), [M. Livesu](http://pers.ge.imati.cnr.it/livesu/), [R. Scateni](https://people.unica.it/riccardoscateni/) and [M. Attene](https://www.cnr.it/en/people/marco.attene) (ACM TOG, SIGGRAPH Asia 2020). 
 
 <p align="center"><img src="teaser_img.png"></p>
 
