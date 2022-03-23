@@ -31,7 +31,7 @@ We tested our code on MacOS (CLANG 10.0 64 bit), Linux (GCC 7.3.0 64 bit) and Wi
 | --- |
 
 ## Citing us
-If you use our code in your academic projects, please cite our paper using the following BibTeX entry:
+If you use our code in your academic projects, please cite our papers using the following BibTeX entries:
 ```
 @article{CLSA20,
   title   = {Fast and Robust Mesh Arrangements using Floating-point Arithmetic},
@@ -42,6 +42,13 @@ If you use our code in your academic projects, please cite our paper using the f
   number  = {6},
   doi     = {10.1145/3414685.3417818}
 }
+
+@article{LCSA21,
+  title   = {Deterministic Linear Time Constrained Triangulation using Simplified Earcut},
+  author  = {Livesu, Marco and Cherchi, Gianmarco and Scateni, Riccardo and Attene, Marco},
+  journal = {IEEE Transactions on Visualization and Computer Graphics (TVCG)},
+  year    = {2021},
+  doi     = {10.1109/TVCG.2021.3070046}}
 ```
 
 
