@@ -31,7 +31,7 @@ We tested our code on MacOS (CLANG 10.0 64 bit), Linux (GCC 7.3.0 64 bit) and Wi
 | --- |
 
 ## Citing us
-If you use our code in your academic projects, please cite our papers using the following BibTeX entries:
+This project is based on algorithms described in the following scientific articles. If you use our code in your academic projects, please cite our papers using the following BibTeX entries:
 ```
 @article{CLSA20,
   title   = {Fast and Robust Mesh Arrangements using Floating-point Arithmetic},
