@@ -384,9 +384,19 @@ inline void addConstraintSegment(TriangleSoup &ts, FastTrimesh &subm, const uint
     earcutLinear(subm, h0, new_tris, orientation);
     earcutLinear(subm, h1, new_tris, orientation);
 
-    for(std::vector<uint>::iterator i = new_tris.begin(), j = i+1, k = i+2; k < new_tris.end(); i += 3, j += 3, k += 3)
+    std::vector<uint>::iterator i = new_tris.begin();
+    if (i < new_tris.end() - 2)
     {
-        subm.addTri(*i, *j, *k);
+        std::vector<uint>::iterator j = i + 1;
+        std::vector<uint>::iterator k = i + 2;
+        while (true)
+        {
+            subm.addTri(*i, *j, *k);
+            if (k >= new_tris.end() - 3) break;
+            i += 3;
+            j += 3;
+            k += 3;
+        }
     }
 
     subm.removeTris(intersected_tris);
