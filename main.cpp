@@ -45,7 +45,7 @@
 int main(int argc, char **argv)
 {
     std::string filename;
-
+/*
     if(argc > 1)
         filename = argv[1];
     else
@@ -53,10 +53,14 @@ int main(int argc, char **argv)
         std::cout << "input file missing" << std::endl;
         return -1;
     }
+    */
+
+    filename = "/Users/gianmarco/Code/FastAndRobustMeshArrangements/data/40509.stl"; // TO REMOVE
 
     std::vector<double> in_coords, out_coords;
     std::vector<uint> in_tris, out_tris;
     std::vector<genericPoint*> gen_points;
+    point_arena arena;
 
     load(filename, in_coords, in_tris);
 
@@ -64,10 +68,11 @@ int main(int argc, char **argv)
      * There are 4 versions of the solveIntersections function. Please
      * refer to the solve_intersections.h file to see how to use them. */
 
-    solveIntersections(in_coords, in_tris, gen_points, out_tris);
+    solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
 
     computeApproximateCoordinates(gen_points, out_coords);
-    freePointsMemory(gen_points);
+
+    //freePointsMemory(gen_points);
 
     save("output.obj", out_coords, out_tris);
 
