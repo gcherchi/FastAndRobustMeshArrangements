@@ -8,9 +8,9 @@ This is a **HEADER-ONLY** version of the code we used for the experiments in the
 | --- |
 
 ## Usage
-Clone this repository, including submodules, with:
+Clone this repository:
 ```
-git clone --recursive https://github.com/gcherchi/FastAndRobustMeshArrangements.git
+git clone https://github.com/gcherchi/FastAndRobustMeshArrangements.git
 ```
 Once done, you may build the executable as follows (put ``Release`` or ``Debug`` instead of ``<build type>``):
 ```
