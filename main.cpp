@@ -53,7 +53,7 @@ int main(int argc, char **argv)
         std::cout << "input file missing" << std::endl;
         return -1;
     }
-    
+
     std::vector<double> in_coords, out_coords;
     std::vector<uint> in_tris, out_tris;
     std::vector<genericPoint*> gen_points;
@@ -68,9 +68,7 @@ int main(int argc, char **argv)
     solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
 
     computeApproximateCoordinates(gen_points, out_coords);
-
-    //freePointsMemory(gen_points); // WHYYYYYYYY NOT??????????
-
+    
     save("output.obj", out_coords, out_tris);
 
     return 0;
