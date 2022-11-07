@@ -55,7 +55,8 @@ This project is based on algorithms described in the following scientific articl
   author  = {Livesu, Marco and Cherchi, Gianmarco and Scateni, Riccardo and Attene, Marco},
   journal = {IEEE Transactions on Visualization and Computer Graphics (TVCG)},
   year    = {2021},
-  doi     = {10.1109/TVCG.2021.3070046}}
+  doi     = {10.1109/TVCG.2021.3070046}
+}
 ```
 
 
