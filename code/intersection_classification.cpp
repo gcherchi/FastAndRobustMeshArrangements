@@ -278,10 +278,10 @@ inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, point_arena& arena, uint e0
                                                ts.edgeVertPtr(e0_id, 0));
 
     implicitPoint3D_LPI *tmp_i = &arena.edges.emplace_back(ts.edgeVert(e0_id, 0)->toExplicit3D(),
-                                                         ts.edgeVert(e0_id, 1)->toExplicit3D(),
-                                                         ts.edgeVert(e1_id, 0)->toExplicit3D(),
-                                                         ts.edgeVert(e1_id, 1)->toExplicit3D(),
-                                                         ts.jollyPoint(jolly_id)->toExplicit3D());
+                                                           ts.edgeVert(e0_id, 1)->toExplicit3D(),
+                                                           ts.edgeVert(e1_id, 0)->toExplicit3D(),
+                                                           ts.edgeVert(e1_id, 1)->toExplicit3D(),
+                                                           ts.jollyPoint(jolly_id)->toExplicit3D());
 
     uint new_v_id;
     uint pos = ts.numVerts();
