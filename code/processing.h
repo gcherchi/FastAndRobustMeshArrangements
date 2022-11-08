@@ -1,7 +1,7 @@
 /*****************************************************************************************
  *              MIT License                                                              *
  *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
+ * Copyright (c) 2022 G. Cherchi, M. Livesu, R. Scateni, M. Attene and F. Pellacini      *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -22,7 +22,7 @@
  *                                                                                       *
  * Authors:                                                                              *
  *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
+ *      https://www.gianmarcocherchi.com                                                 *
  *                                                                                       *
  *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
  *      http://pers.ge.imati.cnr.it/livesu/                                              *
@@ -32,6 +32,9 @@
  *                                                                                       *
  *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
  *      https://www.cnr.it/en/people/marco.attene/                                       *
+ *                                                                                       *
+ *      Fabio Pellacini (fabio.pellacini@uniroma1.it)                                    *
+ *      https://pellacini.di.uniroma1.it                                                 *
  *                                                                                       *
  * ***************************************************************************************/
 
@@ -46,8 +49,9 @@
 
 inline double computeMultiplier(const std::vector<double> &coords);
 
-inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const double &multiplier,
-                                    std::vector<explicitPoint3D> &verts, std::vector<uint> &tris);
+inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::vector<uint> &in_tris,
+                                    point_arena& arena, std::vector<genericPoint*> &verts, std::vector<uint> &tris,
+                                    bool parallel);
 
 inline void removeDegenerateAndDuplicatedTriangles(const std::vector<genericPoint *> &verts, const std::vector<std::bitset<NBIT> > &in_labels,
                                                    std::vector<uint> &tris, std::vector<std::bitset<NBIT> > &labels);
@@ -55,6 +59,8 @@ inline void removeDegenerateAndDuplicatedTriangles(const std::vector<genericPoin
 inline void freePointsMemory(std::vector<genericPoint*> &points);
 
 inline void computeApproximateCoordinates(const std::vector<genericPoint *> &vertices, std::vector<double> &coords);
+
+inline void computeApproximateCoordinates(const std::vector<genericPoint *> &vertices, std::vector<cinolib::vec3d> &out_vertices);
 
 #include "processing.cpp"
 

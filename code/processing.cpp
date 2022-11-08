@@ -1,7 +1,7 @@
 /*****************************************************************************************
  *              MIT License                                                              *
  *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
+ * Copyright (c) 2022 G. Cherchi, M. Livesu, R. Scateni, M. Attene and F. Pellacini      *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -22,7 +22,7 @@
  *                                                                                       *
  * Authors:                                                                              *
  *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
+ *      https://www.gianmarcocherchi.com                                                 *
  *                                                                                       *
  *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
  *      http://pers.ge.imati.cnr.it/livesu/                                              *
@@ -33,10 +33,14 @@
  *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
  *      https://www.cnr.it/en/people/marco.attene/                                       *
  *                                                                                       *
+ *      Fabio Pellacini (fabio.pellacini@uniroma1.it)                                    *
+ *      https://pellacini.di.uniroma1.it                                                 *
+ *                                                                                       *
  * ***************************************************************************************/
 
 #include "processing.h"
 
+#include "utils.h"
 
 inline double computeMultiplier(const std::vector<double> &coords)
 {
@@ -59,22 +63,56 @@ inline double computeMultiplier(const std::vector<double> &coords)
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline void mergeDuplicatedVertices(const std::vector<double> &in_coords, const std::vector<uint> &in_tris,
-                                    std::vector<genericPoint*> &verts, std::vector<uint> &tris)
+                                    point_arena& arena, std::vector<genericPoint*> &verts, std::vector<uint> &tris,
+                                    bool parallel)
 {
     verts.reserve(in_coords.size() / 3);
     tris.reserve(in_tris.size());
+    arena.init.reserve(in_tris.size());
 
-    std::map<std::vector<double>, uint> v_map;
-
-    for(const uint &v_id : in_tris)
+    if(parallel)
     {
-        std::vector<double> v = {in_coords[(3 * v_id)], in_coords[(3 * v_id) +1], in_coords[(3 * v_id) +2]};
+        using vec3 = std::array<double, 3>;
+        auto in_vecs = (vec3*)in_coords.data();
+        std::vector<uint> sorted = std::vector<uint>(in_coords.size() / 3);
 
-        auto ins = v_map.insert({v, v_map.size()});
-        if(ins.second)
-            verts.push_back(new explicitPoint3D(v[0], v[1], v[2])); // new vtx added
+        for(uint idx = 0; idx < (uint)sorted.size(); idx ++) sorted[idx] = idx;
 
-        tris.push_back(ins.first->second);
+        tbb::parallel_sort(sorted.begin(), sorted.end(), [in_vecs](auto a, auto b)
+        {
+            return in_vecs[a] < in_vecs[b];
+        });
+
+        std::vector<uint> lookup = std::vector<uint>(sorted.size());
+        for(uint idx = 0; idx < (uint)sorted.size(); idx ++)
+        {
+            if (idx == 0 || in_vecs[sorted[idx]] != in_vecs[sorted[idx-1]])
+            {
+                auto v = in_vecs[sorted[idx]];
+                verts.push_back(&arena.init.emplace_back(v[0], v[1], v[2]));
+            }
+            lookup[sorted[idx]] = (uint)verts.size() - 1;
+        }
+        tris.resize(in_tris.size());
+        tbb::parallel_for((uint)0, (uint)in_tris.size(), [&](uint idx)
+        {
+            tris[idx] = lookup[in_tris[idx]];
+        });
+    }
+    else
+    {
+        phmap::flat_hash_map <std::array<double, 3>, uint> v_map;
+        v_map.reserve(in_tris.size() * 3);
+
+        for(const uint &v_id : in_tris)
+        {
+            std::array<double, 3> v = {in_coords[(3 * v_id)], in_coords[(3 * v_id) +1], in_coords[(3 * v_id) +2]};
+
+            auto ins = v_map.insert({v, v_map.size()});
+            if(ins.second) verts.push_back(&arena.init.emplace_back(v[0], v[1], v[2])); // new_vtx added
+
+            tris.push_back(ins.first->second);
+        }
     }
 }
 
@@ -90,7 +128,8 @@ inline void removeDegenerateAndDuplicatedTriangles(const std::vector<genericPoin
     uint t_off = 0;
     uint l_off = 0;
 
-    std::map< std::vector<uint>, uint> tris_map;
+    phmap::flat_hash_map < std::array<uint, 3>, uint> tris_map;
+    tris_map.reserve(num_orig_tris);
 
     for(uint t_id = 0; t_id < num_orig_tris; t_id++)
     {
@@ -103,7 +142,7 @@ inline void removeDegenerateAndDuplicatedTriangles(const std::vector<genericPoin
                                             verts[v1_id]->toExplicit3D().ptr(),
                                             verts[v2_id]->toExplicit3D().ptr())) // good triangle
         {
-            std::vector<uint> tri = {v0_id, v1_id, v2_id};
+            std::array<uint, 3> tri = {v0_id, v1_id, v2_id};
             std::sort(tri.begin(), tri.end());
 
             auto ins = tris_map.insert({tri, l_off});
@@ -163,6 +202,33 @@ inline void computeApproximateCoordinates(const std::vector<genericPoint *> &ver
             coords.push_back(x / multiplier);
             coords.push_back(y / multiplier);
             coords.push_back(z / multiplier);
+        }
+    }
+}
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+inline void computeApproximateCoordinates(const std::vector<genericPoint *> &vertices, std::vector<cinolib::vec3d> &out_vertices)
+{
+    out_vertices.reserve((vertices.size() -5));
+    double multiplier = vertices.back()->toExplicit3D().X();
+
+    for(uint i = 0; i < (vertices.size() - 5); i++)
+    {
+        auto &v = vertices[i];
+
+        if(v->isExplicit3D())
+        {
+            out_vertices.emplace_back(v->toExplicit3D().X() / multiplier,
+                                      v->toExplicit3D().Y() / multiplier,
+                                      v->toExplicit3D().Z() / multiplier);
+        }
+        else //implicit point
+        {
+            double x, y, z;
+            v->getApproxXYZCoordinates(x, y, z);
+            out_vertices.emplace_back(x / multiplier,
+                                      y / multiplier,
+                                      z / multiplier);
         }
     }
 }

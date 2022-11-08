@@ -22,7 +22,7 @@
  *                                                                                       *
  * Authors:                                                                              *
  *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
+ *      https://www.gianmarcocherchi.com                                                 *
  *                                                                                       *
  *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
  *      http://pers.ge.imati.cnr.it/livesu/                                              *
@@ -41,7 +41,11 @@
 #include "common.h"
 #include <implicit_point.h>
 
-#include <cinolib/geometry/vec3.h>
+#include <cinolib/geometry/vec_mat.h>
+#include "../external/parallel-hashmap/parallel_hashmap/phmap.h"
+#include <tbb/tbb.h>
+
+#include "utils.h"
 
 #include <vector>
 #include <map>
@@ -49,23 +53,24 @@
 
 typedef std::pair<uint, uint> Edge;
 
+template<typename K, typename V>
+using EdgeMap = phmap::flat_hash_map<K, V>;
+
 class TriangleSoup
 {
     public:
 
-        inline TriangleSoup(std::vector<genericPoint*> &in_vertices, std::vector<uint> &in_tris, std::vector< std::bitset<NBIT> > &labels, const double &multiplier)
+        inline TriangleSoup(point_arena& arena, std::vector<genericPoint*> &in_vertices, std::vector<uint> &in_tris, std::vector< std::bitset<NBIT> > &labels, double multiplier, bool parallel)
             : vertices(in_vertices), triangles(in_tris), tri_labels(labels)
         {
-            init(multiplier);
+            init(arena, multiplier, parallel);
         }
 
         inline ~TriangleSoup()
         {
-//            for(uint v = 0; v < impl_vertices.size(); v++)
-//                delete impl_vertices[v];
         }
 
-        inline void init(const double &multiplier);
+        inline void init(point_arena& arena, double multiplier, bool parallel);
 
         inline uint numVerts() const;
         inline uint numTris() const;
@@ -75,50 +80,50 @@ class TriangleSoup
         inline uint numOrigTriangles() const;
 
         // VERTICES
-        inline const genericPoint* vert(const uint &v_id) const;
+        inline const genericPoint* vert(uint v_id) const;
 
-        inline const double* vertPtr(const uint &v_id) const;
+        inline const double* vertPtr(uint v_id) const;
 
-        inline double vertX(const uint &v_id) const;
-        inline double vertY(const uint &v_id) const;
-        inline double vertZ(const uint &v_id) const;
+        inline double vertX(uint v_id) const;
+        inline double vertY(uint v_id) const;
+        inline double vertZ(uint v_id) const;
 
         inline uint addImplVert(genericPoint* gp);
 
         // EDGES
-        inline int edgeID(const uint &v0_id, const uint &v1_id) const;
+        inline int edgeID(uint v0_id, uint v1_id) const;
 
-        inline const genericPoint* edgeVert(const uint &e_id, const uint &off) const;
+        inline const genericPoint* edgeVert(uint e_id, uint off) const;
 
-        inline const double* edgeVertPtr(const uint &e_id, const uint &off) const;
+        inline const double* edgeVertPtr(uint e_id, uint off) const;
 
-        inline uint edgeOppositeToVert(const uint &t_id, const uint &v_id) const;
+        inline uint edgeOppositeToVert(uint t_id, uint v_id) const;
 
-        inline void addEdge(const uint &v0_id, const uint &v1_id);
+        inline void addEdge(uint v0_id, uint v1_id);
 
         // TRIANGLES
         inline const std::vector<uint>& trisVector() const;
 
-        inline const uint* tri(const uint &t_id) const;
+        inline const uint* tri(uint t_id) const;
 
-        inline uint triVertID(const uint &t_id, const uint &off) const;
+        inline uint triVertID(uint t_id, uint off) const;
 
-        inline const genericPoint* triVert(const uint &t_id, const uint &off) const;
+        inline const genericPoint* triVert(uint t_id, uint off) const;
 
-        inline const double* triVertPtr(const uint &t_id, const uint &off) const;
+        inline const double* triVertPtr(uint t_id, uint off) const;
 
-        inline uint triEdgeID(const uint &t_id, const uint &off) const;
+        inline uint triEdgeID(uint t_id, uint off) const;
 
-        inline Plane triPlane(const uint &t_id) const;
+        inline Plane triPlane(uint t_id) const;
 
-        inline bool triContainsVert(const uint &t_id, const uint &v_id) const;
+        inline bool triContainsVert(uint t_id, uint v_id) const;
 
-        inline bool triContainsEdge(const uint t_id, const uint &ev0_id, const uint &ev1_id) const;
+        inline bool triContainsEdge(const uint t_id, uint ev0_id, uint ev1_id) const;
 
-        inline std::bitset<NBIT> triLabel(const uint &t_id) const;
+        inline std::bitset<NBIT> triLabel(uint t_id) const;
 
         // JOLLY POINTS
-        inline const genericPoint* jollyPoint(const uint &off) const;
+        inline const genericPoint* jollyPoint(uint off) const;
 
         inline void appendJollyPoints();
 
@@ -134,15 +139,15 @@ class TriangleSoup
 
         std::vector<genericPoint*>      jolly_points;
 
-        std::map<Edge, uint> edge_map;
+        EdgeMap <Edge, uint> edge_map;
 
         uint num_orig_vtxs;
         uint num_orig_tris;
 
         // PRIVATE METHODS
-        inline void initJollyPoints(const double &multiplier);
+        inline void initJollyPoints(point_arena& arena, double multiplier);
 
-        inline Edge uniqueEdge(const uint &v0_id, const uint &v1_id) const;
+        inline Edge uniqueEdge(uint v0_id, uint v1_id) const;
 };
 
 #include "triangle_soup.cpp"

@@ -1,7 +1,7 @@
 /*****************************************************************************************
  *              MIT License                                                              *
  *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
+ * Copyright (c) 2022 G. Cherchi, M. Livesu, R. Scateni, M. Attene and F. Pellacini      *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -33,11 +33,14 @@
  *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
  *      https://www.cnr.it/en/people/marco.attene/                                       *
  *                                                                                       *
+ *      Fabio Pellacini (fabio.pellacini@uniroma1.it)                                    *
+ *      https://pellacini.di.uniroma1.it                                                 *
+ *                                                                                       *
  * ***************************************************************************************/
 
 
 #include "aux_structure.h"
-
+#include "utils.h"
 
 inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
 {
@@ -45,7 +48,6 @@ inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
     num_original_tris = ts.numTris();
 
     coplanar_tris.resize(ts.numTris());
-
 
     tri2pts.resize(ts.numTris());
     edge2pts.resize(ts.numEdges());
@@ -57,95 +59,106 @@ inline void AuxiliaryStructure::initFromTriangleSoup(TriangleSoup &ts)
 
     for(uint v_id = 0; v_id < ts.numVerts(); v_id++)
     {
-        std::pair<uint, bool> ins = addVertexInSortedList(ts.vert(v_id), v_id);
-        assert(ins.second && "Error: Duplicated vertex in starting mesh");
+        v_map.insert({ts.vert(v_id), v_id});
     }
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline std::set<std::pair<uint, uint> > &AuxiliaryStructure::intersectionList()
+inline std::vector<std::pair<uint, uint> > &AuxiliaryStructure::intersectionList()
 {
     return intersection_list;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::set<std::pair<uint, uint> > &AuxiliaryStructure::intersectionList() const
+inline const std::vector<std::pair<uint, uint> > &AuxiliaryStructure::intersectionList() const
 {
     return intersection_list;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline bool AuxiliaryStructure::addVertexInTriangle(const uint &t_id, const uint &v_id)
+inline bool AuxiliaryStructure::addVertexInTriangle(uint t_id, uint v_id)
 {
     assert(t_id < tri2pts.size());
-    return tri2pts[t_id].insert(v_id).second;
+    auto& points = tri2pts[t_id];
+    if(contains(points, v_id)) return false;
+    if(points.empty()) points.reserve(8);
+    points.push_back(v_id);
+    return true;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline bool AuxiliaryStructure::addVertexInEdge(const uint &e_id, const uint &v_id)
+inline bool AuxiliaryStructure::addVertexInEdge(uint e_id, uint v_id)
 {
     assert(e_id < edge2pts.size());
-    return edge2pts[e_id].insert(v_id).second;
+    auto& points = edge2pts[e_id];
+    if(contains(points, v_id)) return false;
+    if(points.empty()) points.reserve(8);
+    points.push_back(v_id);
+    return true;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline bool AuxiliaryStructure::addSegmentInTriangle(const uint &t_id, const UIPair &seg)
+inline bool AuxiliaryStructure::addSegmentInTriangle(uint t_id, const UIPair &seg)
 {
     assert(t_id < tri2segs.size());
     UIPair key_seg = uniquePair(seg);
-    return  tri2segs[t_id].insert(key_seg).second;
+    auto& segments = tri2segs[t_id];
+    if(contains(segments, key_seg)) return false;
+    if(segments.empty()) segments.reserve(8);
+    segments.push_back(key_seg);
+    return true;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, const uint &tA_id, const uint &tB_id)
+inline void AuxiliaryStructure::addTrianglesInSegment(const UIPair &seg, uint tA_id, uint tB_id)
 {
     UIPair key_seg = uniquePair(seg);
-    std::set<uint> tris;
-
-    auto f = seg2tris.find(key_seg);
-
-    if(f != seg2tris.end())
-        tris = f->second;
-
-    tris.insert(tA_id);
-    tris.insert(tB_id);
-
-    seg2tris[key_seg] = tris;
+    auto& tris = seg2tris[key_seg];
+    if(tris.empty()) tris.reserve(4);
+    if(tA_id == tB_id)
+    {
+        if(!contains(tris, tA_id)) tris.push_back(tA_id);
+    }
+    else
+    {
+        if(!contains(tris, tA_id)) tris.push_back(tA_id);
+        if(!contains(tris, tB_id)) tris.push_back(tB_id);
+    }
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void AuxiliaryStructure::splitSegmentInSubSegments(const uint &orig_v0, const uint &orig_v1, const uint &midpoint)
+inline void AuxiliaryStructure::splitSegmentInSubSegments(uint orig_v0, uint orig_v1, uint midpoint)
 {
-    std::set<uint> tris = segmentTrianglesList(std::make_pair(orig_v0, orig_v1));
-
+    auto& tris = segmentTrianglesList(std::make_pair(orig_v0, orig_v1));
     UIPair sub_seg0 = uniquePair(std::make_pair(orig_v0, midpoint));
     UIPair sub_seg1 = uniquePair(std::make_pair(midpoint, orig_v1));
-
     seg2tris[sub_seg0] = tris;
     seg2tris[sub_seg1] = tris;
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void AuxiliaryStructure::addCoplanarTriangles(const uint &ta, const uint &tb)
+inline void AuxiliaryStructure::addCoplanarTriangles(uint ta, uint tb)
 {
     assert(ta != tb);
     assert(ta < coplanar_tris.size() && tb < coplanar_tris.size());
 
+    if(coplanar_tris[ta].empty()) coplanar_tris[ta].reserve(8);
+    if(coplanar_tris[tb].empty()) coplanar_tris[tb].reserve(8);
     coplanar_tris[ta].push_back(tb);
     coplanar_tris[tb].push_back(ta);
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::vector<uint> &AuxiliaryStructure::coplanarTriangles(const uint &t_id) const
+inline const auxvector<uint> &AuxiliaryStructure::coplanarTriangles(uint t_id) const
 {
     assert(t_id < coplanar_tris.size());
     return coplanar_tris[t_id];
@@ -153,7 +166,7 @@ inline const std::vector<uint> &AuxiliaryStructure::coplanarTriangles(const uint
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline bool AuxiliaryStructure::triangleHasCoplanars(const uint &t_id) const
+inline bool AuxiliaryStructure::triangleHasCoplanars(uint t_id) const
 {
     assert(t_id < coplanar_tris.size());
     return (coplanar_tris[t_id].size() > 0);
@@ -161,7 +174,7 @@ inline bool AuxiliaryStructure::triangleHasCoplanars(const uint &t_id) const
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void AuxiliaryStructure::setTriangleHasIntersections(const uint &t_id)
+inline void AuxiliaryStructure::setTriangleHasIntersections(uint t_id)
 {
     assert(t_id < tri_has_intersections.size());
     tri_has_intersections[t_id] = true;
@@ -169,7 +182,7 @@ inline void AuxiliaryStructure::setTriangleHasIntersections(const uint &t_id)
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline bool AuxiliaryStructure::triangleHasIntersections(const uint &t_id) const
+inline bool AuxiliaryStructure::triangleHasIntersections(uint t_id) const
 {
     assert(t_id < tri_has_intersections.size());
     return tri_has_intersections[t_id];
@@ -178,7 +191,7 @@ inline bool AuxiliaryStructure::triangleHasIntersections(const uint &t_id) const
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::set<uint> &AuxiliaryStructure::trianglePointsList(const uint &t_id) const
+inline const auxvector<uint> &AuxiliaryStructure::trianglePointsList(uint t_id) const
 {
     assert(t_id < tri2pts.size());
     return tri2pts[t_id];
@@ -186,7 +199,7 @@ inline const std::set<uint> &AuxiliaryStructure::trianglePointsList(const uint &
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::set<uint> &AuxiliaryStructure::edgePointsList(const uint &e_id) const
+inline const auxvector<uint> &AuxiliaryStructure::edgePointsList(uint e_id) const
 {
     assert(e_id < edge2pts.size());
     return edge2pts[e_id];
@@ -194,7 +207,7 @@ inline const std::set<uint> &AuxiliaryStructure::edgePointsList(const uint &e_id
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::set<UIPair> &AuxiliaryStructure::triangleSegmentsList(const uint &t_id) const
+inline const auxvector<UIPair> &AuxiliaryStructure::triangleSegmentsList(uint t_id) const
 {
     assert(t_id < tri2segs.size());
     return tri2segs[t_id];
@@ -202,7 +215,7 @@ inline const std::set<UIPair> &AuxiliaryStructure::triangleSegmentsList(const ui
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const std::set<uint> &AuxiliaryStructure::segmentTrianglesList(const UIPair &seg) const
+inline const auxvector<uint> &AuxiliaryStructure::segmentTrianglesList(const UIPair &seg) const
 {
     UIPair key_seg = uniquePair(seg);
 
@@ -214,27 +227,19 @@ inline const std::set<uint> &AuxiliaryStructure::segmentTrianglesList(const UIPa
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline std::pair<uint, bool> AuxiliaryStructure::addVertexInSortedList(const genericPoint *v, const uint &pos)
+inline std::pair<uint, bool> AuxiliaryStructure::addVertexInSortedList(const genericPoint *v, uint pos)
 {
     auto ins = v_map.insert({v, pos});
 
-    return std::make_pair(ins.first->second, // the position of v (pos if first time, or the previous saved positionotherwise)
+    return std::make_pair(ins.first->second, // the position of v (pos if first time, or the previous saved position otherwise)
                           ins.second);       // the result of the insert operation /true or false)
 }
 
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline bool AuxiliaryStructure::addVisitedPolygonPocket(const std::set<uint> &polygon)
-{
-    return visited_pockets.insert(polygon).second;
-}
-
-
 //it returns -1 if the pocket is not already present,
 // the i-index of the corresponding triangles in the new_label array otherwise
-inline int AuxiliaryStructure::addVisitedPolygonPocket(const std::set<uint> &polygon, const uint &pos)
+inline int AuxiliaryStructure::addVisitedPolygonPocket(const std::vector<uint> &polygon, uint pos)
 {
-    auto poly_it = pockets_map.insert({polygon, pos});
+    auto poly_it = pockets_map.insert(std::make_pair(polygon, pos));
 
     if(poly_it.second) return -1; // polygon not present yet
 
@@ -248,4 +253,3 @@ inline UIPair AuxiliaryStructure::uniquePair(const UIPair &uip) const
     if(uip.first < uip.second) return  uip;
     return std::make_pair(uip.second, uip.first);
 }
-

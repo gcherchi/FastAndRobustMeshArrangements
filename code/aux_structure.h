@@ -1,7 +1,7 @@
 /*****************************************************************************************
  *              MIT License                                                              *
  *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
+ * Copyright (c) 2022 G. Cherchi, M. Livesu, R. Scateni, M. Attene and F. Pellacini      *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -33,6 +33,9 @@
  *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
  *      https://www.cnr.it/en/people/marco.attene/                                       *
  *                                                                                       *
+ *      Fabio Pellacini (fabio.pellacini@uniroma1.it)                                    *
+ *      https://pellacini.di.uniroma1.it                                                 *
+ *                                                                                       *
  * ***************************************************************************************/
 
 #ifndef INTERSECTIONS_GRAPH_H
@@ -41,37 +44,92 @@
 #include "triangle_soup.h"
 
 #include <set>
-#include <unordered_set>
-#include <unordered_map>
 
 #include <mutex>
 
+#include "utils.h"
+
 typedef std::pair<uint, uint> UIPair;
 
-struct lessThanForMap
-{
-    bool operator()(const genericPoint* a, const genericPoint* b) const
-    {
-        return (genericPoint::lessThan(*a, *b) < 0);
+#include <absl/container/inlined_vector.h>
+template<typename T>
+using auxvector = absl::InlinedVector<T, 16>;
+
+#include "../external/parallel-hashmap/parallel_hashmap/btree.h"
+
+#define PREDICATES_NO 0
+
+#if PREDICATES_NO
+constexpr double aux_point_epsilon = 0.00001;
+struct aux_point {
+    const genericPoint* pt;
+    std::array<double, 3> v;
+
+    aux_point(const genericPoint* pt_) : pt{pt_} {
+    	pt->getApproxXYZCoordinates(v[0], v[1], v[2], false);
     }
 };
 
-struct PairHash
-{
-    inline size_t operator()(const UIPair &p) const
-    {
-        std::hash<uint> hasher;
-        size_t seed = 0;
-        seed ^= hasher(p.first) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-        seed ^= hasher(p.second) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-
-        return seed;
+inline bool operator<(const aux_point& a, const aux_point& b) {
+    if (a.pt->isExplicit3D() && b.pt->isExplicit3D()) return (genericPoint::lessThan(*a.pt, *b.pt) < 0);
+    if (fabs(a.v[0] - b.v[0]) > aux_point_epsilon &&
+        fabs(a.v[1] - b.v[1]) > aux_point_epsilon &&
+        fabs(a.v[2] - b.v[2]) > aux_point_epsilon) {
+        return a.v < b.v;
+    } else {
+        return (genericPoint::lessThan(*a.pt, *b.pt) < 0);
     }
+}
+#else
+struct aux_point {
+    const genericPoint* pt;
+
+    aux_point(const genericPoint* pt_) : pt{pt_} { }
 };
 
+inline bool operator<(const aux_point& a, const aux_point& b) {
+    return (genericPoint::lessThan(*a.pt, *b.pt) < 0);
+}
+#endif
 
-typedef std::unordered_map< UIPair, std::set<uint>, PairHash  > CustomUnorderedPairSetMap;
+#define PREDICATES_MAP 0
 
+template<typename T>
+struct aux_point_map {
+    phmap::btree_map<aux_point, T> map;
+    phmap::node_hash_map<std::array<double, 3>, phmap::btree_map<aux_point, T>> grid;
+    phmap::parallel_node_hash_map<std::array<double, 3>, phmap::btree_map<aux_point, T>, phmap::priv::hash_default_hash<std::array<double, 3>>, phmap::priv::hash_default_eq<std::array<double, 3>>, std::allocator<std::pair<const std::array<double, 3>, phmap::btree_map<aux_point, T>>>, 4, tbb::spin_mutex> pgrid;
+    phmap::flat_hash_map<std::array<double, 3>, T> map_approx;
+    size_t start_size = 0;
+    size_t insert_tries = 0;
+
+    auto insert(const std::pair<aux_point, T>& item) {
+        insert_tries += 1;
+#if   PREDICATES_MAP == 0
+        return map.insert(item);
+#elif PREDICATES_MAP == 1
+        std::array<double, 3> pt;
+        item.first.pt->getApproxXYZCoordinates(pt[0], pt[1], pt[2], true);
+        return grid[pt].insert(item);
+#elif PREDICATES_MAP == 2
+        std::array<double, 3> pt;
+        item.first.pt->getApproxXYZCoordinates(pt[0], pt[1], pt[2], true);
+        return pgrid[pt].insert(item);
+#elif PREDICATES_MAP == 3
+        std::array<double, 3> pt;
+        item.first.pt->getApproxXYZCoordinates(pt[0], pt[1], pt[2], true);
+        return map_approx.insert({pt, item.second});
+#elif PREDICATES_MAP == 4
+        std::array<double, 3> pt;
+        item.first.pt->getApproxXYZCoordinates(pt[0], pt[1], pt[2], true);
+        auto rret = grid[pt].insert(item); 
+        auto ret = map.insert(item);
+        if(ret.second != ret.second) throw std::runtime_error{"shit"};
+        return ret;
+#else
+#endif
+    }
+};
 
 class AuxiliaryStructure
 {
@@ -81,73 +139,61 @@ class AuxiliaryStructure
 
         inline void initFromTriangleSoup(TriangleSoup &ts);
 
-        inline std::set< std::pair<uint, uint> > &intersectionList();
+        inline std::vector< std::pair<uint, uint> > &intersectionList();
 
-        inline const std::set<std::pair<uint, uint> > &intersectionList() const;
+        inline const std::vector<std::pair<uint, uint> > &intersectionList() const;
 
-        inline bool addVertexInTriangle(const uint &t_id, const uint &v_id);
+        inline bool addVertexInTriangle(uint t_id, uint v_id);
 
-        inline bool addVertexInEdge(const uint &e_id, const uint &v_id);
+        inline bool addVertexInEdge(uint e_id, uint v_id);
 
-        inline bool addSegmentInTriangle(const uint &t_id, const UIPair &seg);
+        inline bool addSegmentInTriangle(uint t_id, const UIPair &seg);
 
-        inline void addTrianglesInSegment(const UIPair &seg, const uint &tA_id, const uint &tB_id);
+        inline void addTrianglesInSegment(const UIPair &seg, uint tA_id, uint tB_id);
 
-        inline void splitSegmentInSubSegments(const uint &orig_v0, const uint &orig_v1, const uint &midpoint);
+        inline void splitSegmentInSubSegments(uint orig_v0, uint orig_v1, uint midpoint);
 
-        inline void addCoplanarTriangles(const uint &ta, const uint &tb);
+        inline void addCoplanarTriangles(uint ta, uint tb);
 
-        inline const std::vector<uint> &coplanarTriangles(const uint &t_id) const;
+        inline const auxvector<uint> &coplanarTriangles(uint t_id) const;
 
-        inline bool triangleHasCoplanars(const uint &t_id) const;
+        inline bool triangleHasCoplanars(uint t_id) const;
 
-        inline void setTriangleHasIntersections(const uint &t_id);
+        inline void setTriangleHasIntersections(uint t_id);
 
-        inline bool triangleHasIntersections(const uint &t_id) const;
+        inline bool triangleHasIntersections(uint t_id) const;
 
-        inline const std::set<uint> &trianglePointsList(const uint &t_id) const;
+        inline const auxvector<uint> &trianglePointsList(uint t_id) const;
 
-        inline const std::set<uint> &edgePointsList(const uint &e_id) const;
+        inline const auxvector<uint> &edgePointsList(uint e_id) const;
 
-        inline const std::set<UIPair> &triangleSegmentsList(const uint &t_id) const;
+        inline const auxvector<UIPair> &triangleSegmentsList(uint t_id) const;
 
-        inline const std::set<uint> &segmentTrianglesList(const UIPair &seg) const;
+        inline const auxvector<uint> &segmentTrianglesList(const UIPair &seg) const;
 
-        //inline std::pair<uint, bool> addVertexInSortedList(const std::pair<const genericPoint *, uint> &vtx_pair);
-        inline std::pair<uint, bool> addVertexInSortedList(const genericPoint *v, const uint &pos);
+        inline std::pair<uint, bool> addVertexInSortedList(const genericPoint *v, uint pos);
 
-        inline bool addVisitedPolygonPocket(const std::set<uint> &polygon);
+        inline int addVisitedPolygonPocket(const std::vector<uint> &polygon, uint pos);
 
-        inline int addVisitedPolygonPocket(const std::set<uint> &polygon, const uint &pos);
-
-        // mutex
-        std::mutex tri_mutex;
-        std::mutex tpi_mutex;
-
+        inline const auto& get_vmap() const { return v_map; }
+        inline auto& get_vmap() { return v_map; }
 
     private:
-
         uint    num_original_vtx;
         uint    num_original_tris;
         int     num_intersections;
         uint    num_tpi;
 
-        std::set< std::pair<uint, uint> >    intersection_list;
-        std::vector< std::vector<uint> >    coplanar_tris;
-
-        std::vector< std::set<uint> >       tri2pts;
-        std::vector< std::set<uint> >       edge2pts;
-        std::vector< std::set<UIPair> >     tri2segs;
-        CustomUnorderedPairSetMap           seg2tris;
-
-        std::vector<bool>                   tri_has_intersections;
-
-        std::map< const genericPoint*, uint, lessThanForMap> v_map;
-
-        std::set< std::set<uint> >      visited_pockets;
-
-        std::map< std::set<uint>, uint> pockets_map;
-
+        std::vector< std::pair<uint, uint> > intersection_list;
+        std::vector< auxvector<uint> > coplanar_tris;
+        std::vector< auxvector<uint> > tri2pts;
+        std::vector< auxvector<uint> > edge2pts;
+        std::vector< auxvector<UIPair> > tri2segs;
+        phmap::flat_hash_map< UIPair, auxvector<uint>  > seg2tris;
+        std::vector<bool> tri_has_intersections;
+        aux_point_map<uint> v_map;
+        phmap::flat_hash_set< std::vector<uint> > visited_pockets;
+        phmap::flat_hash_map< std::vector<uint>, uint> pockets_map;
 
         inline UIPair uniquePair(const UIPair &uip) const;
 };

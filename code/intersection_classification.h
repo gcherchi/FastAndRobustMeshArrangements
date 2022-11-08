@@ -1,7 +1,7 @@
 /*****************************************************************************************
  *              MIT License                                                              *
  *                                                                                       *
- * Copyright (c) 2020 Gianmarco Cherchi, Marco Livesu, Riccardo Scateni e Marco Attene   *
+ * Copyright (c) 2022 G. Cherchi, M. Livesu, R. Scateni, M. Attene and F. Pellacini      *
  *                                                                                       *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
  * software and associated documentation files (the "Software"), to deal in the Software *
@@ -33,6 +33,9 @@
  *      Marco Attene (marco.attene@ge.imati.cnr.it)                                      *
  *      https://www.cnr.it/en/people/marco.attene/                                       *
  *                                                                                       *
+ *      Fabio Pellacini (fabio.pellacini@uniroma1.it)                                    *
+ *      https://pellacini.di.uniroma1.it                                                 *
+ *                                                                                       *
  * ***************************************************************************************/
 
 #ifndef INTERSECTION_CLASSIFICATION_H
@@ -40,38 +43,38 @@
 
 #include "triangle_soup.h"
 #include "aux_structure.h"
-
 #include <cinolib/predicates.h>
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 
+inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const std::vector<uint>  & tris,
+                               std::vector<cinolib::ipair> & intersections);
 
+inline void detectIntersections(const TriangleSoup &ts, phmap::flat_hash_set<std::pair<uint, uint> > &intersection_list);
 
-inline void detectIntersections(const TriangleSoup &ts, std::set<std::pair<uint, uint> > &intersection_list);
+inline void classifyIntersections(TriangleSoup &ts, point_arena& arena, AuxiliaryStructure &g);
 
-inline void classifyIntersections(TriangleSoup &ts, AuxiliaryStructure &g);
+inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& arena, AuxiliaryStructure &g, uint tA_id, uint tB_id);
 
-inline void checkTriangleTriangleIntersections(TriangleSoup &ts, AuxiliaryStructure &g, const uint &tA_id, const uint &tB_id);
+inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, point_arena& arena, uint e0_id, uint e1_id, AuxiliaryStructure &g);
 
-inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const uint &e1_id, AuxiliaryStructure &g);
+inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, point_arena& arena, uint e0_id, uint e1_id, uint t_id, AuxiliaryStructure &g);
 
-inline uint addEdgeCrossEdgeInters(TriangleSoup &ts, const uint &e0_id, const uint &e1_id, const uint &t_id, AuxiliaryStructure &g);
+inline uint addEdgeCrossTriInters(TriangleSoup &ts, point_arena& arena, uint e_id, uint t_id, AuxiliaryStructure &g);
 
-inline uint addEdgeCrossTriInters(TriangleSoup &ts, const uint &e_id, const uint &t_id, AuxiliaryStructure &g);
-
-inline void addSymbolicSegment(const TriangleSoup &ts, const uint &v0_id, const uint &v1_id, const uint &tA_id, const uint &tB_id, AuxiliaryStructure &g);
+inline void addSymbolicSegment(const TriangleSoup &ts, uint v0_id, uint v1_id, uint tA_id, uint tB_id, AuxiliaryStructure &g);
 
 inline uint noCoplanarJollyPointID(const TriangleSoup &ts, const double *v0, const double *v1, const double *v2);
 
-inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, const uint &e_v0, const uint &e_v1,
-                                                 const uint &e_t_id, const uint &o_t_id, AuxiliaryStructure &g, std::set<uint> &il);
+inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, point_arena& arena, uint e_v0, uint e_v1,
+                                                 uint e_t_id, uint o_t_id, AuxiliaryStructure &g, phmap::flat_hash_set<uint> &il);
 
-inline void checkSingleNoCoplanarEdgeIntersection(TriangleSoup &ts, const uint &e_id, const uint &t_id,
-                                                  std::set<uint> &v_tmp, AuxiliaryStructure &g, std::set<uint> &li);
+inline void checkSingleNoCoplanarEdgeIntersection(TriangleSoup &ts, point_arena& arena, uint e_id, uint t_id,
+                                                  phmap::flat_hash_set<uint> &v_tmp, AuxiliaryStructure &g, phmap::flat_hash_set<uint> &li);
 
-inline void checkVtxInTriangleIntersection(TriangleSoup &ts, const uint &v_id, const uint &t_id, std::set<uint> &v_tmp, AuxiliaryStructure &g, std::set<uint> &li);
+inline void checkVtxInTriangleIntersection(TriangleSoup &ts, uint v_id, uint t_id, phmap::flat_hash_set<uint> &v_tmp, AuxiliaryStructure &g, phmap::flat_hash_set<uint> &li);
 
-inline void propagateCoplanarTrianlesIntersections(TriangleSoup &ts, AuxiliaryStructure &g);
+inline void propagateCoplanarTrianglesIntersections(TriangleSoup &ts, AuxiliaryStructure &g);
 
 inline void normalizeOrientations(double o[]);
 
@@ -92,8 +95,7 @@ inline int vtxInPlaneAndOppositeEdgeCrossPlane(const double o[]);
 // if there is a vertex on one side and the opposite edge on the other return the relative informations, -1 otherwise
 inline int vtxOnASideAndOppositeEdgeOnTheOther(const double o[], uint &opp_v0, uint &opp_v1);
 
-inline bool genericPointInsideTriangle(const TriangleSoup &ts, const uint &p_id, const uint &t_id, const bool &strict);
-
+inline bool genericPointInsideTriangle(const TriangleSoup &ts, uint p_id, uint t_id, const bool &strict);
 
 #include "intersection_classification.cpp"
 

@@ -41,6 +41,17 @@
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <iomanip>
+
+#include "indirect_predicates.h"
+#include <cinolib/meshes/trimesh.h>
+
+std::string to_string_prec( double d )
+{
+    std::ostringstream stm ;
+    stm << std::setprecision(std::numeric_limits<double>::digits10) << d ;
+    return stm.str() ;
+}
 
 inline std::string ts(const double &n)
 {
@@ -96,6 +107,128 @@ inline double stopChrono(std::chrono::time_point<std::chrono::system_clock> &sta
 {
     auto time = std::chrono::system_clock::now() - start;
     return std::chrono::duration <double, std::milli> (time).count() / 1000;
+}
+
+
+
+inline cinolib::vec3d genericPointToCinolib(const genericPoint &p)
+{
+    if(p.isExplicit3D())
+    {
+        explicitPoint3D ep = p.toExplicit3D();
+        return cinolib::vec3d(ep.X(), ep.Y(), ep.Z());
+    }
+    else if(p.isLPI())
+    {
+        implicitPoint3D_LPI ip = p.toLPI();
+        double x, y, z;
+        ip.getApproxXYZCoordinates(x, y, z);
+        return cinolib::vec3d(x, y, z);
+    }
+    else if(p.isTPI())
+    {
+        implicitPoint3D_TPI ip = p.toTPI();
+        double x, y, z;
+        ip.getApproxXYZCoordinates(x, y, z);
+        return cinolib::vec3d(x, y, z);
+    }
+    return cinolib::vec3d(0,0,0); // warning killer
+}
+
+
+inline explicitPoint3D genericPointToExplicit(const genericPoint &p)
+{
+    if(p.isExplicit3D())
+    {
+        explicitPoint3D ep = p.toExplicit3D();
+        return ep;
+    }
+    else if(p.isLPI())
+    {
+        implicitPoint3D_LPI ip = p.toLPI();
+        double x, y, z;
+        ip.getApproxXYZCoordinates(x, y, z);
+        return explicitPoint3D(x, y, z);
+    }
+    else if(p.isTPI())
+    {
+        implicitPoint3D_TPI ip = p.toTPI();
+        double x, y, z;
+        ip.getApproxXYZCoordinates(x, y, z);
+        return explicitPoint3D(x, y, z);
+    }
+
+    return explicitPoint3D(0,0,0); // warning killer
+}
+
+
+inline std::string genericPointToString(const genericPoint &p)
+{
+    std::setprecision(std::numeric_limits<long double>::digits10 + 1);
+
+    if(p.isExplicit3D())
+    {
+        explicitPoint3D ep = p.toExplicit3D();
+        return "(" + to_string_prec(ep.X()) + ", " + to_string_prec(ep.Y()) + ", " + to_string_prec(ep.Z()) + ");\n";
+    }
+    else if(p.isLPI())
+    {
+        implicitPoint3D_LPI ip = p.toLPI();
+        double x, y, z;
+        ip.getApproxXYZCoordinates(x, y, z);
+
+        return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ");\n";
+    }
+    else if(p.isTPI())
+    {
+        implicitPoint3D_TPI ip = p.toTPI();
+        double x, y, z;
+        ip.getApproxXYZCoordinates(x, y, z);
+
+        return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ");\n";
+    }
+
+    assert(false);
+    return "(0.0, 0.0, 0.0)"; //warning killer
+}
+
+
+inline void printGenericPoint(const genericPoint &p)
+{
+    if(p.isExplicit3D())    std::cerr << "EXP: " + genericPointToString(p) << std::endl;
+    else if(p.isLPI())      std::cerr << "LPI: " + genericPointToString(p) << std::endl;
+    else if(p.isTPI())      std::cerr << "TPI: " + genericPointToString(p) << std::endl;
+}
+
+
+inline void printGenericPointExploded(const genericPoint &gp)
+{
+    if(gp.isExplicit3D())
+        std::cerr << "explicitPoint3D E" + genericPointToString(gp) << std::endl;
+
+    else if(gp.isLPI())
+    {
+        std::cerr << "explicitPoint3D Pi" + genericPointToString(gp.toLPI().P());
+        std::cerr << "explicitPoint3D Qi" + genericPointToString(gp.toLPI().Q());
+        std::cerr << "explicitPoint3D Ri" + genericPointToString(gp.toLPI().R());
+        std::cerr << "explicitPoint3D Si" + genericPointToString(gp.toLPI().S());
+        std::cerr << "explicitPoint3D Ti" + genericPointToString(gp.toLPI().T());
+        std::cerr << "implicitPoint3D_LPI L(Pi, Qi, Ri, Si, Ti); " << std::endl;
+    }
+
+    else if(gp.isTPI())
+    {
+        std::cerr << "explicitPoint3D U1i" + genericPointToString(gp.toTPI().U1());
+        std::cerr << "explicitPoint3D U2i" + genericPointToString(gp.toTPI().U2());
+        std::cerr << "explicitPoint3D U3i" + genericPointToString(gp.toTPI().U3());
+        std::cerr << "explicitPoint3D V1i" + genericPointToString(gp.toTPI().V1());
+        std::cerr << "explicitPoint3D V2i" + genericPointToString(gp.toTPI().V2());
+        std::cerr << "explicitPoint3D V3i" + genericPointToString(gp.toTPI().V3());
+        std::cerr << "explicitPoint3D W1i" + genericPointToString(gp.toTPI().W1());
+        std::cerr << "explicitPoint3D W2i" + genericPointToString(gp.toTPI().W2());
+        std::cerr << "explicitPoint3D W3i" + genericPointToString(gp.toTPI().W3());
+        std::cerr << "implicitPoint3D_TPI L(U1i, U2i, U3i, V1i, V2i, V3i, W1i, W2i, W3i); " << std::endl;
+    }
 }
 
 

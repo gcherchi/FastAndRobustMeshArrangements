@@ -22,7 +22,7 @@
  *                                                                                       *
  * Authors:                                                                              *
  *      Gianmarco Cherchi (g.cherchi@unica.it)                                           *
- *      https://people.unica.it/gianmarcocherchi/                                        *
+ *      https://www.gianmarcocherchi.com                                                 *
  *                                                                                       *
  *      Marco Livesu (marco.livesu@ge.imati.cnr.it)                                      *
  *      http://pers.ge.imati.cnr.it/livesu/                                              *
@@ -37,37 +37,94 @@
 
 #include "triangle_soup.h"
 
-inline void TriangleSoup::init(const double &multiplier)
+#include <tbb/tbb.h>
+
+inline void TriangleSoup::init(point_arena& arena, double multiplier, bool parallel)
 {
-    num_orig_vtxs = static_cast<uint>(vertices.size());
-    num_orig_tris = static_cast<uint>(triangles.size() / 3);
+    if (parallel) {
+        num_orig_vtxs = static_cast<uint>(vertices.size());
+        num_orig_tris = static_cast<uint>(triangles.size() / 3);
 
-    edges.reserve(numVerts() + numTris());
-    tri_planes.resize(numTris());
+        edges.reserve(numVerts() + numTris());
+        edge_map.reserve(numVerts() + numTris());
+        tri_planes.resize(numTris());
 
-    //vertices
-    for(uint v_id = 0; v_id < num_orig_vtxs; v_id++)
-    {
-        const explicitPoint3D &e = vertices[v_id]->toExplicit3D();
-        vertices[v_id]->toExplicit3D().set(e.X() * multiplier, e.Y() * multiplier, e.Z() * multiplier);
+        // vertices
+        for(uint v_id = 0; v_id < num_orig_vtxs; v_id++)
+        {
+            const explicitPoint3D &e = vertices[v_id]->toExplicit3D();
+            vertices[v_id]->toExplicit3D().set(e.X() * multiplier, e.Y() * multiplier, e.Z() * multiplier);
+        }
+
+        // this is done separately since it is expensive
+        tbb::parallel_for((uint)0, num_orig_tris, [this](uint t_id)
+        {
+            uint v0_id = triVertID(t_id, 0), v1_id = triVertID(t_id, 1), v2_id = triVertID(t_id, 2);
+
+            tri_planes[t_id] = intToPlane(genericPoint::maxComponentInTriangleNormal(vertX(v0_id), vertY(v0_id), vertZ(v0_id),
+                                                                                    vertX(v1_id), vertY(v1_id), vertZ(v1_id),
+                                                                                    vertX(v2_id), vertY(v2_id), vertZ(v2_id)));
+        });
+        
+        // triangles
+        auto edges = std::vector<Edge>(num_orig_tris * 3);
+        for(uint t_id = 0; t_id < num_orig_tris; t_id++)
+        {
+            uint v0_id = triVertID(t_id, 0), v1_id = triVertID(t_id, 1), v2_id = triVertID(t_id, 2);
+            edges[t_id * 3 + 0] = uniqueEdge(v0_id, v1_id);
+            edges[t_id * 3 + 1] = uniqueEdge(v1_id, v2_id);
+            edges[t_id * 3 + 2] = uniqueEdge(v2_id, v0_id);
+        }
+        tbb::parallel_sort(edges.begin(), edges.end());   
+
+        // I think since it keeps order that we do not need
+        for(auto e_id = (uint)0; e_id < (uint)edges.size(); e_id++)
+        {
+            if(e_id == 0 || edges[e_id] != edges[e_id - 1]) 
+                addEdge(edges[e_id].first, edges[e_id].second);
+        }
+
+        initJollyPoints(arena, multiplier);
     }
-
-    // traingles
-    for(uint t_id = 0; t_id < num_orig_tris; t_id++)
+    else
     {
-        uint v0_id = triVertID(t_id, 0), v1_id = triVertID(t_id, 1), v2_id = triVertID(t_id, 2);
+        num_orig_vtxs = static_cast<uint>(vertices.size());
+        num_orig_tris = static_cast<uint>(triangles.size() / 3);
 
-        tri_planes[t_id] = intToPlane(genericPoint::maxComponentInTriangleNormal(vertX(v0_id), vertY(v0_id), vertZ(v0_id),
-                                                                                 vertX(v1_id), vertY(v1_id), vertZ(v1_id),
-                                                                                 vertX(v2_id), vertY(v2_id), vertZ(v2_id)));
+        edges.reserve(numVerts() + numTris());
+        edge_map.reserve(numVerts() + numTris());
+        tri_planes.resize(numTris());
 
-        // edges
-        addEdge(v0_id, v1_id);
-        addEdge(v1_id, v2_id);
-        addEdge(v2_id, v0_id);
+        // vertices
+        for(uint v_id = 0; v_id < num_orig_vtxs; v_id++)
+        {
+            const explicitPoint3D &e = vertices[v_id]->toExplicit3D();
+            vertices[v_id]->toExplicit3D().set(e.X() * multiplier, e.Y() * multiplier, e.Z() * multiplier);
+        }
+
+        // this is done separately since it is expensive
+        for(uint t_id = 0; t_id < num_orig_tris; t_id++)
+        {
+            uint v0_id = triVertID(t_id, 0), v1_id = triVertID(t_id, 1), v2_id = triVertID(t_id, 2);
+
+            tri_planes[t_id] = intToPlane(genericPoint::maxComponentInTriangleNormal(vertX(v0_id), vertY(v0_id), vertZ(v0_id),
+                                                                                    vertX(v1_id), vertY(v1_id), vertZ(v1_id),
+                                                                                    vertX(v2_id), vertY(v2_id), vertZ(v2_id)));
+        }
+        
+        // triangles
+        for(uint t_id = 0; t_id < num_orig_tris; t_id++)
+        {
+            uint v0_id = triVertID(t_id, 0), v1_id = triVertID(t_id, 1), v2_id = triVertID(t_id, 2);
+
+            // edges
+            addEdge(v0_id, v1_id);
+            addEdge(v1_id, v2_id);
+            addEdge(v2_id, v0_id);
+        }
+
+        initJollyPoints(arena, multiplier);
     }
-
-    initJollyPoints(multiplier);
 }
 
 /*******************************************************************************************************
@@ -102,7 +159,7 @@ inline uint TriangleSoup::numOrigTriangles() const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const genericPoint* TriangleSoup::vert(const uint &v_id) const
+inline const genericPoint* TriangleSoup::vert(uint v_id) const
 {
     assert(v_id < numVerts() && "vtx id out of range");
     return vertices[v_id];
@@ -110,7 +167,7 @@ inline const genericPoint* TriangleSoup::vert(const uint &v_id) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const double* TriangleSoup::vertPtr(const uint &v_id) const
+inline const double* TriangleSoup::vertPtr(uint v_id) const
 {
     assert(v_id < num_orig_vtxs && "vtx id out of range of original points");
     return vertices[v_id]->toExplicit3D().ptr();
@@ -118,7 +175,7 @@ inline const double* TriangleSoup::vertPtr(const uint &v_id) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline double TriangleSoup::vertX(const uint &v_id) const
+inline double TriangleSoup::vertX(uint v_id) const
 {
     assert(v_id < num_orig_vtxs && "vtx id out of range");
     return vertices[v_id]->toExplicit3D().X();
@@ -126,7 +183,7 @@ inline double TriangleSoup::vertX(const uint &v_id) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline double TriangleSoup::vertY(const uint &v_id) const
+inline double TriangleSoup::vertY(uint v_id) const
 {
     assert(v_id < num_orig_vtxs && "vtx id out of range");
     return vertices[v_id]->toExplicit3D().Y();
@@ -134,7 +191,7 @@ inline double TriangleSoup::vertY(const uint &v_id) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline double TriangleSoup::vertZ(const uint &v_id) const
+inline double TriangleSoup::vertZ(uint v_id) const
 {
     assert(v_id < num_orig_vtxs && "vtx id out of range");
     return vertices[v_id]->toExplicit3D().Z();
@@ -152,7 +209,7 @@ inline uint TriangleSoup::addImplVert(genericPoint* gp)
  *      EDGES
  * ****************************************************************************************************/
 
-inline int TriangleSoup::edgeID(const uint &v0_id, const uint &v1_id) const
+inline int TriangleSoup::edgeID(uint v0_id, uint v1_id) const
 {
     auto it = edge_map.find(uniqueEdge(v0_id, v1_id));
 
@@ -162,7 +219,7 @@ inline int TriangleSoup::edgeID(const uint &v0_id, const uint &v1_id) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const genericPoint* TriangleSoup::edgeVert(const uint &e_id, const uint &off) const
+inline const genericPoint* TriangleSoup::edgeVert(uint e_id, uint off) const
 {
     assert(e_id < edges.size() && "e_id out of range");
     if(off == 0) return vert(edges[e_id].first);
@@ -171,7 +228,7 @@ inline const genericPoint* TriangleSoup::edgeVert(const uint &e_id, const uint &
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const double* TriangleSoup::edgeVertPtr(const uint &e_id, const uint &off) const
+inline const double* TriangleSoup::edgeVertPtr(uint e_id, uint off) const
 {
     assert(e_id < edges.size() && "e_id out of range");
     if(off == 0) return vertPtr(edges[e_id].first);
@@ -180,7 +237,7 @@ inline const double* TriangleSoup::edgeVertPtr(const uint &e_id, const uint &off
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline uint TriangleSoup::edgeOppositeToVert(const uint &t_id, const uint &v_id) const
+inline uint TriangleSoup::edgeOppositeToVert(uint t_id, uint v_id) const
 {
     assert(t_id < numTris() && "t_id out of range");
     assert(v_id < numVerts() && "vtx id out of range");
@@ -197,15 +254,14 @@ inline uint TriangleSoup::edgeOppositeToVert(const uint &t_id, const uint &v_id)
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void TriangleSoup::addEdge(const uint &v0_id, const uint &v1_id)
+inline void TriangleSoup::addEdge(uint v0_id, uint v1_id)
 {
     uint tmp_id = static_cast<uint>(edges.size());
     Edge e = uniqueEdge(v0_id, v1_id);
 
     auto it = edge_map.insert({e, tmp_id});
 
-    if(it.second) // new edge
-        edges.push_back(e);
+    if(it.second) edges.push_back(e);
 }
 
 /*******************************************************************************************************
@@ -219,7 +275,7 @@ const std::vector<uint>& TriangleSoup::trisVector() const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const uint* TriangleSoup::tri(const uint &t_id) const
+inline const uint* TriangleSoup::tri(uint t_id) const
 {
     assert(t_id < numTris() && "t_id out of range");
     return &triangles[ 3 * t_id];
@@ -227,7 +283,7 @@ inline const uint* TriangleSoup::tri(const uint &t_id) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline uint TriangleSoup::triVertID(const uint &t_id, const uint &off) const
+inline uint TriangleSoup::triVertID(uint t_id, uint off) const
 {
     assert(t_id < numTris() && "t_id out of range");
     return triangles[3 * t_id + off];
@@ -235,7 +291,7 @@ inline uint TriangleSoup::triVertID(const uint &t_id, const uint &off) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const genericPoint* TriangleSoup::triVert(const uint &t_id, const uint &off) const
+inline const genericPoint* TriangleSoup::triVert(uint t_id, uint off) const
 {
     assert(t_id < numTris() && "t_id out of range");
     return vert(triangles[3 * t_id + off]);
@@ -243,7 +299,7 @@ inline const genericPoint* TriangleSoup::triVert(const uint &t_id, const uint &o
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline const double* TriangleSoup::triVertPtr(const uint &t_id, const uint &off) const
+inline const double* TriangleSoup::triVertPtr(uint t_id, uint off) const
 {
     assert(t_id < numTris() && "t_id out of range");
     return vertPtr(triangles[3 * t_id + off]);
@@ -251,7 +307,7 @@ inline const double* TriangleSoup::triVertPtr(const uint &t_id, const uint &off)
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline uint TriangleSoup::triEdgeID(const uint &t_id, const uint &off) const
+inline uint TriangleSoup::triEdgeID(uint t_id, uint off) const
 {
     assert(t_id < numTris() && "t_id out of range");
     int e_id = edgeID(triangles[3 * t_id + off],
@@ -263,7 +319,7 @@ inline uint TriangleSoup::triEdgeID(const uint &t_id, const uint &off) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline Plane TriangleSoup::triPlane(const uint &t_id) const
+inline Plane TriangleSoup::triPlane(uint t_id) const
 {
     assert(t_id < numTris() && "t_id out of range");
     return tri_planes[t_id];
@@ -271,7 +327,7 @@ inline Plane TriangleSoup::triPlane(const uint &t_id) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline bool TriangleSoup::triContainsVert(const uint &t_id, const uint &v_id) const
+inline bool TriangleSoup::triContainsVert(uint t_id, uint v_id) const
 {
     assert(t_id < numTris() && "t_id out of range");
     assert(v_id < numVerts() && "v_id out of range");
@@ -284,14 +340,14 @@ inline bool TriangleSoup::triContainsVert(const uint &t_id, const uint &v_id) co
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline bool TriangleSoup::triContainsEdge(const uint t_id, const uint &ev0_id, const uint &ev1_id) const
+inline bool TriangleSoup::triContainsEdge(const uint t_id, uint ev0_id, uint ev1_id) const
 {
     return (triContainsVert(t_id, ev0_id) && triContainsVert(t_id, ev1_id));
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline std::bitset<NBIT> TriangleSoup::triLabel(const uint &t_id) const
+inline std::bitset<NBIT> TriangleSoup::triLabel(uint t_id) const
 {
     assert(t_id < numTris() && "t_id out of range");
     return tri_labels[t_id];
@@ -301,7 +357,7 @@ inline std::bitset<NBIT> TriangleSoup::triLabel(const uint &t_id) const
  *      JOLLY POINTS
  * ****************************************************************************************************/
 
-inline const genericPoint* TriangleSoup::jollyPoint(const uint &off) const
+inline const genericPoint* TriangleSoup::jollyPoint(uint off) const
 {
     assert(off < 4 && "jolly point id out of range");
     return jolly_points[off];
@@ -322,19 +378,18 @@ inline void TriangleSoup::appendJollyPoints()
  *              PRIVATE METHODS
  * ****************************************************************************************************/
 
-inline void TriangleSoup::initJollyPoints(const double &multiplier)
+inline void TriangleSoup::initJollyPoints(point_arena& arena, double multiplier)
 {
-    jolly_points.reserve(5);
-    jolly_points.push_back(new explicitPoint3D(0.94280904158 * multiplier, 0.0 * multiplier, -0.333333333 * multiplier));
-    jolly_points.push_back(new explicitPoint3D(-0.47140452079 * multiplier, 0.81649658092 * multiplier, -0.333333333 * multiplier));
-    jolly_points.push_back(new explicitPoint3D(-0.47140452079 * multiplier, -0.81649658092 * multiplier, -0.333333333 * multiplier));
-    jolly_points.push_back(new explicitPoint3D(0.0 * multiplier, 0.0 * multiplier, 1.0 * multiplier));
-    jolly_points.push_back(new explicitPoint3D(multiplier, 0.0, 0.0));
+    jolly_points.push_back(&arena.jolly.emplace_back(0.94280904158 * multiplier, 0.0 * multiplier, -0.333333333 * multiplier));
+    jolly_points.push_back(&arena.jolly.emplace_back(-0.47140452079 * multiplier, 0.81649658092 * multiplier, -0.333333333 * multiplier));
+    jolly_points.push_back(&arena.jolly.emplace_back(-0.47140452079 * multiplier, -0.81649658092 * multiplier, -0.333333333 * multiplier));
+    jolly_points.push_back(&arena.jolly.emplace_back(0.0 * multiplier, 0.0 * multiplier, 1.0 * multiplier));
+    jolly_points.push_back(&arena.jolly.emplace_back(multiplier, 0.0, 0.0));
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline Edge TriangleSoup::uniqueEdge(const uint &v0_id, const uint &v1_id) const
+inline Edge TriangleSoup::uniqueEdge(uint v0_id, uint v1_id) const
 {
     if(v0_id < v1_id) return {v0_id, v1_id};
     return {v1_id, v0_id};
