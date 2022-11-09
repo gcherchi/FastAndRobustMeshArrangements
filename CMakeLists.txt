@@ -14,13 +14,13 @@ add_subdirectory(external/oneTBB)
 
 # add the executable
 add_executable(${PROJECT_NAME} 
-    main.cpp
+	main.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-		./
-		code/
-		)
+	./
+	code/
+	)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC TBB_PARALLEL=1)
 
@@ -35,8 +35,4 @@ set(CINOLIB_USES_INDIRECT_PREDICATES ON)
 find_package(cinolib REQUIRED)
 target_link_libraries(${PROJECT_NAME} cinolib)
 
-# preprocessor definitions
-#if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-#	target_compile_definitions(${PROJECT_NAME} PUBLIC -DIS64BITPLATFORM)
-#endif()
 
