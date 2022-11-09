@@ -36,7 +36,7 @@ IEEE Transactions on Visualization and Computer Graphics, 2022
 
 Clone this repository:
 ```
-git clone --recursive https://github.com/gcherchi/FastAndRobustMeshArrangements.git
+git clone https://github.com/gcherchi/FastAndRobustMeshArrangements.git
 ```
 Once done, you may build the executable as follows (put ``Release`` or ``Debug`` instead of ``<build_type>``):
 ```
