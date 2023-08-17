@@ -710,8 +710,9 @@ inline void FastTrimesh::splitEdge(const uint  &e_id, uint v_id)
     uint ev0_id = edges[e_id].v.first;
     uint ev1_id = edges[e_id].v.second;
 
-    for(uint t_id : e2t[e_id])
+    for(int i=0; i < e2t[e_id].size(); i++)
     {
+        uint t_id = e2t[e_id][i];
         uint v_opp = triVertOppositeTo(t_id, ev0_id, ev1_id);
         if(triVertsAreCCW(t_id, ev0_id, ev1_id)) std::swap(ev0_id, ev1_id);
 
