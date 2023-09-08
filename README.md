@@ -1,3 +1,7 @@
+> ⚠️ **IMPORTANT** ⚠️<br>
+> Dear users,
+we are flattered by the enthusiasm and interest around our tools but, unfortunately, we do not currently have the resources to keep up with the amount of requests for clarifications, modifications and fixes we receive. In case this is an important building block for your project and you are willing to financially sustain the maintenance/enhancement of our tool, please let us know. Conversely, we can no longer commit to readily address all your issues, as the amount of time necessary to do that heavily conflicts with our regular academic working routine.
+
 # Fast and Robust Mesh Arrangements using Floating-point Arithmetic
 
 <p align="center"><img src="teaser_img.png"></p>
@@ -30,9 +34,6 @@ and in
 IEEE Transactions on Visualization and Computer Graphics, 2022
 
 ## Usage
-
-|:warning: WARNING: This code is subject to continuous updates. |
-| --- |
 
 Clone this repository:
 ```
