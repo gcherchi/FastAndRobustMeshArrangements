@@ -28,8 +28,7 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PUBLIC
 	./
 	code/
-	arrangements/code/
-	arrangements/external/Indirect_Predicates/include/
+        external/Indirect_Predicates/include/
 )
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC TBB_PARALLEL=1)
@@ -40,7 +39,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/external
 set(cinolib_DIR ${PROJECT_SOURCE_DIR}/external/Cinolib)
 set(CINOLIB_USES_OPENGL_GLFW_IMGUI ON)
 set(CINOLIB_USES_SHEWCHUK_PREDICATES ON)
-set(CINOLIB_USES_INDIRECT_PREDICATES ON)
 
 find_package(cinolib REQUIRED)
 target_link_libraries(${PROJECT_NAME} cinolib)
