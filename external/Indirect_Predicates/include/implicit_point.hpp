@@ -60,17 +60,22 @@ inline int lessThan_IE(const genericPoint& a, const genericPoint& b) { return le
 
 inline int genericPoint::lessThan(const genericPoint& a, const genericPoint& b)
 {
-		if (a.isExplicit3D() && b.isExplicit3D()) return lessThan_EE(a, b);
-		if (!a.isExplicit3D() && b.isExplicit3D()) return lessThan_IE(a, b);
-		if (a.isExplicit3D() && !b.isExplicit3D()) return -lessThan_IE(b, a);
-		return lessThan_II(a, b);
+	if (a.isExplicit3D() && b.isExplicit3D()) return lessThan_EE(a, b);
+	if (!a.isExplicit3D() && b.isExplicit3D()) return lessThan_IE(a, b);
+	if (a.isExplicit3D() && !b.isExplicit3D()) return -lessThan_IE(b, a);
+	return lessThan_II(a, b);
 }
 
 inline int lessThanOnX_IE(const genericPoint& a, const genericPoint& b) { return lessThanOnX_IE(a, b.toExplicit3D().X()); }
 
 inline int genericPoint::lessThanOnX(const genericPoint& a, const genericPoint& b)
 {
-	if (a.isExplicit3D() && b.isExplicit3D()) return a.toExplicit3D().X() < b.toExplicit3D().X();
+	if (a.isExplicit3D() && b.isExplicit3D())
+	{
+		double av = a.toExplicit3D().X(), bv = b.toExplicit3D().X();
+		return ((av > bv) - (av < bv));
+	}
+
 	if (!a.isExplicit3D() && b.isExplicit3D()) return lessThanOnX_IE(a, b);
 	if (a.isExplicit3D() && !b.isExplicit3D()) return -lessThanOnX_IE(b, a);
 	return lessThanOnX_II(a, b);
@@ -80,7 +85,11 @@ inline int lessThanOnY_IE(const genericPoint& a, const genericPoint& b) { return
 
 inline int genericPoint::lessThanOnY(const genericPoint& a, const genericPoint& b)
 {
-	if (a.isExplicit3D() && b.isExplicit3D()) return a.toExplicit3D().Y() < b.toExplicit3D().Y();
+	if (a.isExplicit3D() && b.isExplicit3D())
+	{
+		double av = a.toExplicit3D().Y(), bv = b.toExplicit3D().Y();
+		return ((av > bv) - (av < bv));
+	}
 	if (!a.isExplicit3D() && b.isExplicit3D()) return lessThanOnY_IE(a, b);
 	if (a.isExplicit3D() && !b.isExplicit3D()) return -lessThanOnY_IE(b, a);
 	return lessThanOnY_II(a, b);
@@ -90,7 +99,11 @@ inline int lessThanOnZ_IE(const genericPoint& a, const genericPoint& b) { return
 
 inline int genericPoint::lessThanOnZ(const genericPoint& a, const genericPoint& b)
 {
-	if (a.isExplicit3D() && b.isExplicit3D()) return a.toExplicit3D().Z() < b.toExplicit3D().Z();
+	if (a.isExplicit3D() && b.isExplicit3D())
+	{
+		double av = a.toExplicit3D().Z(), bv = b.toExplicit3D().Z();
+		return ((av > bv) - (av < bv));
+	}
 	if (!a.isExplicit3D() && b.isExplicit3D()) return lessThanOnZ_IE(a, b);
 	if (a.isExplicit3D() && !b.isExplicit3D()) return -lessThanOnZ_IE(b, a);
 	return lessThanOnZ_II(a, b);
