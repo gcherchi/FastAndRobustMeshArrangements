@@ -151,7 +151,8 @@ inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructu
 
     // processing the triangles to split
     tbb::spin_mutex mutex;
-    tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
+    //tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
+    for (uint t=0; t< (uint)tris_to_split.size(); t++) {
         uint t_id = tris_to_split[t];
         FastTrimesh subm(ts.triVert(t_id, 0),
                          ts.triVert(t_id, 1),
@@ -160,7 +161,8 @@ inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructu
                          ts.triPlane(t_id));
 
         triangulateSingleTriangle(ts, arena, subm, t_id, g, new_tris, new_labels, mutex);
-    });
+    }
+//);
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
