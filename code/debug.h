@@ -43,7 +43,7 @@
 #include <chrono>
 #include <iomanip>
 
-#include "indirect_predicates.h"
+#include <implicit_point.h>
 #include <cinolib/meshes/trimesh.h>
 
 std::string to_string_prec( double d )

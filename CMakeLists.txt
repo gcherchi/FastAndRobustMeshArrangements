@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
+
 # Set the target architecture.
 # All modern x86/x64 processors support AVX2.
 # Older x86/x64 processors may support SSE2 but not AVX2.
@@ -28,10 +29,19 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PUBLIC
 	./
 	code/
-        external/Indirect_Predicates/include/
 )
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC TBB_PARALLEL=1)
+
+
+include(FetchContent)
+message("Fetch Indirect Predicates")
+FetchContent_Declare(indirect_predicates
+                    GIT_REPOSITORY "https://github.com/MarcoAttene/Indirect_Predicates.git"
+                    GIT_TAG 142e3fbd922e45ade8b02c836a6b0386209a7ab2) # Jan 30, 2024 "Bigfux in lessThan functions"
+FetchContent_MakeAvailable(indirect_predicates)
+target_include_directories(mesh_arrangement PUBLIC ${indirect_predicates_SOURCE_DIR}/include/)
+
 
 target_link_libraries(${PROJECT_NAME} tbb)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/external/abseil-cpp/)

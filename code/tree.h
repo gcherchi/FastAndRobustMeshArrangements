@@ -38,7 +38,7 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include <indirect_predicates.h>
+#include <implicit_point.h>
 #include <vector>
 
 typedef unsigned int uint;
