@@ -40,18 +40,21 @@ FetchContent_Declare(indirect_predicates
                     GIT_REPOSITORY "https://github.com/MarcoAttene/Indirect_Predicates.git"
                     GIT_TAG 142e3fbd922e45ade8b02c836a6b0386209a7ab2) # Jan 30, 2024 "Bigfux in lessThan functions"
 FetchContent_MakeAvailable(indirect_predicates)
-target_include_directories(mesh_arrangement PUBLIC ${indirect_predicates_SOURCE_DIR}/include/)
+target_include_directories(${PROJECT_NAME} PUBLIC ${indirect_predicates_SOURCE_DIR}/include/)
 
+message("Fetch Cinolib")
+FetchContent_Declare(cinolib
+                    GIT_REPOSITORY "https://github.com/mlivesu/cinolib.git"
+                    GIT_TAG e2bc38c3ad8fc2ea2b487b2a3802f6bc2cdfeede) # Jan 18, 2024 "Update color.h"
+FetchContent_MakeAvailable(cinolib)
+target_include_directories(${PROJECT_NAME} PUBLIC ${cinolib_SOURCE_DIR}/external/eigen)
+target_include_directories(${PROJECT_NAME} PUBLIC ${cinolib_SOURCE_DIR}/include/)
+add_subdirectory(${cinolib_SOURCE_DIR}/external/shewchuk_predicates shewchuk_predicates)
+target_compile_definitions(${PROJECT_NAME} PUBLIC CINOLIB_USES_SHEWCHUK_PREDICATES)
 
-target_link_libraries(${PROJECT_NAME} tbb)
+target_link_libraries(${PROJECT_NAME} PUBLIC shewchuk_predicates tbb)
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/external/abseil-cpp/)
-
-set(cinolib_DIR ${PROJECT_SOURCE_DIR}/external/Cinolib)
-set(CINOLIB_USES_OPENGL_GLFW_IMGUI ON)
-set(CINOLIB_USES_SHEWCHUK_PREDICATES ON)
-
-find_package(cinolib REQUIRED)
-target_link_libraries(${PROJECT_NAME} cinolib)
 
 # Compiler-specific options
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
