@@ -74,10 +74,10 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
      *                                  TRIANGLE SPLIT
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-    if(t_points.size() < 50)
+    //if(t_points.size() < 50)
         splitSingleTriangle(ts, subm, t_points);
-    else
-        splitSingleTriangleWithTree(ts, subm, t_points);
+    //else
+    //    splitSingleTriangleWithTree(ts, subm, t_points);
 
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
