@@ -65,7 +65,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	# set target architecture
 	if(ENABLE_AVX2)
 		target_compile_options(${PROJECT_NAME} PUBLIC "/arch:AVX2")
-	elseif(ENABLE_SSE2)
+  	elseif(ENABLE_SSE2)
 		target_compile_options(${PROJECT_NAME} PUBLIC "/arch:SSE2")
 	endif()
 	# reserve enough stack size
@@ -82,6 +82,7 @@ else()
 	# set target architecture
 	if(ENABLE_AVX2)
 		target_compile_options(${PROJECT_NAME} PUBLIC "-mavx2")
+		target_compile_options(${PROJECT_NAME} PUBLIC "-mfma")
 	elseif(ENABLE_SSE2)
 		target_compile_options(${PROJECT_NAME} PUBLIC "-msse2")
 	endif()
