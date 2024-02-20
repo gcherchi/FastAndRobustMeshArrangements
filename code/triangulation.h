@@ -70,6 +70,12 @@ inline void splitSingleTriangle(const TriangleSoup &ts, FastTrimesh &subm, const
 inline void splitSingleTriangleWithTree(const TriangleSoup &ts, FastTrimesh &subm, const std::vector<uint> &points);
 inline void splitSingleTriangleWithTree(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points);
 
+
+inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points);
+inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::queue<auxvector<uint>> &queue_curr_subdv,auxvector<uint> &curr_tri);
+inline void findContainingTriangleInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_curr_subdv, uint p);
+
+
 inline int findContainingTriangle(const FastTrimesh &subm, uint p_id);
 
 inline const Node &findContainingTriangleInTree(const FastTrimesh &subm, uint p_id, const Tree &tree);

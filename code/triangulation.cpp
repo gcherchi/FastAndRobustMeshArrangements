@@ -75,10 +75,12 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
     //if(t_points.size() < 50)
-        splitSingleTriangle(ts, subm, t_points);
+    //splitSingleTriangle(ts, subm, t_points);
     //else
-    //    splitSingleTriangleWithTree(ts, subm, t_points);
+    //splitSingleTriangleWithTree(ts, subm, t_points);
 
+    /****************** NEW SPLITTING *************************/
+    splitSingleTriangleWithQueue(ts, subm, t_points);
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                                  EDGE SPLIT
@@ -202,6 +204,133 @@ inline void splitSingleTriangle(const TriangleSoup &ts, FastTrimesh &subm, const
     }
 }
 
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points)
+{
+    if(points.empty()) return;
+
+    /** Structure of a queue of subtriangles:
+     *     ---
+     *    | 1 | = [1 triangle's points and points contained into it]
+     *    | 2 | = [2 triangle's points and points contained into it]
+     *    | . |
+     *    | . |
+     *    | n | = [N triangle's points and points contained into it]
+     *     ---
+     *********************************************************************/
+    //Queue of subtriangles with the points to be added
+    std::queue<auxvector<uint>> queue_sub_tri;
+
+    //Queue of subtriangles that are currently subdivided
+    std::queue<auxvector<uint>> queue_curr_subdv;
+
+    /** structure of a subtriangle:
+     *
+     *  | n | = [1,2,3,4,5,6,7] first 3 points are n triangle's vertices and the rest are the points contained into it
+     *
+     ******************************************************************************************************************/
+    //Concatenation of the first triangle and the points
+    auxvector<uint> all_points = {subm.triVertID(0,0), subm.triVertID(0,1), subm.triVertID(0,2)};
+
+    //add each point to the sub mesh
+    for (unsigned int i : points){
+        auto point = i;
+        uint v_pos = subm.addVert(ts.vert(point), i);
+        all_points.push_back(v_pos);
+    }
+    //push the points in the queue
+    queue_sub_tri.push(all_points);
+
+    while(!queue_sub_tri.empty()){
+
+        //take the first element of the queue
+        auto curr_tri = queue_sub_tri.front();
+
+        uint t_id = static_cast<uint>(subm.triID(curr_tri[0], curr_tri[1], curr_tri[2]));
+
+        //Take the edges of the triangle
+        uint e0_id = subm.triEdgeID(t_id, 0);
+        uint e1_id = subm.triEdgeID(t_id, 1);
+        uint e2_id = subm.triEdgeID(t_id, 2);
+
+        //take the vertex position in submesh to be added
+        uint v_pos = curr_tri[3];
+
+        //checking if the point is on the edge or inside the triangle and split the triangle or the edge
+        if(fastPointOnLine(subm, e0_id, v_pos)) {
+            subm.splitEdge(e0_id, v_pos);
+
+            uint v_opp = subm.triVertOppositeTo(t_id, subm.edgeVertID(e0_id,0), subm.edgeVertID(e0_id,1));
+            queue_curr_subdv.push({subm.edgeVertID(e0_id,0), v_opp, v_pos});
+            queue_curr_subdv.push({subm.edgeVertID(e0_id,1), v_opp, v_pos});
+
+        }else if(fastPointOnLine(subm, e1_id, v_pos)) {
+            subm.splitEdge(e1_id, v_pos);
+
+            uint v_opp = subm.triVertOppositeTo(t_id, subm.edgeVertID(e1_id,0), subm.edgeVertID(e1_id,1));
+            queue_curr_subdv.push({subm.edgeVertID(e1_id,0), v_opp, v_pos});
+            queue_curr_subdv.push({subm.edgeVertID(e1_id,1), v_opp, v_pos});
+
+        }else if(fastPointOnLine(subm, e2_id, v_pos)) {
+            subm.splitEdge(e2_id, v_pos);
+
+            uint v_opp = subm.triVertOppositeTo(t_id, subm.edgeVertID(e2_id,0), subm.edgeVertID(e2_id,1));
+            queue_curr_subdv.push({subm.edgeVertID(e2_id,0), v_opp, v_pos});
+            queue_curr_subdv.push({subm.edgeVertID(e2_id,1), v_opp, v_pos});
+
+        }else{  subm.splitTri(t_id, v_pos);
+
+                queue_curr_subdv.push({curr_tri[0], curr_tri[1], v_pos});
+                queue_curr_subdv.push({curr_tri[1], curr_tri[2], v_pos});
+                queue_curr_subdv.push({curr_tri[2], curr_tri[0], v_pos});
+        }
+
+        //delete the point from the vector and the triangle from the queue
+        curr_tri.erase(curr_tri.begin() + 3);
+        queue_sub_tri.pop();
+
+        //reposition the points in the queue and push the new triangles with points in the queue_sub_tri
+        repositionPointsInQueue(subm, queue_sub_tri, queue_curr_subdv, curr_tri);
+    }
+}
+
+
+inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::queue<auxvector<uint>> &queue_curr_subdv, auxvector<uint> &curr_tri)
+{
+    if (curr_tri.size() > 3){
+        for (int i = 3; i < curr_tri.size() ; i++){
+            findContainingTriangleInQueue(subm, queue_curr_subdv, curr_tri[i]);
+        }
+    }
+
+    // push progressively the elements of the queue_curr_subdv in the queue_sub_tri if the triangle has almost one
+    // point inside
+    while(!queue_curr_subdv.empty()){
+        if(queue_curr_subdv.front().size() > 3){
+            queue_sub_tri.push(queue_curr_subdv.front());}
+        queue_curr_subdv.pop();
+    }
+}
+
+inline void findContainingTriangleInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_curr_subdv, uint p)
+{
+
+    for (int j = 0; j < queue_curr_subdv.size(); j++){
+
+        auto sub_tri = queue_curr_subdv.front();
+        queue_curr_subdv.pop();
+
+        if(genericPoint::pointInTriangle(*subm.vert(p),*subm.vert(sub_tri[0]),
+                                         *subm.vert(sub_tri[1]),*subm.vert(sub_tri[2]))){
+            sub_tri.push_back(p);
+            queue_curr_subdv.push(sub_tri);
+            return;//early return to avoid scanning the whole queue
+        }else{
+            queue_curr_subdv.push(sub_tri);
+        }
+    }
+}
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline void splitSingleTriangleWithTree(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points)
