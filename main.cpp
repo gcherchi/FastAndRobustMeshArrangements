@@ -45,12 +45,18 @@
 #include "solve_intersections.h"
 #include "io_functions.h"
 
+#include <cinolib/meshes/meshes.h>
+#include <cinolib/gl/glcanvas.h>
+#include <cinolib/gl/surface_mesh_controls.h>
+
+
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 int main(int argc, char **argv)
 {
     std::string filename;
 
+    /*
     if(argc > 1)
         filename = argv[1];
     else
@@ -58,6 +64,13 @@ int main(int argc, char **argv)
         std::cout << "input file missing" << std::endl;
         return -1;
     }
+     */
+
+    filename = "/Users/gianmarco/Code/FastAndRobustMeshArrangements/data/three_cubes.stl";
+
+    cinolib::DrawableTrimesh<> m;
+    cinolib::GLcanvas gui;
+    cinolib::SurfaceMeshControls<cinolib::DrawableTrimesh<>> menu(&m, &gui);
 
     std::vector<double> in_coords, out_coords;
     std::vector<uint> in_tris, out_tris;
@@ -73,10 +86,14 @@ int main(int argc, char **argv)
     solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
 
     computeApproximateCoordinates(gen_points, out_coords);
+
+    m = cinolib::DrawableTrimesh(out_coords, out_tris);
+    m.updateGL();
+    gui.push(&m);
     
     save("output.obj", out_coords, out_tris);
 
-    return 0;
+    return gui.launch();
 }
 
 
