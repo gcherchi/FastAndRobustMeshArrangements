@@ -85,8 +85,8 @@ int main(int argc, char **argv)
 
     solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
 
+    // questa parte prende il modello attuale e lo visualizza (da spostare dove serve)
     computeApproximateCoordinates(gen_points, out_coords);
-
     m = cinolib::DrawableTrimesh(out_coords, out_tris);
     m.updateGL();
     gui.push(&m);
