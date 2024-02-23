@@ -49,12 +49,15 @@
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
 
+using namespace cinolib;
+
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 int main(int argc, char **argv)
 {
     std::string filename;
+    std::queue<uint> vertices;
 
     /*
     if(argc > 1)
@@ -66,11 +69,11 @@ int main(int argc, char **argv)
     }
      */
 
-    filename = "/Users/gianmarco/Code/FastAndRobustMeshArrangements/data/three_cubes.stl";
+    filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data/test/sc4.off";
+    //filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data/test/ttt2.off";
+    //filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data/three_cubes.stl";
+    //filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data/two_spheres.stl";
 
-    cinolib::DrawableTrimesh<> m;
-    cinolib::GLcanvas gui;
-    cinolib::SurfaceMeshControls<cinolib::DrawableTrimesh<>> menu(&m, &gui);
 
     std::vector<double> in_coords, out_coords;
     std::vector<uint> in_tris, out_tris;
@@ -79,19 +82,359 @@ int main(int argc, char **argv)
 
     load(filename, in_coords, in_tris);
 
+    DrawableTrimesh<> m;
+    GLcanvas gui;
+
+
     /*-------------------------------------------------------------------
      * There are 4 versions of the solveIntersections function. Please
      * refer to the solve_intersections.h file to see how to use them. */
 
-    solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
+    //solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
 
+/********************************** solveIntersections function ***************/
+
+    std::vector< std::bitset<NBIT>> tmp_in_labels(in_tris.size() / 3), out_labels;
+
+    //meshArrangementPipeline(in_coords, in_tris, tmp_in_labels, arena, gen_points, out_tris, out_labels);
+
+/******************************** meshArrangementPipeline function ************/
+    initFPU();
+
+    AuxiliaryStructure g;
+
+    double multiplier = computeMultiplier(in_coords);
+
+    std::vector<uint> tmp_tris;
+    std::vector< std::bitset<NBIT> > tmp_labels;
+
+    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, true);
+
+    removeDegenerateAndDuplicatedTriangles(gen_points, tmp_in_labels, tmp_tris, tmp_labels);
+
+    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, true);
+
+    //detectIntersections(ts, g.intersectionList());
+    /**********************************detect intersection********************************************/
+    std::vector<cinolib::vec3d> verts(ts.numVerts());
+
+    for(uint v_id = 0; v_id < ts.numVerts(); v_id++)
+        verts[v_id] = cinolib::vec3d(ts.vertX(v_id), ts.vertY(v_id), ts.vertZ(v_id));
+
+    std::cout<<"Num of tris"<<ts.numTris()<<std::endl;
+    g.intersectionList().reserve((int)sqrt(ts.numTris()));
+    find_intersections(verts, ts.trisVector(), g.intersectionList());
+
+
+    // Print the elements using range-based for loop
+    std::cout << "Elements of the intersection list: ";
+    for (const auto& element :  g.intersectionList()) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+    std::cout<<"Num of intersections: "<< g.intersectionList().size()<<std::endl;
+
+
+    g.initFromTriangleSoup(ts);
+
+    classifyIntersections(ts, arena, g);
+    
+    std::cout << "Points in edge e0: "<<*ts.edgeVert(0,0) << " "<< *ts.edgeVert(0,1);
+    for (const auto& element :  g.edgePointsList(0)) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;std::cout << "Points in edge e1: "<<*ts.edgeVert(1,0) << " "<< *ts.edgeVert(1,1);
+    for (const auto& element :  g.edgePointsList(1)) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;std::cout << "Points in edge e2: "<<*ts.edgeVert(2,0) << " "<< *ts.edgeVert(2,1);
+
+
+    for (const auto& element :  g.edgePointsList(2)) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Points in edge e3: "<<*ts.edgeVert(3,0) << " "<< *ts.edgeVert(3,1);
+    for (int j = 0; j < ; ++j) {
+
+    }
+    for (const auto& element :  g.edgePointsList(3)) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;std::cout << "Points in edge e4: "<<*ts.edgeVert(4,0) << " "<< *ts.edgeVert(4,1);
+    for (const auto& element :  g.edgePointsList(4)) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;std::cout << "Points in edge e5: "<<*ts.edgeVert(5,0) << " "<< *ts.edgeVert(5,1);
+    for (const auto& element :  g.edgePointsList(5)) {
+        std::cout << element << " ";
+    }
+
+    int e0_debug = ts.edgeID(0,4);
+    int e1_debug = ts.edgeID(3,1);
+    int x = e0_debug + e1_debug;
+    std::cout << "e0: "<<e0_debug <<std::endl;
+    std::cout<<"e1: "  << e1_debug <<std::endl;
+    //triangulation(ts, arena, g, out_tris, out_labels);
+
+/*********************************** Triangulation function *************/
+    std::cout << std::endl;std::cout << "Points in edge e0: ";
+    for (const auto& element :  g.edgePointsList(0)) {
+        std::cout << element<< " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << std::endl;std::cout << "Points in edge e1: ";
+    for (const auto& element :  g.edgePointsList(1)) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+    out_labels.clear();
+    out_tris.clear();
+    out_tris.reserve(2 * 3 * ts.numTris());
+    out_labels.reserve(2 * ts.numTris());
+
+    std::vector<uint> tris_to_split;
+    tris_to_split.reserve(ts.numTris());
+
+    for(uint t_id = 0; t_id < ts.numTris(); t_id++)
+    {
+        if(g.triangleHasIntersections(t_id) || g.triangleHasCoplanars(t_id))
+            tris_to_split.push_back(t_id);
+        else
+        {
+            // triangle without intersections directly goes to the output list
+            out_tris.push_back(ts.triVertID(t_id, 0));
+            out_tris.push_back(ts.triVertID(t_id, 1));
+            out_tris.push_back(ts.triVertID(t_id, 2));
+            out_labels.push_back(ts.triLabel(t_id));
+        }
+    }
+
+    // processing the triangles to split
+    tbb::spin_mutex mutex;
+    //tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
+    for (uint t=0; t< (uint)tris_to_split.size(); t++) {
+        uint t_id = tris_to_split[t];
+        FastTrimesh subm(ts.triVert(t_id, 0),
+                         ts.triVert(t_id, 1),
+                         ts.triVert(t_id, 2),
+                         ts.tri(t_id),
+                         ts.triPlane(t_id));
+
+        //triangulateSingleTriangle(ts, arena, subm, t_id, g, out_tris, out_labels, mutex);
+
+        /*****************************TriangulateSingleTriangle*****************************/
+        /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    *                                  POINTS AND SEGMENTS RECOVERY
+    * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+        const auto& t_points = g.trianglePointsList(t_id);
+
+
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+         *                                     DEBUGGING
+         *:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        if(t_points.size()==0) {
+            std::cout << "Empty" << std::endl;
+        }else{
+        std::cout << "Elements of the triangle points : ";
+        for (const auto element :  g.trianglePointsList(t_id)) {
+            std::cout << element << " ";
+        }
+        std::cout << std::endl;
+        }
+
+        const auto& e0_pointss = g.edgePointsList(ts.edgeID(subm.vertOrigID(0), subm.vertOrigID(1)));
+        const auto& e1_pointss = g.edgePointsList(ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2)));
+        const auto& e2_pointss = g.edgePointsList(ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0)));
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+         *                                    END DEBUGGING
+         *:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+
+
+        int e0_id = ts.edgeID(subm.vertOrigID(0), subm.vertOrigID(1));      assert(e0_id != -1);
+        int e1_id = ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2));      assert(e1_id != -1);
+        int e2_id = ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0));      assert(e2_id != -1);
+
+        auxvector<uint> e0_points, e1_points, e2_points;
+        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0), subm.vertOrigID(1), e0_points);
+        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1), subm.vertOrigID(2), e1_points);
+        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2), subm.vertOrigID(0), e2_points);
+
+        auxvector<UIPair> t_segments(g.triangleSegmentsList(t_id).begin(), g.triangleSegmentsList(t_id).end());
+
+        uint estimated_vert_num = static_cast<uint>(t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
+        subm.preAllocateSpace(estimated_vert_num);
+
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+         *                                      DEBUGGING
+         *:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        std::cout << t_segments.size() <<std::endl;
+        std::cout << "Segments points  : ";
+        for (const auto element :  t_segments) {
+
+            std::cout << element.first << " " << element.second;
+        }
+        std::cout << std::endl;
+
+
+
+        std::cout << "Points in e0 : "<< subm.vertOrigID(0) <<" "<< subm.vertOrigID(1)<<" ";
+        vertices.push(subm.vertOrigID(0));
+        vertices.push(subm.vertOrigID(1));
+        for (const auto element :  e0_pointss) {
+            vertices.push(element);
+            std::cout << element << " ";
+        }
+        std::cout << std::endl;
+
+
+        std::cout << "Points in e1 : "<< subm.vertOrigID(1) <<" "<< subm.vertOrigID(2)<<" ";
+        for (const auto element :  e1_pointss) {
+
+            std::cout << element << " ";
+        }
+        std::cout << std::endl;
+
+        std::cout << "Points in e2 : "<< subm.vertOrigID(2) <<" "<< subm.vertOrigID(0)<<" ";
+        for (const auto element :  e2_pointss) {
+            std::cout << element << " ";
+        }
+        std::cout << std::endl;
+
+
+        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+         *                                    END DEBUGGING
+         *:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+        /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+         *                                  TRIANGLE SPLIT
+         * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+        //if(t_points.size() < 50)
+        //splitSingleTriangle(ts, subm, t_points);
+        //else
+        //splitSingleTriangleWithTree(ts, subm, t_points);
+
+
+
+        /****************** NEW SPLITTING *************************/
+        splitSingleTriangleWithQueue(ts, subm, t_points);
+
+        /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+         *                                  EDGE SPLIT
+         * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+        splitSingleEdge(ts, subm, 0, 1, e0_points);
+        splitSingleEdge(ts, subm, 1, 2, e1_points);
+        splitSingleEdge(ts, subm, 2, 0, e2_points);
+
+        /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+         *                           CONSTRAINT SEGMENT INSERTION
+         * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+        addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
+
+        /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+         *                      POCKETS IN COPLANAR TRIANGLES SOLVING
+         * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+        if(g.triangleHasCoplanars(t_id))
+        {
+            { // start critical section...
+                std::lock_guard<tbb::spin_mutex> lock(mutex);
+                solvePocketsInCoplanarTriangle(subm, g, out_tris, out_labels, ts.triLabel(t_id));
+            } // end critical section
+        }
+        else
+        {
+            /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+             *                     NEW TRIANGLE CREATION (for final mesh)
+             * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+            { // start critical section...
+                std::lock_guard<tbb::spin_mutex> lock(mutex);
+                for(uint ti = 0; ti < subm.numTris(); ti++)
+                {
+                    const uint *tri = subm.tri(ti);
+                    out_tris.push_back(subm.vertOrigID(tri[0]));
+                    out_tris.push_back(subm.vertOrigID(tri[1]));
+                    out_tris.push_back(subm.vertOrigID(tri[2]));
+                    out_labels.push_back(ts.triLabel(t_id));
+                } // endl critical section
+            }
+        }
+
+    }
+
+/******************************************************************************/
+
+    ts.appendJollyPoints();
     // questa parte prende il modello attuale e lo visualizza (da spostare dove serve)
     computeApproximateCoordinates(gen_points, out_coords);
-    m = cinolib::DrawableTrimesh(out_coords, out_tris);
+
+    m = DrawableTrimesh(out_coords, out_tris);
+
+    //Example marker vert
+
+
+    //remove
+    //gui.pop_all_markers();
+    for(uint i = 0; i < m.num_edges(); i++){
+        m.edge_data(i).flags[MARKED] = false;
+    }
+
+    //m.edge_data(6).flags[MARKED] = true;
+
+
+
+
+    //DrawableTrimesh<> m;
+    //GLcanvas gui;
+    //m = DrawableTrimesh(out_coords, out_tris);
+
+
+    m.updateGL();
+    std::string name = get_file_name(filename, false);
+    m.mesh_data().filename = name;
     m.updateGL();
     gui.push(&m);
+    gui.push(new SurfaceMeshControls<DrawableTrimesh<>>(&m, &gui));
+
+    int ii = 0;
+    gui.callback_app_controls = [&]()
+    {
+        if(ImGui::Button("Go ahead vert")) {
+            for(uint i = 0; i < m.num_edges(); i++){
+                m.edge_data(i).flags[MARKED] = false;
+            }
+            m.edge_data(ii).flags[MARKED] = true;
+
+            ii++;
+
+            m.updateGL();
+
+        }
+        if(ImGui::Button("show me vert")) {
+            for(uint i = 0; i < vertices.size(); i++){
+                if(i < 3){
+                    gui.push_marker(m.vert(vertices.front()),to_string(vertices.front()), Color::BLUE(), 2,4);
+                    vertices.pop();
+                }else{
+                    gui.push_marker(m.vert(vertices.front()),to_string(vertices.front()), Color::RED(), 2,4);
+                    vertices.pop();
+                }
+            }
+        }// slider moved: do something
+
+    };
+
+
+
     
-    save("output.obj", out_coords, out_tris);
+    save("output_c.obj", out_coords, out_tris);
 
     return gui.launch();
 }

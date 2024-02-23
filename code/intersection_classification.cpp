@@ -49,6 +49,7 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
 {
     cinolib::Octree o(8,1000); // max 1000 elements per leaf, depth permitting
     o.build_from_vectors(verts, tris);
+    std::cout<<"num of vert:" << verts.size()<<std::endl;
 
     intersections.reserve((int)sqrt(tris.size()));
     tbb::spin_mutex mutex;
@@ -56,6 +57,7 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
     {        
         auto & leaf = o.leaves.at(i);
         if(leaf->item_indices.empty()) return;
+        std::cout<<"Item indices:" << leaf->item_indices.size()<<std::endl;
         for(uint j=0;   j<leaf->item_indices.size()-1; ++j)
         for(uint k=j+1; k<leaf->item_indices.size();   ++k)
         {
@@ -63,6 +65,7 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
             uint tid1 = leaf->item_indices.at(k);
             auto T0 = o.items.at(tid0);
             auto T1 = o.items.at(tid1);
+            std::cout<<"T0: " << T0->id << "T1: "<< T1->id<< std::endl;
             if(T0->aabb.intersects_box(T1->aabb)) // early reject based on AABB intersection
             {
                 const cinolib::Triangle *t0 = dynamic_cast<cinolib::Triangle*>(T0);
@@ -76,6 +79,11 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
         }
     });
 
+    std::cout << "Elements of the intersection list before duplicates: ";
+    for (const auto& a :  intersections) {
+        std::cout << a.first << a.second  << " - ";
+    }
+    std::cout << std::endl;
     remove_duplicates(intersections);
 }
 
@@ -146,6 +154,7 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
     int tmp_edge_id = singleCoplanarEdge(orBA);
     if(tmp_edge_id != -1)
     {
+        std::cout<<"single edge coplanar: "<< tmp_edge_id <<std::endl;
         uint e_v0_id = static_cast<uint>(tmp_edge_id);
         uint e_v1_id = (tmp_edge_id + 1) % 3;
         checkSingleCoplanarEdgeIntersections(ts, arena, ts.triVertID(tB_id, e_v0_id), ts.triVertID(tB_id, e_v1_id), tB_id, tA_id, g, li);
@@ -153,8 +162,9 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
 
     // a vertex of tB is coplanar to tA, and the opposite edge is on the same side respect to tA  (e.g. orBA: 1 0 1)
     int tmp_vtx_id = vtxInPlaneAndOppositeEdgeOnSameSide(orBA);
-    if(tmp_vtx_id != -1)
+    if(tmp_vtx_id != -1) {
         checkVtxInTriangleIntersection(ts, ts.triVertID(tB_id, static_cast<uint>(tmp_vtx_id)), tA_id, v_tmp, g, li);
+    }
 
     // a vertex of tB is coplanar to tA, and the opposite edge could intersect tA   (e.g. orBA: -1 0 1)
     tmp_vtx_id = vtxInPlaneAndOppositeEdgeCrossPlane(orBA);
@@ -170,6 +180,8 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
     // a vertex of tB is on one side of the plane defined to tA, and the opposite edge (always in tB) is in the other (e.g. orBA: -1 1 1)
     uint opp_v0, opp_v1;
     tmp_vtx_id = vtxOnASideAndOppositeEdgeOnTheOther(orBA, opp_v0, opp_v1);
+
+
     if(tmp_vtx_id != -1)
     {
         uint id_v = ts.triVertID(tB_id, static_cast<uint>(tmp_vtx_id));
@@ -221,6 +233,7 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
 
     // a vertex of tA is coplanar to tB, and the opposite edge is on the same side respect to tB  (e.g. orAB: 1 0 1)
     tmp_vtx_id = vtxInPlaneAndOppositeEdgeOnSameSide(orAB);
+
     if(tmp_vtx_id != -1)
         checkVtxInTriangleIntersection(ts, ts.triVertID(tA_id, static_cast<uint>(tmp_vtx_id)), tB_id, v_tmp, g, li);
 
@@ -419,7 +432,11 @@ inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, point_arena& 
 
 
     // e_v0 position
-    cinolib::PointInSimplex v0_inters = cinolib::point_in_triangle_3d(ts.vertPtr(e_v0), ts.triVertPtr(o_t_id, 0), ts.triVertPtr(o_t_id, 1), ts.triVertPtr(o_t_id, 2));
+    cinolib::PointInSimplex v0_inters = cinolib::point_in_triangle_3d(ts.vertPtr(e_v0),
+                                                                         ts.triVertPtr(o_t_id, 0),
+                                                                         ts.triVertPtr(o_t_id, 1),
+                                                                         ts.triVertPtr(o_t_id, 2));
+
     if(v0_inters == cinolib::ON_VERT0 || v0_inters == cinolib::ON_VERT1 || v0_inters == cinolib::ON_VERT2)
     {
         v0_in_vtx = true; // v0 in a vertex

@@ -47,7 +47,7 @@
 #include "utils.h"
 
 #include <tbb/tbb.h>
-
+#include <typeinfo>
 inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, FastTrimesh &subm, uint t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, tbb::spin_mutex& mutex)
 {
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -55,6 +55,44 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
     const auto& t_points = g.trianglePointsList(t_id);
+
+    if(t_points.empty())
+        std::cout<<"Empty"<<std::endl;
+
+
+    std::cout << "Elements of the triangle points : ";
+    for (const auto element :  g.trianglePointsList(t_id)) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+
+    const auto& e0_pointss = g.edgePointsList(ts.edgeID(subm.vertOrigID(0), subm.vertOrigID(1)));
+    const auto& e1_pointss = g.edgePointsList(ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2)));
+    const auto& e2_pointss = g.edgePointsList(ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0)));
+
+
+    std::cout << "Points in e0 : ";
+    for (const auto element :  e0_pointss) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Points in e1 : ";
+    for (const auto element :  e1_pointss) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Points in e2 : ";
+    for (const auto element :  e2_pointss) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+
+
+
+
+
 
     int e0_id = ts.edgeID(subm.vertOrigID(0), subm.vertOrigID(1));      assert(e0_id != -1);
     int e1_id = ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2));      assert(e1_id != -1);
@@ -79,6 +117,8 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
     //else
     //splitSingleTriangleWithTree(ts, subm, t_points);
 
+
+
     /****************** NEW SPLITTING *************************/
     splitSingleTriangleWithQueue(ts, subm, t_points);
 
@@ -94,7 +134,7 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
      *                           CONSTRAINT SEGMENT INSERTION
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-    addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
+    //addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                      POCKETS IN COPLANAR TRIANGLES SOLVING
@@ -509,7 +549,12 @@ inline void addConstraintSegmentsInSingleTriangle(TriangleSoup &ts, point_arena&
         segment_list.pop_back();
 
         uint v0_id = subm.vertNewID(seg.first);
+        if (v0_id == -1)
+            continue;
+
         uint v1_id = subm.vertNewID(seg.second);
+        if (v1_id == -1)
+            continue;
 
         addConstraintSegment(ts, arena, subm, v0_id, v1_id, orientation, g, segment_list, sub_segs_map, mutex);
     }
