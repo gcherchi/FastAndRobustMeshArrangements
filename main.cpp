@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     }
      */
 
-    filename = "/Users/gianmarco/Code/FastAndRobustMeshArrangements/data/two_spheres.stl";
+    filename = "/Users/gianmarco/Code/FastAndRobustMeshArrangements/data/test/sc4.off";
 
 
     std::vector<double> in_coords, out_coords;
@@ -105,11 +105,11 @@ int main(int argc, char **argv)
     std::vector<uint> tmp_tris;
     std::vector< std::bitset<NBIT> > tmp_labels;
 
-    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, false);
+    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, true);
 
     removeDegenerateAndDuplicatedTriangles(gen_points, tmp_in_labels, tmp_tris, tmp_labels);
 
-    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, false);
+    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, true);
 
     //detectIntersections(ts, g.intersectionList());
 

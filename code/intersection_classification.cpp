@@ -64,7 +64,7 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
             uint tid1 = leaf->item_indices.at(k);
             auto T0 = o.items.at(tid0);
             auto T1 = o.items.at(tid1);
-            std::cout<<"T0: " << T0->id << "T1: "<< T1->id<< std::endl;
+
             if(T0->aabb.intersects_box(T1->aabb)) // early reject based on AABB intersection
             {
                 const cinolib::Triangle *t0 = dynamic_cast<cinolib::Triangle*>(T0);
