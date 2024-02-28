@@ -49,7 +49,6 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
 {
     cinolib::Octree o(8,1000); // max 1000 elements per leaf, depth permitting
     o.build_from_vectors(verts, tris);
-    std::cout<<"num of vert:" << verts.size()<<std::endl;
 
     intersections.reserve((int)sqrt(tris.size()));
     tbb::spin_mutex mutex;
@@ -57,7 +56,7 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
     {        
         auto & leaf = o.leaves.at(i);
         if(leaf->item_indices.empty()) return;
-        std::cout<<"Item indices:" << leaf->item_indices.size()<<std::endl;
+
         for(uint j=0;   j<leaf->item_indices.size()-1; ++j)
         for(uint k=j+1; k<leaf->item_indices.size();   ++k)
         {
@@ -79,11 +78,7 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
         }
     });
 
-    std::cout << "Elements of the intersection list before duplicates: ";
-    for (const auto& a :  intersections) {
-        std::cout << a.first << a.second  << " - ";
-    }
-    std::cout << std::endl;
+
     remove_duplicates(intersections);
 }
 
@@ -127,6 +122,7 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
     bool coplanar_tris = false;
     phmap::flat_hash_set<uint> li; // intersection list
 
+
     /* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *      check of tB respect to tA
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
@@ -154,7 +150,6 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
     int tmp_edge_id = singleCoplanarEdge(orBA);
     if(tmp_edge_id != -1)
     {
-        std::cout<<"single edge coplanar: "<< tmp_edge_id <<std::endl;
         uint e_v0_id = static_cast<uint>(tmp_edge_id);
         uint e_v1_id = (tmp_edge_id + 1) % 3;
         checkSingleCoplanarEdgeIntersections(ts, arena, ts.triVertID(tB_id, e_v0_id), ts.triVertID(tB_id, e_v1_id), tB_id, tA_id, g, li);
@@ -197,6 +192,8 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
     }
 
     if(!coplanar_tris && li.size() > 1) goto final_check; // sorry about that :(
+
+
 
     /* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *      check of A respect to B
@@ -573,7 +570,13 @@ inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, point_arena& 
         else if(tv2_in_edge)
         {
             addSymbolicSegment(ts,ts.triVertID(o_t_id, 2), static_cast<uint>(seg0_cross), o_t_id, e_t_id, g);
-            il.insert(ts.triVertID(o_t_id, 2));
+            uint v_id = ts.triVertID(o_t_id, 2);
+            int edge_id = ts.edgeID(e_v0, e_v1);
+            assert(edge_id != -1 && "edge not found!");
+
+            il.insert(v_id);
+            g.addVertexInEdge(edge_id, v_id);
+
             return;
         }
     }
@@ -599,7 +602,13 @@ inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, point_arena& 
         else if(tv0_in_edge)
         {
             addSymbolicSegment(ts, ts.triVertID(o_t_id, 0), static_cast<uint>(seg1_cross), o_t_id, e_t_id, g);
-            il.insert(ts.triVertID(o_t_id, 0));
+            uint v_id = ts.triVertID(o_t_id, 0);
+            int edge_id = ts.edgeID(e_v0, e_v1);
+            assert(edge_id != 0 && "edge not foubd!");
+
+            il.insert(v_id);
+            g.addVertexInEdge(edge_id, v_id);
+
             return;
         }
     }
@@ -625,7 +634,13 @@ inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, point_arena& 
         else if(tv1_in_edge)
         {
             addSymbolicSegment(ts, ts.triVertID(o_t_id, 1), static_cast<uint>(seg2_cross), o_t_id, e_t_id, g);
-            il.insert(ts.triVertID(o_t_id, 1));
+            uint v_id = ts.triVertID(o_t_id, 1);
+            int edge_id = ts.edgeID(e_v0, e_v1);
+            assert(edge_id != 0 && "edge not found!");
+
+            il.insert(v_id);
+            g.addVertexInEdge(edge_id, v_id);
+
             return;
         }
     }

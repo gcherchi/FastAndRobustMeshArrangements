@@ -69,10 +69,7 @@ int main(int argc, char **argv)
     }
      */
 
-    filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data/test/sc4.off";
-    //filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data/test/ttt2.off";
-    //filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data/three_cubes.stl";
-    //filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data/two_spheres.stl";
+    filename = "/Users/gianmarco/Code/FastAndRobustMeshArrangements/data/two_spheres.stl";
 
 
     std::vector<double> in_coords, out_coords;
@@ -108,88 +105,32 @@ int main(int argc, char **argv)
     std::vector<uint> tmp_tris;
     std::vector< std::bitset<NBIT> > tmp_labels;
 
-    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, true);
+    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, false);
 
     removeDegenerateAndDuplicatedTriangles(gen_points, tmp_in_labels, tmp_tris, tmp_labels);
 
-    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, true);
+    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, false);
 
     //detectIntersections(ts, g.intersectionList());
-    /**********************************detect intersection********************************************/
+
+    /********************************** detect intersections ********************************************/
     std::vector<cinolib::vec3d> verts(ts.numVerts());
 
     for(uint v_id = 0; v_id < ts.numVerts(); v_id++)
         verts[v_id] = cinolib::vec3d(ts.vertX(v_id), ts.vertY(v_id), ts.vertZ(v_id));
 
-    std::cout<<"Num of tris"<<ts.numTris()<<std::endl;
     g.intersectionList().reserve((int)sqrt(ts.numTris()));
     find_intersections(verts, ts.trisVector(), g.intersectionList());
-
-
-    // Print the elements using range-based for loop
-    std::cout << "Elements of the intersection list: ";
-    for (const auto& element :  g.intersectionList()) {
-        std::cout << element << " ";
-    }
-    std::cout << std::endl;
-    std::cout<<"Num of intersections: "<< g.intersectionList().size()<<std::endl;
-
 
     g.initFromTriangleSoup(ts);
 
     classifyIntersections(ts, arena, g);
-    
-    std::cout << "Points in edge e0: "<<*ts.edgeVert(0,0) << " "<< *ts.edgeVert(0,1);
-    for (const auto& element :  g.edgePointsList(0)) {
-        std::cout << element << " ";
-    }
-    std::cout << std::endl;std::cout << "Points in edge e1: "<<*ts.edgeVert(1,0) << " "<< *ts.edgeVert(1,1);
-    for (const auto& element :  g.edgePointsList(1)) {
-        std::cout << element << " ";
-    }
-    std::cout << std::endl;std::cout << "Points in edge e2: "<<*ts.edgeVert(2,0) << " "<< *ts.edgeVert(2,1);
 
-
-    for (const auto& element :  g.edgePointsList(2)) {
-        std::cout << element << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Points in edge e3: "<<*ts.edgeVert(3,0) << " "<< *ts.edgeVert(3,1);
-    for (int j = 0; j < ; ++j) {
-
-    }
-    for (const auto& element :  g.edgePointsList(3)) {
-        std::cout << element << " ";
-    }
-    std::cout << std::endl;std::cout << "Points in edge e4: "<<*ts.edgeVert(4,0) << " "<< *ts.edgeVert(4,1);
-    for (const auto& element :  g.edgePointsList(4)) {
-        std::cout << element << " ";
-    }
-    std::cout << std::endl;std::cout << "Points in edge e5: "<<*ts.edgeVert(5,0) << " "<< *ts.edgeVert(5,1);
-    for (const auto& element :  g.edgePointsList(5)) {
-        std::cout << element << " ";
-    }
-
-    int e0_debug = ts.edgeID(0,4);
-    int e1_debug = ts.edgeID(3,1);
-    int x = e0_debug + e1_debug;
-    std::cout << "e0: "<<e0_debug <<std::endl;
-    std::cout<<"e1: "  << e1_debug <<std::endl;
     //triangulation(ts, arena, g, out_tris, out_labels);
 
-/*********************************** Triangulation function *************/
-    std::cout << std::endl;std::cout << "Points in edge e0: ";
-    for (const auto& element :  g.edgePointsList(0)) {
-        std::cout << element<< " ";
-    }
-    std::cout << std::endl;
 
-    std::cout << std::endl;std::cout << "Points in edge e1: ";
-    for (const auto& element :  g.edgePointsList(1)) {
-        std::cout << element << " ";
-    }
-    std::cout << std::endl;
+/*********************************** Triangulation function *************/
+
     out_labels.clear();
     out_tris.clear();
     out_tris.reserve(2 * 3 * ts.numTris());
@@ -232,29 +173,6 @@ int main(int argc, char **argv)
 
         const auto& t_points = g.trianglePointsList(t_id);
 
-
-        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-         *                                     DEBUGGING
-         *:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-        if(t_points.size()==0) {
-            std::cout << "Empty" << std::endl;
-        }else{
-        std::cout << "Elements of the triangle points : ";
-        for (const auto element :  g.trianglePointsList(t_id)) {
-            std::cout << element << " ";
-        }
-        std::cout << std::endl;
-        }
-
-        const auto& e0_pointss = g.edgePointsList(ts.edgeID(subm.vertOrigID(0), subm.vertOrigID(1)));
-        const auto& e1_pointss = g.edgePointsList(ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2)));
-        const auto& e2_pointss = g.edgePointsList(ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0)));
-        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-         *                                    END DEBUGGING
-         *:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-
-
-
         int e0_id = ts.edgeID(subm.vertOrigID(0), subm.vertOrigID(1));      assert(e0_id != -1);
         int e1_id = ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2));      assert(e1_id != -1);
         int e2_id = ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0));      assert(e2_id != -1);
@@ -268,47 +186,6 @@ int main(int argc, char **argv)
 
         uint estimated_vert_num = static_cast<uint>(t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
         subm.preAllocateSpace(estimated_vert_num);
-
-        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-         *                                      DEBUGGING
-         *:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-        std::cout << t_segments.size() <<std::endl;
-        std::cout << "Segments points  : ";
-        for (const auto element :  t_segments) {
-
-            std::cout << element.first << " " << element.second;
-        }
-        std::cout << std::endl;
-
-
-
-        std::cout << "Points in e0 : "<< subm.vertOrigID(0) <<" "<< subm.vertOrigID(1)<<" ";
-        vertices.push(subm.vertOrigID(0));
-        vertices.push(subm.vertOrigID(1));
-        for (const auto element :  e0_pointss) {
-            vertices.push(element);
-            std::cout << element << " ";
-        }
-        std::cout << std::endl;
-
-
-        std::cout << "Points in e1 : "<< subm.vertOrigID(1) <<" "<< subm.vertOrigID(2)<<" ";
-        for (const auto element :  e1_pointss) {
-
-            std::cout << element << " ";
-        }
-        std::cout << std::endl;
-
-        std::cout << "Points in e2 : "<< subm.vertOrigID(2) <<" "<< subm.vertOrigID(0)<<" ";
-        for (const auto element :  e2_pointss) {
-            std::cout << element << " ";
-        }
-        std::cout << std::endl;
-
-
-        /*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-         *                                    END DEBUGGING
-         *:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                                  TRIANGLE SPLIT
