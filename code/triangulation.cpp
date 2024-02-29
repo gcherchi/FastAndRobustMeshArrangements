@@ -126,15 +126,15 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
      *                                  EDGE SPLIT
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-    splitSingleEdge(ts, subm, 0, 1, e0_points);
-    splitSingleEdge(ts, subm, 1, 2, e1_points);
-    splitSingleEdge(ts, subm, 2, 0, e2_points);
+    //splitSingleEdge(ts, subm, 0, 1, e0_points);
+    //splitSingleEdge(ts, subm, 1, 2, e1_points);
+    //splitSingleEdge(ts, subm, 2, 0, e2_points);
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                           CONSTRAINT SEGMENT INSERTION
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-    //addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
+    addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                      POCKETS IN COPLANAR TRIANGLES SOLVING
@@ -285,7 +285,7 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
     while(!queue_sub_tri.empty()){
 
         //take the first element of the queue
-        auto curr_tri = queue_sub_tri.front();
+        const auxvector<uint> &curr_tri = queue_sub_tri.front();
 
         uint t_id = static_cast<uint>(subm.triID(curr_tri[0], curr_tri[1], curr_tri[2]));
 
@@ -327,7 +327,7 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
         }
 
         //delete the point from the vector and the triangle from the queue
-        curr_tri.erase(curr_tri.begin() + 3);
+        //curr_tri.erase(curr_tri.begin() + 3);
         queue_sub_tri.pop();
 
         //reposition the points in the queue and push the new triangles with points in the queue_sub_tri
@@ -336,10 +336,10 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
 }
 
 
-inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::queue<auxvector<uint>> &queue_curr_subdv, auxvector<uint> &curr_tri)
+inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::queue<auxvector<uint>> &queue_curr_subdv, const auxvector<uint> &curr_tri)
 {
     if (curr_tri.size() > 3){
-        for (int i = 3; i < curr_tri.size() ; i++){
+        for (int i = 4; i < curr_tri.size() ; i++){
             findContainingTriangleInQueue(subm, queue_curr_subdv, curr_tri[i]);
         }
     }

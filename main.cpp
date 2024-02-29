@@ -69,7 +69,8 @@ int main(int argc, char **argv)
     }
      */
 
-    filename = "/Users/gianmarco/Code/FastAndRobustMeshArrangements/data/test/sc4.off";
+    filename = "../data/two_spheres.stl";
+    filename = "../data/two_spheres.stl";
 
 
     std::vector<double> in_coords, out_coords;
