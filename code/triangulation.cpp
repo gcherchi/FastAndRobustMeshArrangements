@@ -265,6 +265,9 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
     //Queue of subtriangles that are currently subdivided
     std::queue<auxvector<uint>> queue_curr_subdv;
 
+    //vector
+    std::vector<auxvector<uint>>curr_subdv(3);
+
     /** structure of a subtriangle:
      *
      *  | n | = [1,2,3,4,5,6,7] first 3 points are n triangle's vertices and the rest are the points contained into it

@@ -69,8 +69,8 @@ int main(int argc, char **argv)
     }
      */
 
-    filename = "../data/two_spheres.stl";
-    filename = "../data/two_spheres.stl";
+    filename = "../data/test/ttt3.off";
+    //filename = "../data/two_spheres.stl";
 
 
     std::vector<double> in_coords, out_coords;
@@ -206,9 +206,9 @@ int main(int argc, char **argv)
          *                                  EDGE SPLIT
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-        splitSingleEdge(ts, subm, 0, 1, e0_points);
-        splitSingleEdge(ts, subm, 1, 2, e1_points);
-        splitSingleEdge(ts, subm, 2, 0, e2_points);
+        //splitSingleEdge(ts, subm, 0, 1, e0_points);
+        //splitSingleEdge(ts, subm, 1, 2, e1_points);
+        //splitSingleEdge(ts, subm, 2, 0, e2_points);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                           CONSTRAINT SEGMENT INSERTION
