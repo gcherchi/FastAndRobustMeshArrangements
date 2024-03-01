@@ -53,37 +53,52 @@ using namespace cinolib;
 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+bool debug = true;
 
 int main(int argc, char **argv)
 {
     std::string filename;
-    std::queue<uint> vertices;
-
-    /*
-    if(argc > 1)
-        filename = argv[1];
-    else
-    {
-        std::cout << "input file missing" << std::endl;
-        return -1;
-    }
-     */
-
-    filename = "../data/test/ttt3.off";
-    //filename = "../data/two_spheres.stl";
-
 
     std::vector<double> in_coords, out_coords;
     std::vector<uint> in_tris, out_tris;
     std::vector<genericPoint*> gen_points;
     point_arena arena;
 
+    if(!debug){
+        if(argc > 1) {
+            filename = argv[1];
+        }
+        else
+        {
+            std::cout << "input file missing" << std::endl;
+            return -1;
+        }
+
+        load(filename, in_coords, in_tris);
+
+        solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
+        computeApproximateCoordinates(gen_points, out_coords);
+        save("output.obj", out_coords, out_tris);
+        return 0;
+    }
+
+    /** NON FUNZIONANTE **/
+    filename = "../data/test/ttt0.off";
+
+    /** FUNZIONANTE **/
+    filename = "../data/test/ttt1.off";
+
+    //filename = "../data/test/test_1.obj";
+    //filename = "../data/three_cubes.stl";
+
+
+
     load(filename, in_coords, in_tris);
 
     DrawableTrimesh<> m;
     GLcanvas gui;
 
-
+    std::queue<uint> vertices;
     /*-------------------------------------------------------------------
      * There are 4 versions of the solveIntersections function. Please
      * refer to the solve_intersections.h file to see how to use them. */
@@ -157,7 +172,7 @@ int main(int argc, char **argv)
     // processing the triangles to split
     tbb::spin_mutex mutex;
     //tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
-    for (uint t=0; t< (uint)tris_to_split.size(); t++) {
+    for (uint t=0; t < (uint)tris_to_split.size(); t++) {
         uint t_id = tris_to_split[t];
         FastTrimesh subm(ts.triVert(t_id, 0),
                          ts.triVert(t_id, 1),
@@ -178,10 +193,14 @@ int main(int argc, char **argv)
         int e1_id = ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2));      assert(e1_id != -1);
         int e2_id = ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0));      assert(e2_id != -1);
 
-        auxvector<uint> e0_points, e1_points, e2_points;
-        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0), subm.vertOrigID(1), e0_points);
-        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1), subm.vertOrigID(2), e1_points);
-        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2), subm.vertOrigID(0), e2_points);
+        //auxvector<uint> e0_pointss, e1_pointss, e2_pointss;
+        //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0), subm.vertOrigID(1), e0_pointss);
+        //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1), subm.vertOrigID(2), e1_pointss);
+        //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2), subm.vertOrigID(0), e2_pointss);
+
+        const auxvector<uint> &e0_points = g.edgePointsList(static_cast<uint>(e0_id));
+        const auxvector<uint> &e1_points = g.edgePointsList(static_cast<uint>(e1_id));
+        const auxvector<uint> &e2_points = g.edgePointsList(static_cast<uint>(e2_id));
 
         auxvector<UIPair> t_segments(g.triangleSegmentsList(t_id).begin(), g.triangleSegmentsList(t_id).end());
 
@@ -197,18 +216,16 @@ int main(int argc, char **argv)
         //else
         //splitSingleTriangleWithTree(ts, subm, t_points);
 
-
-
         /****************** NEW SPLITTING *************************/
-        splitSingleTriangleWithQueue(ts, subm, t_points);
+        splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                                  EDGE SPLIT
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-        //splitSingleEdge(ts, subm, 0, 1, e0_points);
-        //splitSingleEdge(ts, subm, 1, 2, e1_points);
-        //splitSingleEdge(ts, subm, 2, 0, e2_points);
+        //splitSingleEdge(ts, subm, 0, 1, e0_pointss);
+        //splitSingleEdge(ts, subm, 1, 2, e1_pointss);
+        //splitSingleEdge(ts, subm, 2, 0, e2_pointss);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                           CONSTRAINT SEGMENT INSERTION
