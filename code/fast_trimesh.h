@@ -198,9 +198,13 @@ class FastTrimesh
 
         inline void splitEdge(const uint  &e_id, uint v_id);
 
+        inline void splitEdge(const uint  &e_id, uint v_id, queue<uint> &queue_tri_IDs);
+
         inline void splitEdge(const uint  &e_id, uint v_id, Tree &tree);
 
         inline void splitTri(uint t_id, uint v_id);
+
+        inline void splitTri(uint t_id, uint v_id, queue<uint> &queue_tri_IDs);
 
         inline void splitTri(uint t_id, uint v_id, Tree &tree);
 

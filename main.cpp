@@ -86,10 +86,10 @@ int main(int argc, char **argv)
     filename = "../data/test/ttt0.off";
 
     /** FUNZIONANTE **/
-    filename = "../data/test/ttt1.off";
+    //filename = "../data/test/ttt1.off";
 
     //filename = "../data/test/test_1.obj";
-    //filename = "../data/three_cubes.stl";
+    //filename = "../data/40509.stl";
 
 
 
@@ -99,6 +99,8 @@ int main(int argc, char **argv)
     GLcanvas gui;
 
     std::queue<uint> vertices;
+    std::vector<uint> debug_points;
+
     /*-------------------------------------------------------------------
      * There are 4 versions of the solveIntersections function. Please
      * refer to the solve_intersections.h file to see how to use them. */
@@ -193,14 +195,14 @@ int main(int argc, char **argv)
         int e1_id = ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2));      assert(e1_id != -1);
         int e2_id = ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0));      assert(e2_id != -1);
 
-        //auxvector<uint> e0_pointss, e1_pointss, e2_pointss;
-        //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0), subm.vertOrigID(1), e0_pointss);
-        //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1), subm.vertOrigID(2), e1_pointss);
-        //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2), subm.vertOrigID(0), e2_pointss);
+        auxvector<uint> e0_points, e1_points, e2_points;
+        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0), subm.vertOrigID(1), e0_points);
+        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1), subm.vertOrigID(2), e1_points);
+        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2), subm.vertOrigID(0), e2_points);
 
-        const auxvector<uint> &e0_points = g.edgePointsList(static_cast<uint>(e0_id));
-        const auxvector<uint> &e1_points = g.edgePointsList(static_cast<uint>(e1_id));
-        const auxvector<uint> &e2_points = g.edgePointsList(static_cast<uint>(e2_id));
+        //const auxvector<uint> &e0_points = g.edgePointsList(static_cast<uint>(e0_id));
+        //const auxvector<uint> &e1_points = g.edgePointsList(static_cast<uint>(e1_id));
+        //const auxvector<uint> &e2_points = g.edgePointsList(static_cast<uint>(e2_id));
 
         auxvector<UIPair> t_segments(g.triangleSegmentsList(t_id).begin(), g.triangleSegmentsList(t_id).end());
 
@@ -217,7 +219,8 @@ int main(int argc, char **argv)
         //splitSingleTriangleWithTree(ts, subm, t_points);
 
         /****************** NEW SPLITTING *************************/
-        splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points);
+        //splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points, debug_points);
+        splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points, debug_points);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                                  EDGE SPLIT
@@ -313,14 +316,10 @@ int main(int argc, char **argv)
 
         }
         if(ImGui::Button("show me vert")) {
-            for(uint i = 0; i < vertices.size(); i++){
-                if(i < 3){
-                    gui.push_marker(m.vert(vertices.front()),to_string(vertices.front()), Color::BLUE(), 2,4);
-                    vertices.pop();
-                }else{
-                    gui.push_marker(m.vert(vertices.front()),to_string(vertices.front()), Color::RED(), 2,4);
-                    vertices.pop();
-                }
+            for(uint i = 0; i < debug_points.size(); i++){
+
+                    gui.push_marker(m.vert(debug_points[i]),to_string(debug_points[i]), Color::BLUE(), 2,4);
+
             }
         }// slider moved: do something
 

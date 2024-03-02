@@ -82,9 +82,9 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
     //splitSingleTriangle(ts, subm, t_points);
     //else
     //splitSingleTriangleWithTree(ts, subm, t_points);
-
+    std::vector<uint>vector;
     /****************** NEW SPLITTING *************************/
-    splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points);
+    splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points,vector);
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                                  EDGE SPLIT
@@ -210,7 +210,7 @@ inline void splitSingleTriangle(const TriangleSoup &ts, FastTrimesh &subm, const
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points,  const auxvector<uint> &e0_points, const auxvector<uint> &e1_points, const auxvector<uint> &e2_points)
+inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points,  const auxvector<uint> &e0_points, const auxvector<uint> &e1_points, const auxvector<uint> &e2_points, std::vector<uint> &debug_points)
 {
     if(points.empty() && e0_points.empty() && e1_points.empty() && e2_points.empty()) return;
 
@@ -229,7 +229,8 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
     //vector of current subdvision
     std::vector<auxvector<uint>>curr_subdv(3);
 
-
+    //std::queue<uint> queue_sub_tri_IDs;
+    //queue_sub_tri_IDs.push(0);
     /** structure of a subtriangle:
      *
      *  | n | = [1,2,3,4,5,6,7] first 3 points are n triangle's vertices and the rest are the points contained into it
@@ -245,26 +246,35 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
     all_points.push_back(subm.triVertID(0,2));
 
     //add each point to the sub mesh
-    for (unsigned int p : points){
+     for (unsigned int p : points){
         auto point = p;
         uint v_pos = subm.addVert(ts.vert(point), p);
         all_points.push_back(v_pos);
     }
 
-    for (uint p : e0_points){
-        uint v_pos = subm.addVert(ts.vert(p), p);
-        all_points.push_back(v_pos);
-    }
+     if (e0_points.size() > 2)
+        for (int i = 1; i < e0_points.size() - 1 ; i++){
 
-    for (uint p : e1_points){
-        uint v_pos = subm.addVert(ts.vert(p), p);
-        all_points.push_back(v_pos);
-    }
+            uint p = e0_points[i];
+            uint v_pos = subm.addVert(ts.vert(p), p);
+            all_points.push_back(v_pos);
+        }
 
-    for (uint p : e2_points){
-        uint v_pos = subm.addVert(ts.vert(p), p);
-        all_points.push_back(v_pos);
-    }
+    if (e1_points.size() > 2)
+        for (int i = 1; i < e1_points.size() -1 ; i++){
+            if(e1_points.size() == 2) break;
+            uint p = e1_points[i];
+            uint v_pos = subm.addVert(ts.vert(p), p);
+            all_points.push_back(v_pos);
+        }
+
+    if(e2_points.size() >2)
+        for (int i = 1; i < e2_points.size() -1 ; i++){
+            if(e2_points.size() == 2) break;
+            uint p = e2_points[i];
+            uint v_pos = subm.addVert(ts.vert(p), p);
+            all_points.push_back(v_pos);
+        }
 
     //push the points in the queue
     queue_sub_tri_points.push(all_points);
@@ -272,26 +282,28 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
      while(!queue_sub_tri_points.empty()){
 
         //take the first element of the queue
-        const auxvector<uint> &curr_tri = queue_sub_tri_points.front();
+        auxvector<uint> curr_tri = queue_sub_tri_points.front();
+        //const uint t_id = queue_sub_tri_IDs.front();
 
         curr_subdv[0].clear();
         curr_subdv[1].clear();
         curr_subdv[2].clear();
 
-        auto curr_tri0 = curr_tri[0];
-        //print the curr_tri0
-        std::cout << "curr_tri0: " << curr_tri0 << std::endl;
-        auto curr_tri1 = curr_tri[1];
-        //print the curr_tri1
-        std::cout << "curr_tri1: " << curr_tri1 << std::endl;
-        auto curr_tri2 = curr_tri[2];
-        //print the curr_tri2
-        std::cout << "curr_tri2: " << curr_tri2 << std::endl;
-
         uint t_id = static_cast<uint>(subm.triID(curr_tri[0], curr_tri[1], curr_tri[2]));
 
         /****DEBUG se non serve commentare le due righe sottostanti*****/
         int t_id_d = static_cast<int>(subm.triID(curr_tri[0], curr_tri[1], curr_tri[2]));
+        if(t_id_d == -1){
+            auto vert1 = subm.vertOrigID(curr_tri[0]);
+            auto vert2 = subm.vertOrigID(curr_tri[1]);
+            auto vert3 = subm.vertOrigID(curr_tri[2]);
+
+            debug_points.push_back(vert1);
+            debug_points.push_back(vert2);
+            debug_points.push_back(vert3);
+            return;
+        }
+
         assert(t_id_d != -1 && "No containing triangle found!");
 
         //Take the edges of the triangle
@@ -306,66 +318,108 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
         if(fastPointOnLine(subm, e0_id, v_pos)) {
              uint v_opp = subm.triVertOppositeTo(t_id, subm.edgeVertID(e0_id,0), subm.edgeVertID(e0_id,1));
 
-             curr_subdv[0] = {subm.edgeVertID(e0_id,0), v_opp, v_pos};
-             curr_subdv[1] = {subm.edgeVertID(e0_id,1), v_opp, v_pos};
-
              curr_subdv[0].reserve(curr_tri.size());
              curr_subdv[1].reserve(curr_tri.size());
 
+             //T1
+             curr_subdv[0].push_back(subm.edgeVertID(e0_id,0));
+             curr_subdv[0].push_back(v_opp);
+             curr_subdv[0].push_back(v_pos);
+
+             //T2
+             curr_subdv[1].push_back(subm.edgeVertID(e0_id,1));
+             curr_subdv[1].push_back(v_opp);
+             curr_subdv[1].push_back(v_pos);
+
+             //subm.splitEdge(e0_id, v_pos, queue_sub_tri_IDs);
              subm.splitEdge(e0_id, v_pos);
 
-         }else if(fastPointOnLine(subm, e1_id, v_pos)) {
+
+        }else if(fastPointOnLine(subm, e1_id, v_pos)) {
 
              uint v_opp = subm.triVertOppositeTo(t_id, subm.edgeVertID(e1_id,0), subm.edgeVertID(e1_id,1));
 
-
-             curr_subdv[0] = {subm.edgeVertID(e1_id,0), v_opp, v_pos};
-             curr_subdv[1] = {subm.edgeVertID(e1_id,1), v_opp, v_pos};
-
              curr_subdv[0].reserve(curr_tri.size());
              curr_subdv[1].reserve(curr_tri.size());
 
+             //T1
+             curr_subdv[0].push_back(v_opp);
+             curr_subdv[0].push_back( subm.edgeVertID(e1_id,0));
+             curr_subdv[0].push_back(v_pos);
+
+             //T2
+             curr_subdv[1].push_back(v_opp);
+             curr_subdv[1].push_back(v_pos);
+             curr_subdv[1].push_back(subm.edgeVertID(e1_id,1));
+
+             //subm.splitEdge(e1_id, v_pos, queue_sub_tri_IDs);
              subm.splitEdge(e1_id, v_pos);
 
          }else if(fastPointOnLine(subm, e2_id, v_pos)) {
 
-             uint v_opp = subm.triVertOppositeTo(t_id, subm.edgeVertID(e2_id,0), subm.edgeVertID(e2_id,1));
+            uint v_opp = subm.triVertOppositeTo(t_id, subm.edgeVertID(e2_id,0), subm.edgeVertID(e2_id,1));
 
-             curr_subdv[0] = {subm.edgeVertID(e2_id,0), v_opp, v_pos};
-             curr_subdv[1] = {subm.edgeVertID(e2_id,1), v_opp, v_pos};
+            curr_subdv[0].reserve(curr_tri.size());
+            curr_subdv[1].reserve(curr_tri.size());
 
-             curr_subdv[0].reserve(curr_tri.size());
-             curr_subdv[1].reserve(curr_tri.size());
+            //T1
+            curr_subdv[0].push_back(subm.edgeVertID(e2_id,0));
+            curr_subdv[0].push_back(v_opp);
+            curr_subdv[0].push_back(v_pos);
 
-             subm.splitEdge(e2_id, v_pos);
+            //T2
+            curr_subdv[1].push_back(subm.edgeVertID(e2_id,1));
+            curr_subdv[1].push_back(v_opp);
+            curr_subdv[1].push_back(v_pos);
+
+            //subm.splitEdge(e2_id, v_pos, queue_sub_tri_IDs);
+            subm.splitEdge(e2_id, v_pos);
+
 
         }else{
-            subm.splitTri(t_id, v_pos);
 
-            curr_subdv[0] = {curr_tri[0], curr_tri[1], v_pos};
-            curr_subdv[1] = {curr_tri[1], curr_tri[2], v_pos};
-            curr_subdv[2] = {curr_tri[2], curr_tri[0], v_pos};
+            //subm.splitTri(t_id, v_pos, queue_sub_tri_IDs);
+            subm.splitTri(t_id, v_pos);
 
             curr_subdv[0].reserve(curr_tri.size());
             curr_subdv[1].reserve(curr_tri.size());
             curr_subdv[2].reserve(curr_tri.size());
 
+            //T1
+            curr_subdv[0].push_back(curr_tri[0]);
+            curr_subdv[0].push_back(curr_tri[1]);
+            curr_subdv[0].push_back(v_pos);
+
+            //T2
+            curr_subdv[1].push_back(curr_tri[1]);
+            curr_subdv[1].push_back(curr_tri[2]);
+            curr_subdv[1].push_back(v_pos);
+
+            //T3
+            curr_subdv[2].push_back(curr_tri[2]);
+            curr_subdv[2].push_back(curr_tri[0]);
+            curr_subdv[2].push_back(v_pos);
+
         }
          //checking if the point is on the edge or inside the triangle and split the triangle or the edge
          //delete the triangle from the queue
          queue_sub_tri_points.pop();
+         //queue_sub_tri_IDs.pop();
 
          repositionPointsInQueue(subm, queue_sub_tri_points, curr_subdv, curr_tri);
+
+         curr_tri.clear();
     }
 }
 
 
-inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::vector<auxvector<uint>> &curr_subdv, const auxvector<uint> &curr_tri)
+inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> curr_tri)
 {
     if (curr_tri.size() > 4){
         for (int i = 4; i < curr_tri.size() ; i++){
 
             const genericPoint &p = *subm.vert(curr_tri[i]);
+
 
             //checking if it is in the first triangle
             if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[0][0]),
@@ -373,12 +427,14 @@ inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint
                 curr_subdv[0].push_back(curr_tri[i]);
             }
 
+
             //checking if it is in the second triangle
             if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[1][0]),
                                              *subm.vert(curr_subdv[1][1]),*subm.vert(curr_subdv[1][2]))) {
                 curr_subdv[1].push_back(curr_tri[i]);
 
             }
+
             //checking if it is in the (possible) third triangle
             if(!curr_subdv[2].empty() && genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[2][0]),
                                                                        *subm.vert(curr_subdv[2][1]),*subm.vert(curr_subdv[2][2]))){
@@ -390,9 +446,6 @@ inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint
     assert(curr_subdv.size() <= 3 && "The current subdivision is not correct");
     // push progressively the elements of the urr_subdv in the queue_sub_tri if the triangle has almost one
     for(int i = 0 ; i < curr_subdv.size(); i++){
-
-        //assert(curr_subdv[i][0] != 2 && curr_subdv[i][1] != 0 && curr_subdv[i][2] != 3 && "Found");
-
         if((i == 2 && curr_subdv[i].empty()) || curr_subdv[i].size() == 3) {
             continue;
         }
