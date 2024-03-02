@@ -279,10 +279,13 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
     //push the points in the queue
     queue_sub_tri_points.push(all_points);
 
-     while(!queue_sub_tri_points.empty()){
+
+
+    while(!queue_sub_tri_points.empty()){
 
         //take the first element of the queue
-        auxvector<uint> curr_tri = queue_sub_tri_points.front();
+        auxvector<uint>& curr_tri = queue_sub_tri_points.front();
+
         //const uint t_id = queue_sub_tri_IDs.front();
 
         curr_subdv[0].clear();
@@ -409,11 +412,12 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
          repositionPointsInQueue(subm, queue_sub_tri_points, curr_subdv, curr_tri);
 
          curr_tri.clear();
+
     }
 }
 
 
-inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> curr_tri)
+inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri)
 {
     if (curr_tri.size() > 4){
         for (int i = 4; i < curr_tri.size() ; i++){
@@ -677,6 +681,8 @@ inline void addConstraintSegmentsInSingleTriangle(TriangleSoup &ts, point_arena&
         UIPair seg = segment_list.back();
         segment_list.pop_back();
 
+        //print seg.first and seg.second
+        std::cout << "First: " << seg.first << " Second: " << seg.second << std::endl;
         uint v0_id = subm.vertNewID(seg.first);
         if (v0_id == -1)
             continue;

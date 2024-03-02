@@ -83,10 +83,10 @@ int main(int argc, char **argv)
     }
 
     /** NON FUNZIONANTE **/
-    filename = "../data/test/ttt0.off";
+    //filename = "../data/test/ttt1.off";
 
     /** FUNZIONANTE **/
-    //filename = "../data/test/ttt1.off";
+    filename = "../data/test/ttt4.off";
 
     //filename = "../data/test/test_1.obj";
     //filename = "../data/40509.stl";
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                           CONSTRAINT SEGMENT INSERTION
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-        addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
+        //addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                      POCKETS IN COPLANAR TRIANGLES SOLVING
@@ -327,8 +327,17 @@ int main(int argc, char **argv)
 
 
 
-    
-    save("output_c.obj", out_coords, out_tris);
+    // Find the position of the last occurrence of '/'
+    size_t pos_slash = filename.find_last_of("/");
+    // Find the position of the last occurrence of '.'
+    size_t pos_dot = filename.find_last_of(".");
+
+    // Extract the filename
+    std::string name_out = filename.substr(pos_slash + 1, pos_dot - pos_slash - 1);
+
+    std::string output_name = "output_" + name_out + ".obj";
+
+    save(output_name, out_coords, out_tris);
 
     return gui.launch();
 }
