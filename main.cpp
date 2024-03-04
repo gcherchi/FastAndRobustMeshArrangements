@@ -54,6 +54,7 @@ using namespace cinolib;
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 bool debug = true;
+bool crash = false;
 
 int main(int argc, char **argv)
 {
@@ -82,14 +83,15 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    /** NON FUNZIONANTE **/
-    //filename = "../data/test/ttt1.off";
+    /** NON FUNZIONANTI **/
+    filename = "../data/test/ttt3.off";
+    //filename = "../data/40509.stl";
+    //filename = "../data/three_cubes.stl";
+    //filename = "../data/two_spheres.stl";
+
 
     /** FUNZIONANTE **/
-    filename = "../data/test/ttt4.off";
 
-    //filename = "../data/test/test_1.obj";
-    //filename = "../data/40509.stl";
 
 
 
@@ -123,11 +125,11 @@ int main(int argc, char **argv)
     std::vector<uint> tmp_tris;
     std::vector< std::bitset<NBIT> > tmp_labels;
 
-    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, true);
+    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, false);
 
     removeDegenerateAndDuplicatedTriangles(gen_points, tmp_in_labels, tmp_tris, tmp_labels);
 
-    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, true);
+    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, false);
 
     //detectIntersections(ts, g.intersectionList());
 
@@ -226,14 +228,14 @@ int main(int argc, char **argv)
          *                                  EDGE SPLIT
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-        //splitSingleEdge(ts, subm, 0, 1, e0_pointss);
-        //splitSingleEdge(ts, subm, 1, 2, e1_pointss);
-        //splitSingleEdge(ts, subm, 2, 0, e2_pointss);
+        //splitSingleEdge(ts, subm, 0, 1, e0_points);
+        //splitSingleEdge(ts, subm, 1, 2, e1_points);
+        //splitSingleEdge(ts, subm, 2, 0, e2_points);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                           CONSTRAINT SEGMENT INSERTION
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-        //addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
+        addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                      POCKETS IN COPLANAR TRIANGLES SOLVING
