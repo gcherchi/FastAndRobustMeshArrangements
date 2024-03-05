@@ -54,7 +54,6 @@ using namespace cinolib;
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 bool debug = true;
-bool crash = false;
 
 int main(int argc, char **argv)
 {
@@ -79,21 +78,33 @@ int main(int argc, char **argv)
 
         solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
         computeApproximateCoordinates(gen_points, out_coords);
-        save("output.obj", out_coords, out_tris);
+
+
+        // Find the position of the last occurrence of '/'
+        size_t pos_slash = filename.find_last_of("/");
+        // Find the position of the last occurrence of '.'
+        size_t pos_dot = filename.find_last_of(".");
+
+        // Extract the filename
+        std::string name_out = filename.substr(pos_slash + 1, pos_dot - pos_slash - 1);
+
+        std::string output_name = "./results/output_" + name_out + ".obj";
+
+        save(output_name, out_coords, out_tris);
+
+        //return gui.launch();
+
+        ///save("output.obj", out_coords, out_tris);
         return 0;
     }
 
     /** NON FUNZIONANTI **/
-    filename = "../data/test/ttt3.off";
-    //filename = "../data/40509.stl";
+    //filename = "../data/test/cr7.off";
     //filename = "../data/three_cubes.stl";
     //filename = "../data/two_spheres.stl";
-
+    filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data";
 
     /** FUNZIONANTE **/
-
-
-
 
     load(filename, in_coords, in_tris);
 
@@ -146,7 +157,7 @@ int main(int argc, char **argv)
 
     classifyIntersections(ts, arena, g);
 
-    //triangulation(ts, arena, g, out_tris, out_labels);
+    triangulation(ts, arena, g, out_tris, out_labels);
 
 
 /*********************************** Triangulation function *************/
@@ -188,8 +199,8 @@ int main(int argc, char **argv)
 
         /*****************************TriangulateSingleTriangle*****************************/
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    *                                  POINTS AND SEGMENTS RECOVERY
-    * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+         *                                  POINTS AND SEGMENTS RECOVERY
+         * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
         const auto& t_points = g.trianglePointsList(t_id);
 
@@ -197,18 +208,13 @@ int main(int argc, char **argv)
         int e1_id = ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2));      assert(e1_id != -1);
         int e2_id = ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0));      assert(e2_id != -1);
 
-        auxvector<uint> e0_points, e1_points, e2_points;
-        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0), subm.vertOrigID(1), e0_points);
-        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1), subm.vertOrigID(2), e1_points);
-        sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2), subm.vertOrigID(0), e2_points);
-
-        //const auxvector<uint> &e0_points = g.edgePointsList(static_cast<uint>(e0_id));
-        //const auxvector<uint> &e1_points = g.edgePointsList(static_cast<uint>(e1_id));
-        //const auxvector<uint> &e2_points = g.edgePointsList(static_cast<uint>(e2_id));
+        const auxvector<uint> &e0_points = g.edgePointsList(static_cast<uint>(e0_id));
+        const auxvector<uint> &e1_points = g.edgePointsList(static_cast<uint>(e1_id));
+        const auxvector<uint> &e2_points = g.edgePointsList(static_cast<uint>(e2_id));
 
         auxvector<UIPair> t_segments(g.triangleSegmentsList(t_id).begin(), g.triangleSegmentsList(t_id).end());
 
-        uint estimated_vert_num = static_cast<uint>(t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
+        uint estimated_vert_num = static_cast<uint>(3 + t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
         subm.preAllocateSpace(estimated_vert_num);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -216,13 +222,12 @@ int main(int argc, char **argv)
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
         //if(t_points.size() < 50)
-        //splitSingleTriangle(ts, subm, t_points);
+         //splitSingleTriangle(ts, subm, t_points);
         //else
         //splitSingleTriangleWithTree(ts, subm, t_points);
 
         /****************** NEW SPLITTING *************************/
-        //splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points, debug_points);
-        splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points, debug_points);
+        splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                                  EDGE SPLIT
@@ -279,22 +284,9 @@ int main(int argc, char **argv)
 
     //Example marker vert
 
-
-    //remove
-    //gui.pop_all_markers();
     for(uint i = 0; i < m.num_edges(); i++){
         m.edge_data(i).flags[MARKED] = false;
     }
-
-    //m.edge_data(6).flags[MARKED] = true;
-
-
-
-
-    //DrawableTrimesh<> m;
-    //GLcanvas gui;
-    //m = DrawableTrimesh(out_coords, out_tris);
-
 
     m.updateGL();
     std::string name = get_file_name(filename, false);
