@@ -53,7 +53,7 @@ using namespace cinolib;
 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-bool debug = true;
+bool debug = false;
 
 int main(int argc, char **argv)
 {
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 
     classifyIntersections(ts, arena, g);
 
-    triangulation(ts, arena, g, out_tris, out_labels);
+    //triangulation(ts, arena, g, out_tris, out_labels);
 
 
 /*********************************** Triangulation function *************/

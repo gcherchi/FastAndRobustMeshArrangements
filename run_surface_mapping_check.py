@@ -16,22 +16,28 @@ def sorted_alphanumeric(data):
     return sorted(data, key=alphanum_key)
 
 
+
+def clean_folder(folder_path):
+    # Iterate over the contents of the folder
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        # Check if the path is a file or directory
+        if os.path.isfile(file_path):
+            # If it's a file, remove it
+            os.remove(file_path)
+        elif os.path.isdir(file_path):
+            # If it's a directory, recursively clean it
+            clean_folder(file_path)
+            # Remove the empty directory
+            os.rmdir(file_path)
+
+
+
+
 def compile_and_run_cpp(mesh_file):
 
-    # Run CMake to generate build files
-    cmake_process = subprocess.run(['cmake', '.'], capture_output=True, text=True)
-    if cmake_process.returncode != 0:
-        print("Error:", cmake_process.stderr)
-        return
-
-    # Compile the C++ program
-    compile_process = subprocess.run(['cmake', '--build', '.'], capture_output=True, text=True)
-    if compile_process.returncode != 0:
-        print("Error:", compile_process.stderr)
-        return
-
-    # Run the compiled executable
-    executable = os.path.join('cmake-build-debug', 'mesh_arrangement')
+    executable = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/cmake-build-debug/mesh_arrangement"
+    #executable = os.path.join('cmake-build-debug', 'mesh_arrangement')
     run_process = subprocess.run([executable, mesh_file], capture_output=True, text=True)
     print(run_process.stdout)
     if run_process.stderr:
@@ -39,7 +45,10 @@ def compile_and_run_cpp(mesh_file):
 
     #remove from the mesh_file the path and the off extension
     mesh_file = mesh_file.replace("./data/test/", "")
-    mesh_file = mesh_file.replace(".off", "")
+    if mesh_file.endswith(".off"):
+        mesh_file = mesh_file.replace(".off", "")
+    elif mesh_file.endswith(".stl"):
+        mesh_file = mesh_file.replace(".stl", "")
 
     #if the process failed, return the error message
     if run_process.stderr:
@@ -115,12 +124,17 @@ def write_to_excel(output_data, excel_file):
     print(f"Excel file '{excel_file}' updated successfully.")
 
 if __name__ == "__main__":
+
+    folder_to_clean = "./results"
+    clean_folder(folder_to_clean)
+
     #order the files in the folder by name and iterate over them
     results = []
     files = sorted_alphanumeric(os.listdir("./data/test"))
+    print(files)
 
     for filename in files:
-       if filename.endswith(".off"):
+       if filename.endswith(".off") or filename.endswith(".stl"):
            mesh_file = os.path.join("./data/test", filename)
            result = compile_and_run_cpp(mesh_file)
            results.append(result)
