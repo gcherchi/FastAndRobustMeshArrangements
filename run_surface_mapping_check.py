@@ -12,7 +12,7 @@ import re
 
 def sorted_alphanumeric(data):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
-    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key) ]
     return sorted(data, key=alphanum_key)
 
 
@@ -31,8 +31,8 @@ def compile_and_run_cpp(mesh_file):
         return
 
     # Run the compiled executable
-    executable = os.path.join('', 'mesh_arrangement')
-    run_process = subprocess.run(["./mesh_arrangement", mesh_file], capture_output=True, text=True)
+    executable = os.path.join('cmake-build-debug', 'mesh_arrangement')
+    run_process = subprocess.run([executable, mesh_file], capture_output=True, text=True)
     print(run_process.stdout)
     if run_process.stderr:
         print("Error:", run_process.stderr)
@@ -41,19 +41,17 @@ def compile_and_run_cpp(mesh_file):
     mesh_file = mesh_file.replace("./data/test/", "")
     mesh_file = mesh_file.replace(".off", "")
 
-     #capture the assertion error
-    if run_process.returncode != 0:
-        print("Error in ", mesh_file , ": ",run_process.stderr)
-        result = [mesh_file, "Failed", run_process.stderr]
+    #if the process failed, return the error message
+    if run_process.stderr:
+        print("Failed on file:", mesh_file, run_process.stderr)
+        return [mesh_file, "Failed", run_process.stderr]
     else:
-        print("Success")
-        result = [mesh_file, "Completed", ""]
-
-    return result
-
+        print("Success on file:", mesh_file)
+        return [mesh_file, "Passed", ""]
 
 
 def create_excel_file():
+
     wb = openpyxl.Workbook()
     sheet = wb.active
     sheet.title = "Test Results"
@@ -67,7 +65,6 @@ def create_excel_file():
             sheet.column_dimensions[sheet.cell(row=row_index, column=col_index).column_letter].auto_size = True
             sheet.cell(row=row_index, column=col_index).font = openpyxl.styles.Font(bold=True)
 
-
     # Resize each column to fit the content
     for column_cells in sheet.columns:
         max_length = 0
@@ -76,7 +73,6 @@ def create_excel_file():
                 max_length = len(str(cell.value))
         adjusted_width = (max_length + 2) * 1.2
         sheet.column_dimensions[column_cells[0].column_letter].width = adjusted_width
-
 
     # Save the Excel file
     wb.save("test_results.xlsx")
@@ -105,7 +101,6 @@ def write_to_excel(output_data, excel_file):
                     for i in range(2, len(row_data)+2):
                         sheet.cell(row=row_index, column=i).fill = openpyxl.styles.PatternFill(start_color="D1FFBD", end_color="D1FFBD", fill_type = "solid")
 
-
     # Resize each column to fit the content
     for column_cells in sheet.columns:
         max_length = 0
@@ -114,9 +109,6 @@ def write_to_excel(output_data, excel_file):
                 max_length = len(str(cell.value))
         adjusted_width = (max_length + 2) * 1.2
         sheet.column_dimensions[column_cells[0].column_letter].width = adjusted_width
-
-
-
 
     # Save the Excel file
     wb.save(excel_file)

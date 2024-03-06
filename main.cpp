@@ -92,17 +92,16 @@ int main(int argc, char **argv)
 
         save(output_name, out_coords, out_tris);
 
-        //return gui.launch();
 
         ///save("output.obj", out_coords, out_tris);
         return 0;
     }
 
     /** NON FUNZIONANTI **/
-    //filename = "../data/test/cr7.off";
+    filename = "../data/test/cr7.off";
     //filename = "../data/three_cubes.stl";
     //filename = "../data/two_spheres.stl";
-    filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data";
+    //filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data";
 
     /** FUNZIONANTE **/
 
@@ -242,9 +241,12 @@ int main(int argc, char **argv)
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
 
+
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                      POCKETS IN COPLANAR TRIANGLES SOLVING
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+
 
         if(g.triangleHasCoplanars(t_id))
         {
@@ -278,7 +280,6 @@ int main(int argc, char **argv)
 
     ts.appendJollyPoints();
     // questa parte prende il modello attuale e lo visualizza (da spostare dove serve)
-    computeApproximateCoordinates(gen_points, out_coords);
 
     m = DrawableTrimesh(out_coords, out_tris);
 
@@ -292,6 +293,7 @@ int main(int argc, char **argv)
     std::string name = get_file_name(filename, false);
     m.mesh_data().filename = name;
     m.updateGL();
+
     gui.push(&m);
     gui.push(new SurfaceMeshControls<DrawableTrimesh<>>(&m, &gui));
 

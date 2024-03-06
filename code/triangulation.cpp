@@ -217,6 +217,7 @@ inline void splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &su
      *    | n | = [N triangle's points and points contained into it]
      *     ---
      *********************************************************************/
+     
     //Queue of subtriangles with the points to be added
     std::queue<auxvector<uint>> queue_sub_tri_points;
 
