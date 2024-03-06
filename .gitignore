@@ -19,6 +19,8 @@ cmake-build-release/
 xcode/
 *.a
 
+results/
+
 .DS_Store
 
 build/
