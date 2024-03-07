@@ -53,7 +53,19 @@ using namespace cinolib;
 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-bool debug = false;
+bool debug = true;
+bool old_version = false;
+
+//create a struct to store the subm and ts
+struct SubmAndTs{
+    FastTrimesh subm;
+    TriangleSoup ts;
+    std::vector<uint> out_tris;
+    std::vector< std::bitset<NBIT>> out_labels;
+    std::vector<genericPoint*> gen_points;
+    std::vector<double>  out_coords;
+    std::string name_step;
+};
 
 int main(int argc, char **argv)
 {
@@ -63,6 +75,7 @@ int main(int argc, char **argv)
     std::vector<uint> in_tris, out_tris;
     std::vector<genericPoint*> gen_points;
     point_arena arena;
+    std::vector<SubmAndTs> subm_and_ts;
 
     if(!debug){
         if(argc > 1) {
@@ -207,9 +220,20 @@ int main(int argc, char **argv)
         int e1_id = ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2));      assert(e1_id != -1);
         int e2_id = ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0));      assert(e2_id != -1);
 
+
+        auxvector<uint> e0_points_old, e1_points_old, e2_points_old;
+        if(old_version) {
+            sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0),
+                                         subm.vertOrigID(1), e0_points_old);
+            sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1),
+                                         subm.vertOrigID(2), e1_points_old);
+            sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2),
+                                         subm.vertOrigID(0), e2_points_old);
+        }
         const auxvector<uint> &e0_points = g.edgePointsList(static_cast<uint>(e0_id));
         const auxvector<uint> &e1_points = g.edgePointsList(static_cast<uint>(e1_id));
         const auxvector<uint> &e2_points = g.edgePointsList(static_cast<uint>(e2_id));
+
 
         auxvector<UIPair> t_segments(g.triangleSegmentsList(t_id).begin(), g.triangleSegmentsList(t_id).end());
 
@@ -221,31 +245,34 @@ int main(int argc, char **argv)
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
         //if(t_points.size() < 50)
-         //splitSingleTriangle(ts, subm, t_points);
+        if(old_version)
+            splitSingleTriangle(ts, subm, t_points);
         //else
         //splitSingleTriangleWithTree(ts, subm, t_points);
+        else
+            splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points);
 
-        /****************** NEW SPLITTING *************************/
-        splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points);
+        //subm_and_ts.push_back({subm, ts, out_tris, out_labels,gen_points, out_coords,"splitSingleTriangle"});
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                                  EDGE SPLIT
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-
-        //splitSingleEdge(ts, subm, 0, 1, e0_points);
-        //splitSingleEdge(ts, subm, 1, 2, e1_points);
-        //splitSingleEdge(ts, subm, 2, 0, e2_points);
+        if(old_version) {
+            splitSingleEdge(ts, subm, 0, 1, e0_points_old);
+            splitSingleEdge(ts, subm, 1, 2, e1_points_old);
+            splitSingleEdge(ts, subm, 2, 0, e2_points_old);
+        }
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                           CONSTRAINT SEGMENT INSERTION
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
 
+        //subm_and_ts.push_back({subm, ts, out_tris, out_labels, gen_points, out_coords,"addConstraintSegmentsInSingleTriangle"});
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                      POCKETS IN COPLANAR TRIANGLES SOLVING
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-
 
 
         if(g.triangleHasCoplanars(t_id))
@@ -273,6 +300,9 @@ int main(int argc, char **argv)
                 } // endl critical section
             }
         }
+        //print the size of out_tris
+        //std::cout << "size of out_tris: " << out_tris.size() << std::endl;
+        //subm_and_ts.push_back({subm, ts, out_tris, out_labels, gen_points, out_coords,"solvePocketsInCoplanarTriangle"});
 
     }
 
@@ -280,11 +310,22 @@ int main(int argc, char **argv)
 
     ts.appendJollyPoints();
     // questa parte prende il modello attuale e lo visualizza (da spostare dove serve)
-
+    computeApproximateCoordinates(gen_points, out_coords);
     m = DrawableTrimesh(out_coords, out_tris);
 
-    //Example marker vert
+    //computeApproximateCoordinates(subm_and_ts[0].gen_points, subm_and_ts[0].out_coords);
+    //m = DrawableTrimesh(subm_and_ts[0].out_coords, subm_and_ts[0].out_tris);
 
+
+
+    //print the size of the subm_and_ts
+    //std::cout << "size of subm_and_ts: " << subm_and_ts.size() << std::endl;
+
+    //print the size of the out_tris in subm_and_ts
+    //std::cout << "size of out_tris in subm_and_ts: " << subm_and_ts[0].out_tris.size() << std::endl;
+
+
+    //Example marker vert
     for(uint i = 0; i < m.num_edges(); i++){
         m.edge_data(i).flags[MARKED] = false;
     }
@@ -298,19 +339,41 @@ int main(int argc, char **argv)
     gui.push(new SurfaceMeshControls<DrawableTrimesh<>>(&m, &gui));
 
     int ii = 0;
+    int state = 1;
     gui.callback_app_controls = [&]()
     {
-        if(ImGui::Button("Go ahead vert")) {
+        if(ImGui::Button("Go ahead edge")) {
             for(uint i = 0; i < m.num_edges(); i++){
                 m.edge_data(i).flags[MARKED] = false;
             }
             m.edge_data(ii).flags[MARKED] = true;
-
-            ii++;
-
+            if (ii == m.num_edges() - 1) ii = 0;
+            else ii++;
             m.updateGL();
 
         }
+
+        /*if(ImGui::Button("Next step")) {
+            if (state == subm_and_ts.size() - 1) state = 0;
+            else state++;
+
+            //print genpoints
+            std::cout << "gen_points: " << subm_and_ts[state].gen_points.size() << std::endl;
+
+            //print the size of the out_tris in subm_and_ts
+            std::cout << "size of out_tris in subm_and_ts: " << subm_and_ts[state].out_tris.size() << std::endl;
+
+            //print the size of the out_coords in subm_and_ts
+            std::cout << "size of out_coords in subm_and_ts: " << subm_and_ts[state].out_coords.size() << std::endl;
+
+
+            m.clear();
+            computeApproximateCoordinates(subm_and_ts[state].gen_points, subm_and_ts[state].out_coords);
+
+            m = DrawableTrimesh(subm_and_ts[state].out_coords, subm_and_ts[state].out_tris);
+            m.updateGL();
+
+        }*/
         if(ImGui::Button("show me vert")) {
             for(uint i = 0; i < debug_points.size(); i++){
 
