@@ -269,7 +269,7 @@ inline int splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &sub
     while(!queue_sub_tri_points.empty()){
 
         //take the first element of the queue
-        const auxvector<uint> curr_tri = queue_sub_tri_points.front(); assert(curr_tri.size() > 3 && "Empty triangle in queue");
+        auxvector<uint> &curr_tri = queue_sub_tri_points.front(); assert(curr_tri.size() > 3 && "Empty triangle in queue");
 
         curr_subdv[0].clear();
         curr_subdv[1].clear();
@@ -279,6 +279,7 @@ inline int splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &sub
         int t_id = subm.triID(curr_tri[0], curr_tri[1], curr_tri[2]);
         if(t_id == -1){
             std::cout << "Triangle not found" << std::endl;
+            queue_sub_tri_points.pop();
             continue;
         }
 
@@ -318,8 +319,11 @@ inline int splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &sub
 
                 const auxvector<uint> &curr_tri_adj = queue_sub_tri_points.front();
                 if (curr_tri_adj.size() > 4) {
-                    for (int i = 4 ; i < curr_tri_adj.size(); i++){
-                        curr_tri.push_back(curr_tri_adj[i]);
+                    for (int i = 3 ; i < curr_tri_adj.size(); i++){
+                        uint p = curr_tri_adj[i];
+                        if(p != v_pos){
+                            curr_tri.push_back(p);
+                        }
                     }
                 }
 
@@ -380,8 +384,11 @@ inline int splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &sub
 
                 const auxvector<uint> &curr_tri_adj = queue_sub_tri_points.front();
                 if (curr_tri_adj.size() > 4) {
-                    for (int i = 4 ; i < curr_tri_adj.size(); i++){
-                        curr_tri.push_back(curr_tri_adj[i]);
+                    for (int i = 3 ; i < curr_tri_adj.size(); i++){
+                        uint p = curr_tri_adj[i];
+                        if(p != v_pos){
+                            curr_tri.push_back(p);
+                        }
                     }
                 }
 
@@ -439,11 +446,14 @@ inline int splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &sub
 
                 const auxvector<uint> &curr_tri_adj = queue_sub_tri_points.front();
                 if (curr_tri_adj.size() > 4) {
-                    for (int i = 4 ; i < curr_tri_adj.size(); i++){
-                        curr_tri.push_back(curr_tri_adj[i]);
+                    for (int i = 3 ; i < curr_tri_adj.size(); i++){
+                        uint p = curr_tri_adj[i];
+                        if(p != v_pos){
+                            curr_tri.push_back(p);
+                        }
                     }
                 }
-                
+
                 curr_subdv[2].reserve(curr_tri.size());
                 curr_subdv[3].reserve(curr_tri.size());
 
@@ -503,7 +513,7 @@ inline int splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &sub
 }
 
 
-inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::vector<auxvector<uint>> &curr_subdv, const auxvector<uint> &curr_tri)
+inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri)
 {
     if (curr_tri.size() > 4){
         for (int i = 4; i < curr_tri.size() ; i++){
@@ -545,7 +555,7 @@ inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint
 
     // push progressively the elements of the urr_subdv in the queue_sub_tri if the triangle has almost one
     for(int i = 0 ; i < curr_subdv.size(); i++){
-        if((i == 2 && curr_subdv[i].empty()) || curr_subdv[i].size() == 3) {
+        if((i > 1 && curr_subdv[i].empty()) || curr_subdv[i].size() == 3) {
             continue;
         }
         queue_sub_tri.push(curr_subdv[i]);
