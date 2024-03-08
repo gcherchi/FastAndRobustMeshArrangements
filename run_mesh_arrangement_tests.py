@@ -120,6 +120,10 @@ if __name__ == "__main__":
     folder_to_clean = "./results"
     clean_folder(folder_to_clean)
 
+    #if the file exists, delete it
+    if os.path.exists("test_results.xlsx"):
+        os.remove("test_results.xlsx")
+
     #if the file does not exist, create it
     if not os.path.exists("test_results.xlsx"):
         create_excel_file("test_results.xlsx")

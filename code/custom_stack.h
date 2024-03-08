@@ -7,22 +7,24 @@
 
 #include <vector>
 #include <cassert>
+#include <aux_structure.h>
 
 class CustomStack
 {
+public:
     CustomStack(int preallocate_size)
     {
         stack.resize(preallocate_size);
         cursor = -1;
     }
 
-    std::vector<uint> pop()
+    auxvector<uint>& pop()
     {
         cursor -= 1;
         return stack.at(cursor +1);
     }
 
-    void push(std::vector<uint> new_vec)
+    void push(auxvector<uint> new_vec)
     {
         if(cursor == stack.size() -1)
             stack.push_back(new_vec);
@@ -32,13 +34,18 @@ class CustomStack
         cursor++;
     }
 
-    const std::vector<std::vector<uint>> &getStack(int &size)
+    bool empty()
     {
-        size = cursor +1;
+        return cursor == -1;
+    }
+
+    const std::vector<auxvector<uint>> &getStack(int &size)
+    {
+        size = stack.size();
         return stack;
     }
 
-    std::vector<uint> getSingleVector(int index)
+    auxvector<uint> &getSingleVector(int index)
     {
         assert(index <= cursor && "Index out of range");
         return stack[index];
@@ -55,16 +62,25 @@ class CustomStack
         for(uint i = 0; i <= cursor; i++)
         {
             assert(stack[i].size() >= 3);
-            if(stack[i][0] == v0 && stack[i][1] == v2 && stack[i][2] == v2)
+
+            if ((stack[i][0] == v0 && stack[i][1] == v1 && stack[i][2] == v2) ||
+                (stack[i][0] == v0 && stack[i][1] == v2 && stack[i][2] == v1) ||
+                (stack[i][0] == v1 && stack[i][1] == v0 && stack[i][2] == v2) ||
+                (stack[i][0] == v1 && stack[i][1] == v2 && stack[i][2] == v0) ||
+                (stack[i][0] == v2 && stack[i][1] == v0 && stack[i][2] == v1) ||
+                (stack[i][0] == v2 && stack[i][1] == v1 && stack[i][2] == v0) ){
                 return i;
+            }
         }
 
         assert(false && "Triplet not found!");
         return -1; // Triplet not found
     }
 
-    private:
-        std::vector<std::vector<uint>> stack;
+
+
+private:
+        std::vector<auxvector<uint>> stack;
         int cursor;
 
 };

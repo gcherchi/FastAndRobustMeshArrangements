@@ -49,11 +49,11 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
     std::vector<uint> tmp_tris;
     std::vector< std::bitset<NBIT> > tmp_labels;
 
-    mergeDuplicatedVertices(in_coords, in_tris, arena, vertices, tmp_tris, true);
+    mergeDuplicatedVertices(in_coords, in_tris, arena, vertices, tmp_tris, false);
 
     removeDegenerateAndDuplicatedTriangles(vertices, in_labels, tmp_tris, tmp_labels);
 
-    TriangleSoup ts(arena, vertices, tmp_tris, tmp_labels, multiplier, true);
+    TriangleSoup ts(arena, vertices, tmp_tris, tmp_labels, multiplier, false);
 
     detectIntersections(ts, g.intersectionList());
 

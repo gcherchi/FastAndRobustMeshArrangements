@@ -53,7 +53,7 @@ using namespace cinolib;
 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-bool debug = true;
+bool debug = false;
 bool old_version = false;
 
 //create a struct to store the subm and ts
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     }
 
     /** NON FUNZIONANTI **/
-    filename = "../data/test/cr7.off";
+    filename = "../data/test/ttt3.off";
     //filename = "../data/three_cubes.stl";
     //filename = "../data/two_spheres.stl";
     //filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data";
@@ -250,7 +250,7 @@ int main(int argc, char **argv)
         //else
         //splitSingleTriangleWithTree(ts, subm, t_points);
         else
-            splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points);
+        splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points);
 
         //subm_and_ts.push_back({subm, ts, out_tris, out_labels,gen_points, out_coords,"splitSingleTriangle"});
 

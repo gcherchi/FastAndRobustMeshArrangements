@@ -45,6 +45,7 @@
 #include "triangle_soup.h"
 #include "fast_trimesh.h"
 #include "tree.h"
+#include "custom_stack.h"
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 
@@ -72,7 +73,7 @@ inline void splitSingleTriangleWithTree(const TriangleSoup &ts, FastTrimesh &sub
 
 
 inline int splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points,  const auxvector<uint> &e0_points, const auxvector<uint> &e1_points, const auxvector<uint> &e2_points);
-inline void repositionPointsInQueue(FastTrimesh &subm, std::queue<auxvector<uint>> &queue_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri);
+inline void repositionPointsInQueue(FastTrimesh &subm, CustomStack &stack_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri);
 
 inline int findContainingTriangle(const FastTrimesh &subm, uint p_id);
 
