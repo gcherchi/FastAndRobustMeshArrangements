@@ -8,6 +8,7 @@ import os
 import subprocess
 import openpyxl
 import re
+from openpyxl import load_workbook
 
 
 def sorted_alphanumeric(data):
@@ -53,62 +54,53 @@ def compile_and_run_cpp(mesh_file):
     #if the process failed, return the error message
     if run_process.stderr:
         print("Failed on file:", mesh_file, run_process.stderr)
-        return [mesh_file, "Failed", run_process.stderr]
+        result = [mesh_file, "Failed", run_process.stderr]
     else:
         print("Success on file:", mesh_file)
-        return [mesh_file, "Passed", ""]
+        result = [mesh_file, "Passed", ""]
+    
+
+    write_to_excel(result, "test_results.xlsx")
 
 
-def create_excel_file():
+def create_excel_file(excel_file):
 
     wb = openpyxl.Workbook()
     sheet = wb.active
     sheet.title = "Test Results"
-    row = [2]
     column_headers = ["File Tested", "Run Status", "Error Message"]
-    # appy the style to the headers
-    for row_index, row_data in enumerate(row, start=2):
-        for col_index, value in enumerate(column_headers, start=2):
-            sheet.cell(row=row_index, column=col_index).value = value
-            sheet.cell(row=row_index, column=col_index).border = openpyxl.styles.Border(left=openpyxl.styles.Side(style='thin'), right=openpyxl.styles.Side(style='thin'), top=openpyxl.styles.Side(style='thin'), bottom=openpyxl.styles.Side(style='thin'))
-            sheet.column_dimensions[sheet.cell(row=row_index, column=col_index).column_letter].auto_size = True
-            sheet.cell(row=row_index, column=col_index).font = openpyxl.styles.Font(bold=True)
 
-    # Resize each column to fit the content
-    for column_cells in sheet.columns:
-        max_length = 0
-        for cell in column_cells:
-            if len(str(cell.value)) > max_length:
-                max_length = len(str(cell.value))
-        adjusted_width = (max_length + 2) * 1.2
-        sheet.column_dimensions[column_cells[0].column_letter].width = adjusted_width
+    # Writing headers
+    for col_index, value in enumerate(column_headers, start=2):
+        sheet.cell(row=2, column=col_index).value = value
+        sheet.cell(row=2, column=col_index).border = openpyxl.styles.Border(left=openpyxl.styles.Side(style='thin'), right=openpyxl.styles.Side(style='thin'), top=openpyxl.styles.Side(style='thin'), bottom=openpyxl.styles.Side(style='thin'))
+        sheet.cell(row=1, column=col_index).font = openpyxl.styles.Font(bold=True)
 
-    # Save the Excel file
-    wb.save("test_results.xlsx")
-    if os.path.exists("test_results.xlsx"):
-        print("Excel file 'test_results.xlsx' created successfully.")
+    wb.save(excel_file)
 
 
 def write_to_excel(output_data, excel_file):
+    wb_add = load_workbook(excel_file)
 
-    wb = openpyxl.Workbook()
-    sheet = wb.active
-    sheet.title = "Test Results"
+    
+    sheet = wb_add["Test Results"]
+    ins_row = str(len(sheet['B']) + 1 )
+    ins_row = int(ins_row)
+    row_index = ins_row
+   
+    for col_index, value in enumerate(output_data, start=2):
+        sheet.cell(row=row_index, column=col_index).value = value
+        sheet.column_dimensions[sheet.cell(row=row_index, column=col_index).column_letter].auto_size = True
+        sheet.cell(row=row_index, column=col_index).border = openpyxl.styles.Border(left=openpyxl.styles.Side(style='thin'), right=openpyxl.styles.Side(style='thin'), top=openpyxl.styles.Side(style='thin'), bottom=openpyxl.styles.Side(style='thin'))
+        if row_index != 2 and col_index == 3 : #if the value is "Failed" make the row red from the second column to the last
+            if value == "Failed":
+                for i in range(2, len(output_data)+2):
+                    sheet.cell(row=row_index, column=i).fill = openpyxl.styles.PatternFill(start_color="FF4F47", end_color="FF4F47", fill_type = "solid")
+                    sheet.cell(row=row_index, column=i).font = openpyxl.styles.Font(color="FFFFFF")
+            else:
+                for i in range(2, len(output_data)+2):
+                    sheet.cell(row=row_index, column=i).fill = openpyxl.styles.PatternFill(start_color="D1FFBD", end_color="D1FFBD", fill_type = "solid")
 
-    # Writing data
-    for row_index, row_data in enumerate(output_data, start=2):
-        for col_index, value in enumerate(row_data, start=2):
-            sheet.cell(row=row_index, column=col_index).value = value
-            sheet.column_dimensions[sheet.cell(row=row_index, column=col_index).column_letter].auto_size = True
-            sheet.cell(row=row_index, column=col_index).border = openpyxl.styles.Border(left=openpyxl.styles.Side(style='thin'), right=openpyxl.styles.Side(style='thin'), top=openpyxl.styles.Side(style='thin'), bottom=openpyxl.styles.Side(style='thin'))
-            if row_index != 2 and col_index == 3 : #if the value is "Failed" make the row red from the second column to the last
-                if value == "Failed":
-                    for i in range(2, len(row_data)+2):
-                        sheet.cell(row=row_index, column=i).fill = openpyxl.styles.PatternFill(start_color="FF4F47", end_color="FF4F47", fill_type = "solid")
-                        sheet.cell(row=row_index, column=i).font = openpyxl.styles.Font(color="FFFFFF")
-                else:
-                    for i in range(2, len(row_data)+2):
-                        sheet.cell(row=row_index, column=i).fill = openpyxl.styles.PatternFill(start_color="D1FFBD", end_color="D1FFBD", fill_type = "solid")
 
     # Resize each column to fit the content
     for column_cells in sheet.columns:
@@ -120,7 +112,7 @@ def write_to_excel(output_data, excel_file):
         sheet.column_dimensions[column_cells[0].column_letter].width = adjusted_width
 
     # Save the Excel file
-    wb.save(excel_file)
+    wb_add.save(excel_file)
     print(f"Excel file '{excel_file}' updated successfully.")
 
 if __name__ == "__main__":
@@ -128,10 +120,13 @@ if __name__ == "__main__":
     folder_to_clean = "./results"
     clean_folder(folder_to_clean)
 
+    #if the file does not exist, create it
+    if not os.path.exists("test_results.xlsx"):
+        create_excel_file("test_results.xlsx")
+
     #order the files in the folder by name and iterate over them
     results = []
     files = sorted_alphanumeric(os.listdir("./data/test"))
-    print(files)
 
     for filename in files:
        if filename.endswith(".off") or filename.endswith(".stl"):
@@ -139,10 +134,4 @@ if __name__ == "__main__":
            result = compile_and_run_cpp(mesh_file)
            results.append(result)
 
-    results.insert(0, ["File Tested", "Run Status", "Error Message"]);
-
-    #if the file does not exist, create it
-    if not os.path.exists("test_results.xlsx"):
-        create_excel_file()
-
-    write_to_excel(results, "test_results.xlsx")
+    
