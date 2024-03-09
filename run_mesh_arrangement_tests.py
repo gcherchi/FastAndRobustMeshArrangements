@@ -94,7 +94,7 @@ def create_excel_file(excel_file):
     wb = openpyxl.Workbook()
     sheet = wb.active
     sheet.title = "Test Results"
-    column_headers = ["File Tested", "Run Status", "Time Completation (hh:mm:ss:ms)","Error Message"]
+    column_headers = ["File Tested", "Run Status", "Completation Time (hh:mm:ss:ms)","Error Message"]
 
     # Writing headers
     for col_index, value in enumerate(column_headers, start=2):
