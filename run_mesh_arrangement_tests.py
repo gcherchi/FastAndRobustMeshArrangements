@@ -63,7 +63,7 @@ def compile_and_run_cpp(mesh_file):
     milliseconds = int((end_time - int(end_time)) * 1000)
 
     # Format the elapsed time
-    end_time_formatted = "{:02d}:{:02d}:{:02d}.{:03d}".format(hours, minutes, seconds, milliseconds)
+    end_time_formatted = "{:02d}:{:02d}:{:02d}:{:03d}".format(hours, minutes, seconds, milliseconds)
 
     #print(run_process.stdout, "Time: ", end_time_formatted)
     
