@@ -50,6 +50,7 @@
 #include <typeinfo>
 
 #include <custom_stack.h>
+#include <fast_trimesh.h>
 
 inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, FastTrimesh &subm, uint t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, tbb::spin_mutex& mutex)
 {
@@ -287,10 +288,11 @@ inline int splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &sub
             std::cout<<std::endl;
         }
 
-
-        //take the first element of the queue
-        //auxvector<uint> &curr_tri = queue_sub_tri_points.front(); assert(curr_tri.size() > 3 && "Empty triangle in queue");
-        auxvector<uint> &curr_tri = stack_sub_tri.pop(); assert(curr_tri.size() > 3 && "Empty triangle in queue");
+        auxvector<uint> &curr_tri = stack_sub_tri.pop();
+        if(curr_tri.empty()){
+            std::cout<<"Empty triangle in queue"<<std::endl;
+            continue;
+        }assert(curr_tri.size() > 3 && "Empty triangle in queue");
 
         curr_subdv[0].clear();
         curr_subdv[1].clear();
@@ -313,258 +315,341 @@ inline int splitSingleTriangleWithQueue(const TriangleSoup &ts, FastTrimesh &sub
         uint v_pos = static_cast<uint>(curr_tri[3]);
         uint orig_id = subm.vertOrigID(v_pos);
         std::cout<<"Triangle: "<< t_id <<" v0: "<<subm.vertOrigID(curr_tri[0])<<" v1: "<<subm.vertOrigID(curr_tri[1])<<" v2: "<<subm.vertOrigID(curr_tri[2])<<std::endl;
-        std::cout<<"v_pos: "<<v_pos<<" orig_id: "<<orig_id<<std::endl;
+        std::cout<<"v_pos: "<<v_pos<<" orig_id: "<< orig_id<<std::endl;
 
         if(fastPointOnLine(subm, static_cast<uint>(e0_id), v_pos)) {//on the first edge
 
             fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e0_id));
 
-            uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),
-                                                 subm.edgeVertID(static_cast<uint>(e0_id),0),
-                                                 subm.edgeVertID(static_cast<uint>(e0_id),1));
+            uint v0e0 = subm.edgeVertID(static_cast<uint>(e0_id),0);
+            uint v1e0 = subm.edgeVertID(static_cast<uint>(e0_id),1);
+
+            uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),v0e0,v1e0);
 
             curr_subdv[0].reserve(curr_tri.size());
             curr_subdv[1].reserve(curr_tri.size());
 
             //T1
             curr_subdv[0].push_back(v_opp);
-            curr_subdv[0].push_back(subm.edgeVertID(static_cast<uint>(e0_id),0));
+            curr_subdv[0].push_back(v0e0);
             curr_subdv[0].push_back(v_pos);
 
-            std::cout<<"Triangle 1-> v0"<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
+            std::cout<<"Triangle 1-> v0: "<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
 
             //T2
             curr_subdv[1].push_back(v_opp);
             curr_subdv[1].push_back(v_pos);
-            curr_subdv[1].push_back(subm.edgeVertID(static_cast<uint>(e0_id),1));
+            curr_subdv[1].push_back(v1e0);
 
-            std::cout<<"Triangle 2-> v0"<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
+            std::cout<<"Triangle 2-> v0: "<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
 
 
             if(e2t.size() > 1) {
-
+                uint t_adj_id;
                 curr_subdv[2].reserve(curr_tri.size());
                 curr_subdv[3].reserve(curr_tri.size());
 
                 if (e2t[0] == static_cast<uint>(t_id)) {
-                    t_id = static_cast<int>(e2t[1]);
+                    t_adj_id = e2t[1];
                 } else {
-                    t_id = static_cast<int>(e2t[0]);
+                    t_adj_id = e2t[0];
                 }
 
                 std::cout<< "Size e2t: "<< e2t.size()<< " t_id: "<< t_id <<std::endl;
 
-                v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),
-                                               subm.edgeVertID(static_cast<uint>(e0_id),0),
-                                               subm.edgeVertID(static_cast<uint>(e0_id),1));
+                v_opp = subm.triVertOppositeTo(t_adj_id,v1e0,v0e0);
 
-                uint v0 = subm.triVertID(static_cast<uint>(t_id),0);
-                uint v1 = subm.triVertID(static_cast<uint>(t_id),1);
-                uint v2 = subm.triVertID(static_cast<uint>(t_id),2);
+                uint v0 = subm.triVertID(t_adj_id,0);
+                uint v1 = subm.triVertID(t_adj_id,1);
+                uint v2 = subm.triVertID(t_adj_id,2);
 
                 int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
 
                 auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
 
-                for(uint i = 3; i < adj_tri.size(); i++){
+                for (size_t i = 2; i < adj_tri.size(); ++i) { // Starting from the third element of the second array
                     uint p = adj_tri[i];
-                    if(p != v_pos)
+                    if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end()) {
                         curr_tri.push_back(p);
+                    }
                 }
+
                 //T3
                 curr_subdv[2].push_back(v_opp);
                 curr_subdv[2].push_back(v_pos);
-                curr_subdv[2].push_back(subm.edgeVertID(static_cast<uint>(e0_id),0));
+                curr_subdv[2].push_back(v0e0);
 
-                std::cout<<"Triangle 3-> v0"<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
+
+                std::cout<<"Triangle 3-> v0: "<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
 
                 //T4
                 curr_subdv[3].push_back(v_opp);
-                curr_subdv[3].push_back(subm.edgeVertID(static_cast<uint>(e0_id),1));
+                curr_subdv[3].push_back(v1e0);
                 curr_subdv[3].push_back(v_pos);
 
-                std::cout<<"Triangle 4-> v0"<< subm.vertOrigID(curr_subdv[3][0])<<" v1: "<<subm.vertOrigID(curr_subdv[3][1])<<" v2: "<<subm.vertOrigID(curr_subdv[3][2])<<std::endl;
+                std::cout<<"Triangle 4-> v0: "<< subm.vertOrigID(curr_subdv[3][0])<<" v1: "<<subm.vertOrigID(curr_subdv[3][1])<<" v2: "<<subm.vertOrigID(curr_subdv[3][2])<<std::endl;
 
+                stack_sub_tri.clearSingleVector(idx_tri);
             }
 
             subm.splitEdge(static_cast<uint>(e0_id), v_pos);
 
+            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[0][0], curr_subdv[0][1], curr_subdv[0][2]),
+                                    curr_subdv[0][2], curr_subdv[0][1])){
+                std::swap(curr_subdv[0][2], curr_subdv[0][1]);
+            }
+            std::cout<<"Triangle 1 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
+
+            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[1][0], curr_subdv[1][1], curr_subdv[1][2]),
+                                    curr_subdv[1][2], curr_subdv[1][1])){
+                std::swap(curr_subdv[1][2], curr_subdv[1][1]);
+            }
+            std::cout<<"Triangle 2 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
+            if (!curr_subdv[2].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[2][0], curr_subdv[2][1], curr_subdv[2][2]),
+                                     curr_subdv[2][2], curr_subdv[2][1])){
+                std::swap(curr_subdv[2][2], curr_subdv[2][1]);
+            }
+            if(!curr_subdv[2].empty()) {
+                std::cout<<"Triangle 3 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
+            }
+
+            if (!curr_subdv[3].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[3][0], curr_subdv[3][1], curr_subdv[3][2]),
+                                     curr_subdv[3][2], curr_subdv[3][1])){
+                std::swap(curr_subdv[3][2], curr_subdv[3][1]);
+            }
+            if(!curr_subdv[3].empty()) {
+                std::cout<<"Triangle 4 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[3][0])<<" v1: "<<subm.vertOrigID(curr_subdv[3][1])<<" v2: "<<subm.vertOrigID(curr_subdv[3][2])<<std::endl;
+            }
 
 
         }else if(fastPointOnLine(subm, static_cast<uint>(e1_id), v_pos)) {//on the second edge
 
              fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e1_id));
 
-             uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),
-                                                 subm.edgeVertID(static_cast<uint>(e1_id),0),
-                                                 subm.edgeVertID(static_cast<uint>(e1_id),1));
+             uint v0e1 = subm.edgeVertID(static_cast<uint>(e1_id),0);
+             uint v1e1 = subm.edgeVertID(static_cast<uint>(e1_id),1);
+
+             uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),v0e1,v1e1);
 
              curr_subdv[0].reserve(curr_tri.size());
              curr_subdv[1].reserve(curr_tri.size());
 
              //T1
              curr_subdv[0].push_back(v_opp);
-             curr_subdv[0].push_back( subm.edgeVertID(static_cast<uint>(e1_id),0));
+             curr_subdv[0].push_back( v0e1);
              curr_subdv[0].push_back(v_pos);
 
-                std::cout<<"Triangle 1-> v0"<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
+             std::cout<<"Triangle 1-> v0: "<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
 
              //T2
              curr_subdv[1].push_back(v_opp);
              curr_subdv[1].push_back(v_pos);
-             curr_subdv[1].push_back(subm.edgeVertID(static_cast<uint>(e1_id),1));
+             curr_subdv[1].push_back(v1e1);
 
-                std::cout<<"Triangle 2-> v0"<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
+             std::cout<<"Triangle 2-> v0: "<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
+
 
             if(e2t.size() > 1) {
+                uint t_adj_id;
 
                 curr_subdv[2].reserve(curr_tri.size());
                 curr_subdv[3].reserve(curr_tri.size());
 
                 if (e2t[0] == static_cast<uint>(t_id)) {
-                    t_id = static_cast<int>(e2t[1]);
+                    t_adj_id =e2t[1];
                 } else {
-                    t_id = static_cast<int>(e2t[0]);
+                    t_adj_id =e2t[0];
                 }
 
-                v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),
-                                               subm.edgeVertID(static_cast<uint>(e1_id),0),
-                                               subm.edgeVertID(static_cast<uint>(e1_id),1));
+                v_opp = subm.triVertOppositeTo(t_adj_id,v1e1,v0e1);
 
-                uint v0 = subm.triVertID(static_cast<uint>(t_id),0);
-                uint v1 = subm.triVertID(static_cast<uint>(t_id),1);
-                uint v2 = subm.triVertID(static_cast<uint>(t_id),2);
+                uint v0 = subm.triVertID(t_adj_id,0);
+                uint v1 = subm.triVertID(t_adj_id,1);
+                uint v2 = subm.triVertID(t_adj_id,2);
 
                 int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
 
                 auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
 
-                for(uint i = 3; i < adj_tri.size(); i++){
+                for (size_t i = 2; i < adj_tri.size(); ++i) { // Starting from the third element of the second array
                     uint p = adj_tri[i];
-                    if(p != v_pos)
+                    if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end()) {
                         curr_tri.push_back(p);
+                    }
                 }
 
                 //T3
                 curr_subdv[2].push_back(v_opp);
                 curr_subdv[2].push_back(v_pos);
-                curr_subdv[2].push_back(subm.edgeVertID(static_cast<uint>(e0_id),0));
+                curr_subdv[2].push_back(v0e1);
 
-                std::cout<<"Triangle 3-> v0"<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
+                std::cout<<"Triangle 3-> v0: "<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
 
                 //T4
                 curr_subdv[3].push_back(v_opp);
-                curr_subdv[3].push_back(subm.edgeVertID(static_cast<uint>(e0_id),1));
+                curr_subdv[3].push_back(v1e1);
                 curr_subdv[3].push_back(v_pos);
 
-                std::cout<<"Triangle 4-> v0"<< subm.vertOrigID(curr_subdv[3][0])<<" v1: "<<subm.vertOrigID(curr_subdv[3][1])<<" v2: "<<subm.vertOrigID(curr_subdv[3][2])<<std::endl;
+                std::cout<<"Triangle 4-> v0: "<< subm.vertOrigID(curr_subdv[3][0])<<" v1: "<<subm.vertOrigID(curr_subdv[3][1])<<" v2: "<<subm.vertOrigID(curr_subdv[3][2])<<std::endl;
 
+                stack_sub_tri.clearSingleVector(idx_tri);
             }
 
-             subm.splitEdge(static_cast<uint>(e1_id), v_pos);
+            subm.splitEdge(static_cast<uint>(e1_id), v_pos);
 
-         }else if(fastPointOnLine(subm, static_cast<uint>(e2_id), v_pos)) {//on the third edge
+            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[0][0], curr_subdv[0][1], curr_subdv[0][2]),
+                                     curr_subdv[0][2], curr_subdv[0][1])){
+                std::swap(curr_subdv[0][2], curr_subdv[0][1]);
+            }
+            std::cout<<"Triangle 1 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
+
+            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[1][0], curr_subdv[1][1], curr_subdv[1][2]),
+                                     curr_subdv[1][2], curr_subdv[1][1])){
+                std::swap(curr_subdv[1][2], curr_subdv[1][1]);
+            }
+            std::cout<<"Triangle 2 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
+            if (!curr_subdv[2].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[2][0], curr_subdv[2][1], curr_subdv[2][2]),
+                                                               curr_subdv[2][2], curr_subdv[2][1])){
+                std::swap(curr_subdv[2][2], curr_subdv[2][1]);
+            }
+            if(!curr_subdv[2].empty())
+                std::cout<<"Triangle 3 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
+
+            if (!curr_subdv[3].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[3][0], curr_subdv[3][1], curr_subdv[3][2]),
+                                                               curr_subdv[3][2], curr_subdv[3][1])){
+                std::swap(curr_subdv[3][2], curr_subdv[3][1]);
+            }
+            if(!curr_subdv[3].empty())
+                std::cout<<"Triangle 4 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[3][0])<<" v1: "<<subm.vertOrigID(curr_subdv[3][1])<<" v2: "<<subm.vertOrigID(curr_subdv[3][2])<<std::endl;
+
+        }else if(fastPointOnLine(subm, static_cast<uint>(e2_id), v_pos)) {//on the third edge
 
             fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e2_id));
-            uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),
-                                                subm.edgeVertID(static_cast<uint>(e2_id),0),
-                                                subm.edgeVertID(static_cast<uint>(e2_id),1));
+
+            uint v0e2 = subm.edgeVertID(static_cast<uint>(e2_id),0);
+            uint v1e2 = subm.edgeVertID(static_cast<uint>(e2_id),1);
+
+            uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),v0e2,v1e2);
 
             curr_subdv[0].reserve(curr_tri.size());
             curr_subdv[1].reserve(curr_tri.size());
 
             //T1
             curr_subdv[0].push_back(v_opp);
-            curr_subdv[0].push_back(subm.edgeVertID(static_cast<uint>(e2_id),0));
+            curr_subdv[0].push_back(v0e2);
             curr_subdv[0].push_back(v_pos);
 
-            std::cout<<"Triangle 1-> v0"<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
+            std::cout<<"Triangle 1-> v0: "<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
 
             //T2
             curr_subdv[1].push_back(v_opp);
             curr_subdv[1].push_back(v_pos);
-            curr_subdv[1].push_back(subm.edgeVertID(static_cast<uint>(e2_id),1));
+            curr_subdv[1].push_back(v1e2);
 
-            std::cout<<"Triangle 2-> v0"<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
+            std::cout<<"Triangle 2-> v0: "<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
+
 
             if(e2t.size() > 1) {
+
+                uint t_adj_id;
 
                 curr_subdv[2].reserve(curr_tri.size());
                 curr_subdv[3].reserve(curr_tri.size());
 
                 if (e2t[0] == static_cast<uint>(t_id)) {
-                    t_id = static_cast<int>(e2t[1]);
+                    t_adj_id = e2t[1];
                 } else {
-                    t_id = static_cast<int>(e2t[0]);
+                    t_adj_id = e2t[0];
                 }
 
-                v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),
-                                               subm.edgeVertID(static_cast<uint>(e2_id),0),
-                                               subm.edgeVertID(static_cast<uint>(e2_id),1));
+                v_opp = subm.triVertOppositeTo(t_adj_id,v1e2,v0e2);
 
-                uint v0 = subm.triVertID(static_cast<uint>(t_id),0);
-                uint v1 = subm.triVertID(static_cast<uint>(t_id),1);
-                uint v2 = subm.triVertID(static_cast<uint>(t_id),2);
+                uint v0 = subm.triVertID(t_adj_id,0);
+                uint v1 = subm.triVertID(t_adj_id,1);
+                uint v2 = subm.triVertID(t_adj_id,2);
 
                 int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
 
                 auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
 
-                for(uint i = 3; i < adj_tri.size(); i++){
+                for (size_t i = 2; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
-                    if(p != v_pos)
+                    if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end()) {
                         curr_tri.push_back(p);
+                    }
                 }
 
                 //T3
                 curr_subdv[2].push_back(v_opp);
                 curr_subdv[2].push_back(v_pos);
-                curr_subdv[2].push_back(subm.edgeVertID(static_cast<uint>(e0_id),0));
+                curr_subdv[2].push_back(v0e2);
 
-                std::cout<<"Triangle 3-> v0"<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
+                std::cout<<"Triangle 3-> v0: "<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
 
                 //T4
                 curr_subdv[3].push_back(v_opp);
-                curr_subdv[3].push_back(subm.edgeVertID(static_cast<uint>(e0_id),1));
+                curr_subdv[3].push_back(v1e2);
                 curr_subdv[3].push_back(v_pos);
 
-                std::cout<<"Triangle 4-> v0"<< subm.vertOrigID(curr_subdv[3][0])<<" v1: "<<subm.vertOrigID(curr_subdv[3][1])<<" v2: "<<subm.vertOrigID(curr_subdv[3][2])<<std::endl;
+                std::cout<<"Triangle 4-> v0: "<< subm.vertOrigID(curr_subdv[3][0])<<" v1: "<<subm.vertOrigID(curr_subdv[3][1])<<" v2: "<<subm.vertOrigID(curr_subdv[3][2])<<std::endl;
 
+                stack_sub_tri.clearSingleVector(idx_tri);
             }
 
             subm.splitEdge(static_cast<uint>(e2_id), v_pos);
+
+            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[0][0], curr_subdv[0][1], curr_subdv[0][2]),
+                                     curr_subdv[0][2], curr_subdv[0][1])){
+                std::swap(curr_subdv[0][2], curr_subdv[0][1]);
+            }
+            std::cout<<"Triangle 1 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
+
+            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[1][0], curr_subdv[1][1], curr_subdv[1][2]),
+                                     curr_subdv[1][2], curr_subdv[1][1])){
+                std::swap(curr_subdv[1][2], curr_subdv[1][1]);
+            }
+            std::cout<<"Triangle 2 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
+            if (!curr_subdv[2].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[2][0], curr_subdv[2][1], curr_subdv[2][2]),
+                                                               curr_subdv[2][2], curr_subdv[2][1])){
+                std::swap(curr_subdv[2][2], curr_subdv[2][1]);
+            }
+            if(!curr_subdv[2].empty())
+                std::cout<<"Triangle 3 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
+
+            if (!curr_subdv[3].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[3][0], curr_subdv[3][1], curr_subdv[3][2]),
+                                                               curr_subdv[3][2], curr_subdv[3][1])){
+                std::swap(curr_subdv[3][2], curr_subdv[3][1]);
+            }
+            if(!curr_subdv[3].empty())
+                std::cout<<"Triangle 4 SWAPPED-> v0: "<< subm.vertOrigID(curr_subdv[3][0])<<" v1: "<<subm.vertOrigID(curr_subdv[3][1])<<" v2: "<<subm.vertOrigID(curr_subdv[3][2])<<std::endl;
 
         }else{//inside the triangle
             curr_subdv[0].reserve(curr_tri.size());
             curr_subdv[1].reserve(curr_tri.size());
             curr_subdv[2].reserve(curr_tri.size());
 
-
-
             //T1
             curr_subdv[0].push_back(curr_tri[0]);
             curr_subdv[0].push_back(curr_tri[1]);
             curr_subdv[0].push_back(v_pos);
 
-            std::cout<<"Triangle 1-> v0"<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
+            std::cout<<"Triangle 1-> v0: "<< subm.vertOrigID(curr_subdv[0][0])<<" v1: "<<subm.vertOrigID(curr_subdv[0][1])<<" v2: "<<subm.vertOrigID(curr_subdv[0][2])<<std::endl;
 
             //T2
             curr_subdv[1].push_back(curr_tri[1]);
             curr_subdv[1].push_back(curr_tri[2]);
             curr_subdv[1].push_back(v_pos);
 
-            std::cout<<"Triangle 2-> v0"<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
+            std::cout<<"Triangle 2-> v0: "<< subm.vertOrigID(curr_subdv[1][0])<<" v1: "<<subm.vertOrigID(curr_subdv[1][1])<<" v2: "<<subm.vertOrigID(curr_subdv[1][2])<<std::endl;
             //T3
             curr_subdv[2].push_back(curr_tri[2]);
             curr_subdv[2].push_back(curr_tri[0]);
             curr_subdv[2].push_back(v_pos);
 
-            std::cout<<"Triangle 3-> v0"<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
+            std::cout<<"Triangle 3-> v0: "<< subm.vertOrigID(curr_subdv[2][0])<<" v1: "<<subm.vertOrigID(curr_subdv[2][1])<<" v2: "<<subm.vertOrigID(curr_subdv[2][2])<<std::endl;
 
             subm.splitTri(static_cast<uint>(t_id), v_pos);
         }
-        //delete the triangle from the queue
-        //queue_sub_tri_points.pop();
 
         repositionPointsInQueue(subm, stack_sub_tri, curr_subdv, curr_tri);
 
