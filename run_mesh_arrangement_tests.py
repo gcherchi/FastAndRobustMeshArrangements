@@ -19,6 +19,19 @@ def sorted_alphanumeric(data):
 
 
 
+def completion_bar(iterations, total):
+    # Calculate the completion ratio
+    ratio = iterations / total
+
+    # Determine the length of the progress bar
+    bar_length = 50
+    progress = int(bar_length * ratio)
+
+    # Create the completion bar
+    bar = "[" + "#" * progress + "-" * (bar_length - progress) + "]"
+
+    return bar
+
 def clean_folder(folder_path):
     # Iterate over the contents of the folder
     for filename in os.listdir(folder_path):
@@ -32,8 +45,6 @@ def clean_folder(folder_path):
             clean_folder(file_path)
             # Remove the empty directory
             os.rmdir(file_path)
-
-
 
 
 def compile_and_run_cpp(mesh_file):
@@ -54,10 +65,10 @@ def compile_and_run_cpp(mesh_file):
     # Format the elapsed time
     end_time_formatted = "{:02d}:{:02d}:{:02d}.{:03d}".format(hours, minutes, seconds, milliseconds)
 
-    print(run_process.stdout, "Time: ", end_time_formatted)
+    #print(run_process.stdout, "Time: ", end_time_formatted)
     
-    if run_process.stderr:
-        print("Error:", run_process.stderr)
+    #if run_process.stderr:
+        #print("Error:", run_process.stderr)
 
     #remove from the mesh_file the path and the off extension
     mesh_file = mesh_file.replace("./data/test/", "")
@@ -68,10 +79,10 @@ def compile_and_run_cpp(mesh_file):
 
     #if the process failed, return the error message
     if run_process.stderr:
-        print("Failed on file:", mesh_file, run_process.stderr)
+        #print("Failed on file:", mesh_file, run_process.stderr)
         result = [mesh_file, "Failed", end_time_formatted, run_process.stderr]
     else:
-        print("Success on file:", mesh_file)
+        #print("Success on file:", mesh_file)
         result = [mesh_file, "Passed", end_time_formatted, ""]
     
 
@@ -94,7 +105,7 @@ def create_excel_file(excel_file):
     #center the text in the cells 3 and 4
     for i in range(3, len(column_headers)+2):
         sheet.cell(row=2, column=i).alignment = openpyxl.styles.Alignment(horizontal="center", vertical="center", wrap_text=True)
-        
+
 
     wb.save(excel_file)
 
@@ -136,10 +147,8 @@ def write_to_excel(output_data, excel_file):
     for i in range(3, len(output_data)+2):
         sheet.cell(row=row_index, column=i).alignment = openpyxl.styles.Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-
     # Save the Excel file
     wb_add.save(excel_file)
-    print(f"Excel file '{excel_file}' updated successfully.")
 
 if __name__ == "__main__":
 
@@ -158,10 +167,19 @@ if __name__ == "__main__":
     results = []
     files = sorted_alphanumeric(os.listdir("./data/test"))
 
-    for filename in files:
-       if filename.endswith(".off") or filename.endswith(".stl"):
-           mesh_file = os.path.join("./data/test", filename)
-           result = compile_and_run_cpp(mesh_file)
-           results.append(result)
+    
+    total_files = len(files)-1
+    for i, filename in enumerate(files):
+        if filename.endswith(".off") or filename.endswith(".stl"):
+            progress_bar = completion_bar(i, total_files)
+            print("\rProgress: {}% {}".format(int((i / total_files) * 100), progress_bar), end="")
+        
+            mesh_file = os.path.join("./data/test", filename)
+            result = compile_and_run_cpp(mesh_file)
+            results.append(result)
+       
+
+
+    
 
     
