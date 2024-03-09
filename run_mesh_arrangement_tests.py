@@ -155,6 +155,9 @@ if __name__ == "__main__":
     #clean the terminal screen
     os.system('cls' if os.name == 'nt' else 'clear')
 
+    if not os.path.exists("./results"):
+        os.makedirs("./results")
+        
     folder_to_clean = "./results"
     clean_folder(folder_to_clean)
 
