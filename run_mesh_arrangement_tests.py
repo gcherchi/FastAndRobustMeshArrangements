@@ -152,6 +152,9 @@ def write_to_excel(output_data, excel_file):
 
 if __name__ == "__main__":
 
+    #clean the terminal screen
+    os.system('cls' if os.name == 'nt' else 'clear')
+
     folder_to_clean = "./results"
     clean_folder(folder_to_clean)
 
