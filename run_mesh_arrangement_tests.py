@@ -6,6 +6,7 @@
 
 import os
 import subprocess
+import time
 import openpyxl
 import re
 from openpyxl import load_workbook
@@ -36,11 +37,25 @@ def clean_folder(folder_path):
 
 
 def compile_and_run_cpp(mesh_file):
-
-    executable = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/cmake-build-debug/mesh_arrangement"
-    #executable = os.path.join('cmake-build-debug', 'mesh_arrangement')
+    executable = os.path.join('cmake-build-debug', 'mesh_arrangement')
+    #measure the time it takes to run the process
+    start_time_float = time.time()
+    
     run_process = subprocess.run([executable, mesh_file], capture_output=True, text=True)
-    print(run_process.stdout)
+    
+    end_time = time.time() - start_time_float
+
+    # Convert elapsed time to hours, minutes, and seconds
+    hours = int(end_time // 3600)
+    minutes = int((end_time % 3600) // 60)
+    seconds = int(end_time % 60)
+    milliseconds = int((end_time - int(end_time)) * 1000)
+
+    # Format the elapsed time
+    end_time_formatted = "{:02d}:{:02d}:{:02d}.{:03d}".format(hours, minutes, seconds, milliseconds)
+
+    print(run_process.stdout, "Time: ", end_time_formatted)
+    
     if run_process.stderr:
         print("Error:", run_process.stderr)
 
@@ -54,10 +69,10 @@ def compile_and_run_cpp(mesh_file):
     #if the process failed, return the error message
     if run_process.stderr:
         print("Failed on file:", mesh_file, run_process.stderr)
-        result = [mesh_file, "Failed", run_process.stderr]
+        result = [mesh_file, "Failed", end_time_formatted, run_process.stderr]
     else:
         print("Success on file:", mesh_file)
-        result = [mesh_file, "Passed", ""]
+        result = [mesh_file, "Passed", end_time_formatted, ""]
     
 
     write_to_excel(result, "test_results.xlsx")
@@ -68,13 +83,18 @@ def create_excel_file(excel_file):
     wb = openpyxl.Workbook()
     sheet = wb.active
     sheet.title = "Test Results"
-    column_headers = ["File Tested", "Run Status", "Error Message"]
+    column_headers = ["File Tested", "Run Status", "Time Completation (hh:mm:ss:ms)","Error Message"]
 
     # Writing headers
     for col_index, value in enumerate(column_headers, start=2):
         sheet.cell(row=2, column=col_index).value = value
         sheet.cell(row=2, column=col_index).border = openpyxl.styles.Border(left=openpyxl.styles.Side(style='thin'), right=openpyxl.styles.Side(style='thin'), top=openpyxl.styles.Side(style='thin'), bottom=openpyxl.styles.Side(style='thin'))
         sheet.cell(row=1, column=col_index).font = openpyxl.styles.Font(bold=True)
+
+    #center the text in the cells 3 and 4
+    for i in range(3, len(column_headers)+2):
+        sheet.cell(row=2, column=i).alignment = openpyxl.styles.Alignment(horizontal="center", vertical="center", wrap_text=True)
+        
 
     wb.save(excel_file)
 
@@ -110,6 +130,12 @@ def write_to_excel(output_data, excel_file):
                 max_length = len(str(cell.value))
         adjusted_width = (max_length + 2) * 1.2
         sheet.column_dimensions[column_cells[0].column_letter].width = adjusted_width
+
+
+    #center the text in the cells 3 and 4
+    for i in range(3, len(output_data)+2):
+        sheet.cell(row=row_index, column=i).alignment = openpyxl.styles.Alignment(horizontal="center", vertical="center", wrap_text=True)
+
 
     # Save the Excel file
     wb_add.save(excel_file)

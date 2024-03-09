@@ -56,17 +56,6 @@ using namespace cinolib;
 bool debug = false;
 bool old_version = false;
 
-//create a struct to store the subm and ts
-struct SubmAndTs{
-    FastTrimesh subm;
-    TriangleSoup ts;
-    std::vector<uint> out_tris;
-    std::vector< std::bitset<NBIT>> out_labels;
-    std::vector<genericPoint*> gen_points;
-    std::vector<double>  out_coords;
-    std::string name_step;
-};
-
 int main(int argc, char **argv)
 {
     std::string filename;
@@ -75,7 +64,6 @@ int main(int argc, char **argv)
     std::vector<uint> in_tris, out_tris;
     std::vector<genericPoint*> gen_points;
     point_arena arena;
-    std::vector<SubmAndTs> subm_and_ts;
 
     if(!debug){
         if(argc > 1) {
@@ -105,18 +93,11 @@ int main(int argc, char **argv)
 
         save(output_name, out_coords, out_tris);
 
-
-        ///save("output.obj", out_coords, out_tris);
         return 0;
     }
 
-    /** NON FUNZIONANTI **/
-    filename = "../data/test/ttt3.off";
-    //filename = "../data/three_cubes.stl";
-    //filename = "../data/two_spheres.stl";
-    //filename = "/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/data";
-
     /** FUNZIONANTE **/
+    filename = "../data/test/ttt3.off";
 
     load(filename, in_coords, in_tris);
 
@@ -148,11 +129,11 @@ int main(int argc, char **argv)
     std::vector<uint> tmp_tris;
     std::vector< std::bitset<NBIT> > tmp_labels;
 
-    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, false);
+    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, true);
 
     removeDegenerateAndDuplicatedTriangles(gen_points, tmp_in_labels, tmp_tris, tmp_labels);
 
-    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, false);
+    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, true);
 
     //detectIntersections(ts, g.intersectionList());
 
@@ -250,9 +231,7 @@ int main(int argc, char **argv)
         //else
         //splitSingleTriangleWithTree(ts, subm, t_points);
         else
-        splitSingleTriangleWithQueue(ts, subm, t_points, e0_points, e1_points, e2_points);
-
-        //subm_and_ts.push_back({subm, ts, out_tris, out_labels,gen_points, out_coords,"splitSingleTriangle"});
+        splitSingleTriangleWithStack(ts, subm, t_points, e0_points, e1_points, e2_points);
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                                  EDGE SPLIT
@@ -267,8 +246,6 @@ int main(int argc, char **argv)
          *                           CONSTRAINT SEGMENT INSERTION
          * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
         addConstraintSegmentsInSingleTriangle(ts, arena, subm, g, t_segments, mutex);
-
-        //subm_and_ts.push_back({subm, ts, out_tris, out_labels, gen_points, out_coords,"addConstraintSegmentsInSingleTriangle"});
 
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
          *                      POCKETS IN COPLANAR TRIANGLES SOLVING
@@ -300,30 +277,16 @@ int main(int argc, char **argv)
                 } // endl critical section
             }
         }
-        //print the size of out_tris
-        //std::cout << "size of out_tris: " << out_tris.size() << std::endl;
-        //subm_and_ts.push_back({subm, ts, out_tris, out_labels, gen_points, out_coords,"solvePocketsInCoplanarTriangle"});
 
     }
 
 /******************************************************************************/
 
     ts.appendJollyPoints();
-    // questa parte prende il modello attuale e lo visualizza (da spostare dove serve)
     computeApproximateCoordinates(gen_points, out_coords);
+
+    //visualization
     m = DrawableTrimesh(out_coords, out_tris);
-
-    //computeApproximateCoordinates(subm_and_ts[0].gen_points, subm_and_ts[0].out_coords);
-    //m = DrawableTrimesh(subm_and_ts[0].out_coords, subm_and_ts[0].out_tris);
-
-
-
-    //print the size of the subm_and_ts
-    //std::cout << "size of subm_and_ts: " << subm_and_ts.size() << std::endl;
-
-    //print the size of the out_tris in subm_and_ts
-    //std::cout << "size of out_tris in subm_and_ts: " << subm_and_ts[0].out_tris.size() << std::endl;
-
 
     //Example marker vert
     for(uint i = 0; i < m.num_edges(); i++){
@@ -353,27 +316,6 @@ int main(int argc, char **argv)
 
         }
 
-        /*if(ImGui::Button("Next step")) {
-            if (state == subm_and_ts.size() - 1) state = 0;
-            else state++;
-
-            //print genpoints
-            std::cout << "gen_points: " << subm_and_ts[state].gen_points.size() << std::endl;
-
-            //print the size of the out_tris in subm_and_ts
-            std::cout << "size of out_tris in subm_and_ts: " << subm_and_ts[state].out_tris.size() << std::endl;
-
-            //print the size of the out_coords in subm_and_ts
-            std::cout << "size of out_coords in subm_and_ts: " << subm_and_ts[state].out_coords.size() << std::endl;
-
-
-            m.clear();
-            computeApproximateCoordinates(subm_and_ts[state].gen_points, subm_and_ts[state].out_coords);
-
-            m = DrawableTrimesh(subm_and_ts[state].out_coords, subm_and_ts[state].out_tris);
-            m.updateGL();
-
-        }*/
         if(ImGui::Button("show me vert")) {
             for(uint i = 0; i < debug_points.size(); i++){
 
