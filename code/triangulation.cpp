@@ -246,27 +246,26 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
     all_points.push_back(subm.triVertID(0,2));
 
     //add the points of the edges e0 to the submesh and to the all_points vector (except v0 e v1 of the edge)
-    for (unsigned int p : e0_points){
+    for (uint p : e0_points){
         uint v_pos = subm.addVert(ts.vert(p), p);
         all_points.push_back(v_pos);
     }
 
     //add the points of the edges e1 to the submesh and to the all_points vector (except v0 e v1 of the edge)
-    for (unsigned int p : e1_points){
+    for (uint p : e1_points){
         uint v_pos = subm.addVert(ts.vert(p), p);
         all_points.push_back(v_pos);
     }
 
     //add the points of the edges e2 to the submesh and to the all_points vector (except v0 e v1 of the edge)
-    for (unsigned int p : e2_points){
+    for (uint p : e2_points){
         uint v_pos = subm.addVert(ts.vert(p), p);
         all_points.push_back(v_pos);
     }
 
     //add each internal point to the sub mesh
-    for (unsigned int p : points){
-        uint point = static_cast<uint>(p);
-        uint v_pos = subm.addVert(ts.vert(point), p);
+    for (uint p : points){
+        uint v_pos = subm.addVert(ts.vert(p), p);
         all_points.push_back(v_pos);
     }
 
@@ -294,10 +293,8 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
         int e2_id = subm.triEdgeID(static_cast<uint>(t_id), 2); assert(e2_id != -1 && "No edge 2 found");
 
         uint v_pos = static_cast<uint>(curr_tri[3]);
-        uint orig_id = subm.vertOrigID(v_pos);
 
         if(fastPointOnLine(subm, static_cast<uint>(e0_id), v_pos)) {//on the first edge
-
 
             uint v0e0 = subm.edgeVertID(static_cast<uint>(e0_id),0);
             uint v1e0 = subm.edgeVertID(static_cast<uint>(e0_id),1);
@@ -334,11 +331,13 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
 
                 int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
 
-                auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+                const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+
+                curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
-                for (size_t i = 2; i < adj_tri.size(); ++i) {
+                for (int i = 2; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
@@ -361,26 +360,7 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
 
             subm.splitEdge(static_cast<uint>(e0_id), v_pos);
 
-            //make the vertices of the triangles in the correct order (anti CCW)
-            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[0][0], curr_subdv[0][1], curr_subdv[0][2]),
-                                    curr_subdv[0][2], curr_subdv[0][1]))
-                std::swap(curr_subdv[0][2], curr_subdv[0][1]);
-
-            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[1][0], curr_subdv[1][1], curr_subdv[1][2]),
-                                    curr_subdv[1][2], curr_subdv[1][1]))
-                std::swap(curr_subdv[1][2], curr_subdv[1][1]);
-
-            if (!curr_subdv[2].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[2][0], curr_subdv[2][1], curr_subdv[2][2]),
-                                     curr_subdv[2][2], curr_subdv[2][1]))
-                std::swap(curr_subdv[2][2], curr_subdv[2][1]);
-
-
-            if (!curr_subdv[3].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[3][0], curr_subdv[3][1], curr_subdv[3][2]),
-                                     curr_subdv[3][2], curr_subdv[3][1]))
-                std::swap(curr_subdv[3][2], curr_subdv[3][1]);
-
         }else if(fastPointOnLine(subm, static_cast<uint>(e1_id), v_pos)) {//on the second edge
-
 
             uint v0e1 = subm.edgeVertID(static_cast<uint>(e1_id),0);
             uint v1e1 = subm.edgeVertID(static_cast<uint>(e1_id),1);
@@ -418,11 +398,13 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
 
                 int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
 
-                auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+                const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+
+                curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
-                for (size_t i = 2; i < adj_tri.size(); ++i) {
+                for (int i = 2; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
@@ -444,25 +426,7 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
 
             subm.splitEdge(static_cast<uint>(e1_id), v_pos);
 
-            //make the vertices of the triangles in the correct order (anti CCW)
-            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[0][0], curr_subdv[0][1], curr_subdv[0][2]),
-                                     curr_subdv[0][2], curr_subdv[0][1]))
-                std::swap(curr_subdv[0][2], curr_subdv[0][1]);
-
-            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[1][0], curr_subdv[1][1], curr_subdv[1][2]),
-                                     curr_subdv[1][2], curr_subdv[1][1]))
-                std::swap(curr_subdv[1][2], curr_subdv[1][1]);
-
-            if (!curr_subdv[2].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[2][0], curr_subdv[2][1], curr_subdv[2][2]),
-                                                               curr_subdv[2][2], curr_subdv[2][1]))
-                std::swap(curr_subdv[2][2], curr_subdv[2][1]);
-
-            if (!curr_subdv[3].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[3][0], curr_subdv[3][1], curr_subdv[3][2]),
-                                                               curr_subdv[3][2], curr_subdv[3][1]))
-                std::swap(curr_subdv[3][2], curr_subdv[3][1]);
-
         }else if(fastPointOnLine(subm, static_cast<uint>(e2_id), v_pos)) {//on the third edge
-
 
             uint v0e2 = subm.edgeVertID(static_cast<uint>(e2_id),0);
             uint v1e2 = subm.edgeVertID(static_cast<uint>(e2_id),1);
@@ -501,11 +465,13 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
 
                 int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
 
-                auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+                const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+
+                curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
-                for (size_t i = 2; i < adj_tri.size(); ++i) {
+                for (int i = 2; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
@@ -526,24 +492,6 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
             }
 
             subm.splitEdge(static_cast<uint>(e2_id), v_pos);
-
-            //make the vertices of the triangles in the correct order (anti CCW)
-            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[0][0], curr_subdv[0][1], curr_subdv[0][2]),
-                                     curr_subdv[0][2], curr_subdv[0][1]))
-                std::swap(curr_subdv[0][2], curr_subdv[0][1]);
-
-            if (!subm.triVertsAreCCW(subm.triID(curr_subdv[1][0], curr_subdv[1][1], curr_subdv[1][2]),
-                                     curr_subdv[1][2], curr_subdv[1][1]))
-                std::swap(curr_subdv[1][2], curr_subdv[1][1]);
-
-            if (!curr_subdv[2].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[2][0], curr_subdv[2][1], curr_subdv[2][2]),
-                                                               curr_subdv[2][2], curr_subdv[2][1]))
-                std::swap(curr_subdv[2][2], curr_subdv[2][1]);
-
-            if (!curr_subdv[3].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[3][0], curr_subdv[3][1], curr_subdv[3][2]),
-                                                               curr_subdv[3][2], curr_subdv[3][1]))
-                std::swap(curr_subdv[3][2], curr_subdv[3][1]);
-
 
         }else{//inside the triangle
             curr_subdv[0].reserve(curr_tri.size());
@@ -592,6 +540,8 @@ inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tr
                                                     *subm.vert(curr_subdv[1][1]),
                                                     *subm.vert(curr_subdv[1][2])))
                 curr_subdv[1].push_back(curr_tri[i]);
+
+            if(!curr_subdv.size() > 2) continue;
 
             //checking if it is in the (possible) third triangle
             if(!curr_subdv[2].empty() && genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[2][0]),
