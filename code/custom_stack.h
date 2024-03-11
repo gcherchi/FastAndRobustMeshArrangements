@@ -61,8 +61,7 @@ public:
     {
         for(uint i = 0; i <= cursor; i++)
         {
-            if(stack[i].size() <=3)
-                continue;
+            assert(stack[i].size() >= 3 && "Empty element in the queue");
 
             if ((stack[i][0] == v0 && stack[i][1] == v1 && stack[i][2] == v2) ||
                 (stack[i][0] == v0 && stack[i][1] == v2 && stack[i][2] == v1) ||

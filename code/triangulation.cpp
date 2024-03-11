@@ -337,7 +337,7 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
 
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
-                for (int i = 2; i < adj_tri.size(); ++i) {
+                for (int i = 3; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
@@ -355,7 +355,7 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
                 curr_subdv[3].push_back(v_pos);
 
                 //clear the triangle adjacent from the stack
-                stack_sub_tri.clearSingleVector(idx_tri);
+                //stack_sub_tri.clearSingleVector(idx_tri);
             }
 
             subm.splitEdge(static_cast<uint>(e0_id), v_pos);
@@ -404,7 +404,7 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
 
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
-                for (int i = 2; i < adj_tri.size(); ++i) {
+                for (int i = 3; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
@@ -421,7 +421,7 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
                 curr_subdv[3].push_back(v1e1);
                 curr_subdv[3].push_back(v_pos);
 
-                stack_sub_tri.clearSingleVector(idx_tri); //clear the adjacent triangle from the stack
+                //stack_sub_tri.clearSingleVector(idx_tri); //clear the adjacent triangle from the stack
             }
 
             subm.splitEdge(static_cast<uint>(e1_id), v_pos);
@@ -471,7 +471,7 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
 
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
-                for (int i = 2; i < adj_tri.size(); ++i) {
+                for (int i = 3; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
@@ -488,7 +488,7 @@ inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &sub
                 curr_subdv[3].push_back(v1e2);
                 curr_subdv[3].push_back(v_pos);
 
-                stack_sub_tri.clearSingleVector(idx_tri); //clear the adjacent triangle from the stack
+                //stack_sub_tri.clearSingleVector(idx_tri); //clear the adjacent triangle from the stack
             }
 
             subm.splitEdge(static_cast<uint>(e2_id), v_pos);
