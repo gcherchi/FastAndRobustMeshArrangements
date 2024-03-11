@@ -20,9 +20,11 @@ xcode/
 *.a
 
 results/
+Thingi10K/
 
 .DS_Store
 
 build/
+
 
 *.pro.user
