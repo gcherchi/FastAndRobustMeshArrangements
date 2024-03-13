@@ -48,6 +48,9 @@
 #include <cinolib/meshes/meshes.h>
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
+#include <iostream>
+#include <chrono>
+#include <ctime>
 
 using namespace cinolib;
 
@@ -75,10 +78,27 @@ int main(int argc, char **argv)
             return -1;
         }
 
+        auto now = std::chrono::system_clock::now();
+        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+        char buffer[80];
+
+        // Convert time to string
+        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now_time));
+
+        // Print message with date and time
+        std::cout << buffer << " - I'm starting" << std::endl;
         load(filename, in_coords, in_tris);
+        // Get current system time
+
+
 
         solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
         computeApproximateCoordinates(gen_points, out_coords);
+        // Convert time to string
+        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now_time));
+
+        // Print message with date and time
+        std::cout << buffer << " -End" << std::endl;
 
 
         // Find the position of the last occurrence of '/'

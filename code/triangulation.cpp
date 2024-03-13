@@ -51,6 +51,10 @@
 
 #include <custom_stack.h>
 #include <fast_trimesh.h>
+#include <iostream>
+#include <chrono>
+#include <ctime>
+
 
 inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, FastTrimesh &subm, uint t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, tbb::spin_mutex& mutex)
 {
@@ -163,6 +167,19 @@ inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructu
                          ts.triVert(t_id, 2),
                          ts.tri(t_id),
                          ts.triPlane(t_id));
+
+        if (t % 50 == 0) {
+            // Get current system time
+            auto now = std::chrono::system_clock::now();
+            std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+
+            // Convert time to string
+            char buffer[80];
+            std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now_time));
+
+            // Print message with date and time
+            std::cout << buffer << " - I'm alive" << std::endl;
+        }
 
         triangulateSingleTriangle(ts, arena, subm, t_id, g, new_tris, new_labels, mutex);
     }

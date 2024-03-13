@@ -36,6 +36,9 @@
  * ***************************************************************************************/
 
 #include "solve_intersections.h"
+#include <iostream>
+#include <chrono>
+#include <ctime>
 
 inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels, point_arena &arena,
                                     std::vector<genericPoint*> &vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels)
@@ -54,6 +57,19 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
     removeDegenerateAndDuplicatedTriangles(vertices, in_labels, tmp_tris, tmp_labels);
 
     TriangleSoup ts(arena, vertices, tmp_tris, tmp_labels, multiplier, true);
+
+
+        // Get current system time
+        auto now = std::chrono::system_clock::now();
+        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+
+        // Convert time to string
+        char buffer[80];
+        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now_time));
+
+        // Print message with date and time
+        std::cout << buffer << " - I'm alive" << std::endl;
+
 
     detectIntersections(ts, g.intersectionList());
 
