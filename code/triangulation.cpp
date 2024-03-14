@@ -233,9 +233,9 @@ inline void splitSingleTriangle(const TriangleSoup &ts, FastTrimesh &subm, const
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline int splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points,  const auxvector<uint> &e0_points, const auxvector<uint> &e1_points, const auxvector<uint> &e2_points)
+inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points,  const auxvector<uint> &e0_points, const auxvector<uint> &e1_points, const auxvector<uint> &e2_points)
 {
-    if(points.empty() && e0_points.empty() && e1_points.empty() && e2_points.empty()) return 1;
+    if(points.empty() && e0_points.empty() && e1_points.empty() && e2_points.empty()) return;
 
     /** Structure of a stack of subtriangles:
      *     ---
@@ -564,7 +564,7 @@ inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tr
             if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[1][0]),
                                                     *subm.vert(curr_subdv[1][1]),
                                                     *subm.vert(curr_subdv[1][2])))
-                curr_subdv[1].push_back(curr_tri[i]);
+            curr_subdv[1].push_back(curr_tri[i]);
 
             if(!curr_subdv.size() > 2) continue;
 

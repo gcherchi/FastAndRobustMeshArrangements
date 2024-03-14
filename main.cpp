@@ -56,8 +56,9 @@ using namespace cinolib;
 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-bool debug = true;
+bool debug = false;
 bool old_version = false;
+bool parallel = false;
 
 int main(int argc, char **argv)
 {
@@ -127,7 +128,8 @@ int main(int argc, char **argv)
     }
 
     /** FUNZIONANTE **/
-    filename = "../Thingi10K/996816.off";
+    filename = "../data/test/40509.stl";
+    //filename = "../cmake-build-release/996816.off";
 
     load(filename, in_coords, in_tris);
 
@@ -159,11 +161,11 @@ int main(int argc, char **argv)
     std::vector<uint> tmp_tris;
     std::vector< std::bitset<NBIT> > tmp_labels;
 
-    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, true);
+    mergeDuplicatedVertices(in_coords, in_tris, arena, gen_points, tmp_tris, parallel);
 
     removeDegenerateAndDuplicatedTriangles(gen_points, tmp_in_labels, tmp_tris, tmp_labels);
 
-    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, true);
+    TriangleSoup ts(arena, gen_points, tmp_tris, tmp_labels, multiplier, parallel);
 
     //detectIntersections(ts, g.intersectionList());
 
