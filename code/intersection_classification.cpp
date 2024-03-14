@@ -44,6 +44,8 @@
 
 #include <tbb/tbb.h>
 
+#undef NDEBUG
+
 inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const std::vector<uint>  & tris,
                               std::vector<cinolib::ipair> & intersections)
 {

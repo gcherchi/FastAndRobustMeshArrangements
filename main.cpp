@@ -39,7 +39,7 @@
 #define _HAS_STD_BYTE 0  // https://developercommunity.visualstudio.com/t/error-c2872-byte-ambiguous-symbol/93889
 #define NOMINMAX // https://stackoverflow.com/questions/1825904/error-c2589-on-stdnumeric-limitsdoublemin
 #endif
-
+#undef NDEBUG
 #include <iostream>
 
 #include "solve_intersections.h"
@@ -56,7 +56,7 @@ using namespace cinolib;
 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-bool debug = false;
+bool debug = true;
 bool old_version = false;
 
 int main(int argc, char **argv)
@@ -68,6 +68,15 @@ int main(int argc, char **argv)
     std::vector<genericPoint*> gen_points;
     point_arena arena;
 
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+
+    // Convert the current time to a string representation
+    std::string time_str = std::ctime(&now_time);
+
+    // Print the message along with the current date and time
+    std::cout << "I'm Starting - " << time_str;
+
     if(!debug){
         if(argc > 1) {
             filename = argv[1];
@@ -78,27 +87,21 @@ int main(int argc, char **argv)
             return -1;
         }
 
-        auto now = std::chrono::system_clock::now();
-        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-        char buffer[80];
-
-        // Convert time to string
-        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now_time));
-
-        // Print message with date and time
-        std::cout << buffer << " - I'm starting" << std::endl;
         load(filename, in_coords, in_tris);
-        // Get current system time
 
-
+        now = std::chrono::system_clock::now();
+        now_time = std::chrono::system_clock::to_time_t(now);
+        // Convert the current time to a string representation
+        time_str = std::ctime(&now_time);
+        // Print the message along with the current date and time
+        std::cout << "I'm alive - " << time_str;
 
         solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
+
+
         computeApproximateCoordinates(gen_points, out_coords);
         // Convert time to string
-        std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now_time));
 
-        // Print message with date and time
-        std::cout << buffer << " -End" << std::endl;
 
 
         // Find the position of the last occurrence of '/'
@@ -113,11 +116,18 @@ int main(int argc, char **argv)
 
         save(output_name, out_coords, out_tris);
 
+        now = std::chrono::system_clock::now();
+        now_time = std::chrono::system_clock::to_time_t(now);
+        // Convert the current time to a string representation
+        time_str = std::ctime(&now_time);
+        // Print the message along with the current date and time
+        std::cout << "  End  " << time_str;
+
         return 0;
     }
 
     /** FUNZIONANTE **/
-    filename = "../data/test/ttt3.off";
+    filename = "../Thingi10K/996816.off";
 
     load(filename, in_coords, in_tris);
 
@@ -209,6 +219,13 @@ int main(int argc, char **argv)
                          ts.triPlane(t_id));
 
         //triangulateSingleTriangle(ts, arena, subm, t_id, g, out_tris, out_labels, mutex);
+        if(t%50 == 0 ){
+        now = std::chrono::system_clock::now();
+        now_time = std::chrono::system_clock::to_time_t(now);
+        // Convert the current time to a string representation
+        time_str = std::ctime(&now_time);
+        // Print the message along with the current date and time
+        std::cout << "I'm alive - " << time_str;}
 
         /*****************************TriangulateSingleTriangle*****************************/
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

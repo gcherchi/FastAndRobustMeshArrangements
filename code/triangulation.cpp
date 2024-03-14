@@ -40,6 +40,8 @@
 
 #include "triangulation.h"
 
+#undef NDEBUG
+
 #include <stack>
 #include <numeric>
 
@@ -54,6 +56,8 @@
 #include <iostream>
 #include <chrono>
 #include <ctime>
+
+
 
 
 inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, FastTrimesh &subm, uint t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, tbb::spin_mutex& mutex)
@@ -135,6 +139,15 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
 
 inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels)
 {
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+
+    // Convert the current time to a string representation
+    std::string time_str = std::ctime(&now_time);
+
+    // Print the message along with the current date and time
+    std::cout << "I'm Triangulation - " << time_str;
+
     new_labels.clear();
     new_tris.clear();
     new_tris.reserve(2 * 3 * ts.numTris());
@@ -167,6 +180,14 @@ inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructu
                          ts.triVert(t_id, 2),
                          ts.tri(t_id),
                          ts.triPlane(t_id));
+
+        if(t%50 == 0 ){
+            now = std::chrono::system_clock::now();
+            now_time = std::chrono::system_clock::to_time_t(now);
+            // Convert the current time to a string representation
+            time_str = std::ctime(&now_time);
+            // Print the message along with the current date and time
+            std::cout << "I'm alive - " << time_str;}
 
         triangulateSingleTriangle(ts, arena, subm, t_id, g, new_tris, new_labels, mutex);
     }
