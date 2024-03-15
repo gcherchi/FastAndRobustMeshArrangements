@@ -48,11 +48,30 @@ def clean_folder(folder_path):
 
 
 def compile_and_run_cpp(mesh_file):
-    executable = os.path.join('cmake-build-debug', 'mesh_arrangement')
+    executable = os.path.join("cmake-build-release", 'mesh_arrangement')
+    #executable = '/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/history-results/old_version_results/mesh_arrangement'
     #measure the time it takes to run the process
     start_time_float = time.time()
     
-    run_process = subprocess.run([executable, mesh_file], capture_output=True, text=True)
+    #run_process = subprocess.run([executable, mesh_file], capture_output=True, text=True)
+    print(" Running process on file:", mesh_file)
+    process = subprocess.Popen([executable,mesh_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    out, error = process.communicate()
+    while True:
+        out, error = process.communicate()
+        if out:
+            print("\rSTDOUT:", out)
+        if error:
+            print("\rSTDERR:", error)
+            break
+        # Break the loop when both pipes are closed and there's no more output
+        if "End" in out: 
+            break
+        
+        time.sleep(1)
+
+    #wait for the next step to be executed with a sleep of 3 minutes
+
     
     end_time = time.time() - start_time_float
 
@@ -71,16 +90,20 @@ def compile_and_run_cpp(mesh_file):
         #print("Error:", run_process.stderr)
 
     #remove from the mesh_file the path and the off extension
-    mesh_file = mesh_file.replace("./data/test/", "")
+
+    mesh_file = mesh_file.replace("./Thingi10K/", "")
+    #mesh_file = mesh_file.replace("./data/test", "")
     if mesh_file.endswith(".off"):
         mesh_file = mesh_file.replace(".off", "")
     elif mesh_file.endswith(".stl"):
         mesh_file = mesh_file.replace(".stl", "")
 
     #if the process failed, return the error message
-    if run_process.stderr:
-        #print("Failed on file:", mesh_file, run_process.stderr)
-        result = [mesh_file, "Failed", end_time_formatted, run_process.stderr]
+   
+    
+    if error:
+        print("Failed on file:", mesh_file, error)
+        result = [mesh_file, "Failed", end_time_formatted, error]
     else:
         #print("Success on file:", mesh_file)
         result = [mesh_file, "Passed", end_time_formatted, ""]
@@ -154,7 +177,7 @@ if __name__ == "__main__":
 
     #clean the terminal screen
     os.system('cls' if os.name == 'nt' else 'clear')
-
+    
     if not os.path.exists("./results"):
         os.makedirs("./results")
         
@@ -170,19 +193,26 @@ if __name__ == "__main__":
         create_excel_file("test_results.xlsx")
 
     #order the files in the folder by name and iterate over them
+    #path_folder = "./data/test"
+    path_folder = "./Thingi10K"
     results = []
-    files = sorted_alphanumeric(os.listdir("./data/test"))
+    files = sorted_alphanumeric(os.listdir(path_folder))
+    #find the mesh in file with name 996816.off
+    #files = files[files.index("996816.off")+1:]
+    index = files.index("996816.off")
+    files.pop(index)
+    if("996816.off" in files):
+        print("yes")
 
-    
     total_files = len(files)-1
     for i, filename in enumerate(files):
         if filename.endswith(".off") or filename.endswith(".stl"):
             progress_bar = completion_bar(i, total_files)
-            print("\rProgress: {}% {}".format(int((i / total_files) * 100), progress_bar), end="")
-        
-            mesh_file = os.path.join("./data/test", filename)
+            print("\rProgress: {}% {}".format(int((i / total_files) * 100), progress_bar), "Files Processed -> ", i,"/", total_files+1, end="")
+            mesh_file = os.path.join(path_folder, filename)
             result = compile_and_run_cpp(mesh_file)
             results.append(result)
+    
        
 
 
