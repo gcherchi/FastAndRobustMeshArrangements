@@ -115,6 +115,7 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
         { // start critical section...
             std::lock_guard<tbb::spin_mutex> lock(mutex);
             solvePocketsInCoplanarTriangle(subm, g, new_tris, new_labels, ts.triLabel(t_id));
+
         } // end critical section
     }
     else
@@ -172,8 +173,8 @@ inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructu
 
     // processing the triangles to split
     tbb::spin_mutex mutex;
-    //tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
-    for (uint t=0; t < (uint)tris_to_split.size(); t++) {
+    tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
+    //for (uint t=0; t < (uint)tris_to_split.size(); t++) {
         uint t_id = tris_to_split[t];
         FastTrimesh subm(ts.triVert(t_id, 0),
                          ts.triVert(t_id, 1),
@@ -181,17 +182,8 @@ inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructu
                          ts.tri(t_id),
                          ts.triPlane(t_id));
 
-        if(t%50 == 0 ){
-            now = std::chrono::system_clock::now();
-            now_time = std::chrono::system_clock::to_time_t(now);
-            // Convert the current time to a string representation
-            time_str = std::ctime(&now_time);
-            // Print the message along with the current date and time
-            std::cout << "I'm alive - " << time_str;}
-
         triangulateSingleTriangle(ts, arena, subm, t_id, g, new_tris, new_labels, mutex);
-    }
-//);
+    });
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

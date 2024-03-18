@@ -56,7 +56,7 @@ using namespace cinolib;
 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-bool debug = false;
+bool debug = true;
 bool old_version = false;
 bool parallel = false;
 
@@ -128,8 +128,9 @@ int main(int argc, char **argv)
     }
 
     /** FUNZIONANTE **/
-    filename = "../data/test/40509.stl";
+    filename = "../Thingi10K/81313.off";
     //filename = "../cmake-build-release/996816.off";
+
 
     load(filename, in_coords, in_tris);
 
