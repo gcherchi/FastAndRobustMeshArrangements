@@ -59,9 +59,6 @@
 #include <ctime>
 
 
-
-
-
 inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, FastTrimesh &subm, uint t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, tbb::spin_mutex& mutex)
 {
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -140,17 +137,8 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
     }
 }
 
-inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels)
+inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, bool parallel)
 {
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-
-    // Convert the current time to a string representation
-    std::string time_str = std::ctime(&now_time);
-
-    // Print the message along with the current date and time
-    std::cout << "I'm Triangulation - " << time_str;
-
     new_labels.clear();
     new_tris.clear();
     new_tris.reserve(2 * 3 * ts.numTris());
@@ -175,17 +163,31 @@ inline void triangulation(TriangleSoup &ts, point_arena& arena, AuxiliaryStructu
 
     // processing the triangles to split
     tbb::spin_mutex mutex;
-    tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
-    //for (uint t=0; t < (uint)tris_to_split.size(); t++) {
-        uint t_id = tris_to_split[t];
-        FastTrimesh subm(ts.triVert(t_id, 0),
-                         ts.triVert(t_id, 1),
-                         ts.triVert(t_id, 2),
-                         ts.tri(t_id),
-                         ts.triPlane(t_id));
 
-        triangulateSingleTriangle(ts, arena, subm, t_id, g, new_tris, new_labels, mutex);
-    });
+    if(parallel){
+        tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
+        //for (uint t=0; t < (uint)tris_to_split.size(); t++) {
+            uint t_id = tris_to_split[t];
+            FastTrimesh subm(ts.triVert(t_id, 0),
+                             ts.triVert(t_id, 1),
+                             ts.triVert(t_id, 2),
+                             ts.tri(t_id),
+                             ts.triPlane(t_id));
+
+            triangulateSingleTriangle(ts, arena, subm, t_id, g, new_tris, new_labels, mutex);
+        });
+    }else{
+        for (uint t=0; t < (uint)tris_to_split.size(); t++) {
+            uint t_id = tris_to_split[t];
+            FastTrimesh subm(ts.triVert(t_id, 0),
+                             ts.triVert(t_id, 1),
+                             ts.triVert(t_id, 2),
+                             ts.tri(t_id),
+                             ts.triPlane(t_id));
+
+            triangulateSingleTriangle(ts, arena, subm, t_id, g, new_tris, new_labels, mutex);
+        }
+    }
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -595,7 +597,7 @@ inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tr
                                                     *subm.vert(curr_subdv[1][2])))
                 curr_subdv[1].push_back(curr_tri[i]);
 
-            if(!curr_subdv.size() > 2) continue;
+            if(curr_subdv[2].empty()) continue;
 
             //checking if it is in the (possible) third triangle
             if(!curr_subdv[2].empty() && genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[2][0]),

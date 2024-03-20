@@ -56,9 +56,9 @@ using namespace cinolib;
 
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-bool debug = true;
+bool debug = false;
 bool old_version = false;
-bool parallel = false;
+bool parallel = true;
 
 int main(int argc, char **argv)
 {
@@ -68,15 +68,6 @@ int main(int argc, char **argv)
     std::vector<uint> in_tris, out_tris;
     std::vector<genericPoint*> gen_points;
     point_arena arena;
-
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-
-    // Convert the current time to a string representation
-    std::string time_str = std::ctime(&now_time);
-
-    // Print the message along with the current date and time
-    std::cout << "I'm Starting - " << time_str;
 
     if(!debug){
         if(argc > 1) {
@@ -89,21 +80,8 @@ int main(int argc, char **argv)
         }
 
         load(filename, in_coords, in_tris);
-
-        now = std::chrono::system_clock::now();
-        now_time = std::chrono::system_clock::to_time_t(now);
-        // Convert the current time to a string representation
-        time_str = std::ctime(&now_time);
-        // Print the message along with the current date and time
-        std::cout << "I'm alive - " << time_str;
-
-        solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
-
-
+        solveIntersections(in_coords, in_tris, arena, gen_points, out_tris, parallel);
         computeApproximateCoordinates(gen_points, out_coords);
-        // Convert time to string
-
-
 
         // Find the position of the last occurrence of '/'
         size_t pos_slash = filename.find_last_of("/");
@@ -116,21 +94,11 @@ int main(int argc, char **argv)
         std::string output_name = "./results/output_" + name_out + ".obj";
 
         save(output_name, out_coords, out_tris);
-
-        now = std::chrono::system_clock::now();
-        now_time = std::chrono::system_clock::to_time_t(now);
-        // Convert the current time to a string representation
-        time_str = std::ctime(&now_time);
-        // Print the message along with the current date and time
-        std::cout << "  End  " << time_str;
-
         return 0;
     }
 
     /** FUNZIONANTE **/
-    filename = "../Thingi10K/81313.off";
-    //filename = "../cmake-build-release/996816.off";
-
+    filename = "../data/test/40509.stl";
 
     load(filename, in_coords, in_tris);
 
@@ -212,8 +180,8 @@ int main(int argc, char **argv)
 
     // processing the triangles to split
     tbb::spin_mutex mutex;
-    //tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
-    for (uint t=0; t < (uint)tris_to_split.size(); t++) {
+    tbb::parallel_for((uint)0, (uint)tris_to_split.size(), [&](uint t) {
+    //for (uint t=0; t < (uint)tris_to_split.size(); t++) {
         uint t_id = tris_to_split[t];
         FastTrimesh subm(ts.triVert(t_id, 0),
                          ts.triVert(t_id, 1),
@@ -222,13 +190,6 @@ int main(int argc, char **argv)
                          ts.triPlane(t_id));
 
         //triangulateSingleTriangle(ts, arena, subm, t_id, g, out_tris, out_labels, mutex);
-        if(t%50 == 0 ){
-        now = std::chrono::system_clock::now();
-        now_time = std::chrono::system_clock::to_time_t(now);
-        // Convert the current time to a string representation
-        time_str = std::ctime(&now_time);
-        // Print the message along with the current date and time
-        std::cout << "I'm alive - " << time_str;}
 
         /*****************************TriangulateSingleTriangle*****************************/
         /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -318,7 +279,7 @@ int main(int argc, char **argv)
             }
         }
 
-    }
+    });
 
 /******************************************************************************/
 

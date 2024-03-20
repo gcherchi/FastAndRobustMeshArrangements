@@ -51,7 +51,7 @@
 * Use one of the solveInterctions functions to interface whit it.
 */
 inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels, point_arena &arena,
-                                    std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels);
+                                    std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels, bool parallel);
 
 
 /**
@@ -83,7 +83,7 @@ inline void solveIntersections(const std::vector<double> &in_coords, const std::
  * - remember to free the dynamic allocated memory of the implicit points by calling the freePointsMemory(...) function contained in processing.h
  */
 inline void solveIntersections(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, point_arena &arena,
-                               std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris);
+                               std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris, bool parallel);
 
 
 
