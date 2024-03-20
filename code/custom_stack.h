@@ -59,7 +59,7 @@ public:
 
     int findTriplet(uint v0, uint v1, uint v2)
     {
-        for(uint i = 0; i <= cursor; i++)
+        for(uint i = cursor; i >= 0; i--)
         {
             assert(stack[i].size() >= 3 && "Empty element in the queue");
 

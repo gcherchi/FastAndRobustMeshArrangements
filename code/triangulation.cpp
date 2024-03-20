@@ -53,9 +53,11 @@
 
 #include <custom_stack.h>
 #include <fast_trimesh.h>
+#include <unordered_set>
 #include <iostream>
 #include <chrono>
 #include <ctime>
+
 
 
 
@@ -352,6 +354,19 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
                 curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
+                std::unordered_set<uint> curr_tri_set(curr_tri.begin(), curr_tri.end());
+
+                // Iterate from index 3 to the end of adj_tri
+                for (int i = 3; i < adj_tri.size(); ++i) {
+                    uint p = adj_tri[i];
+
+                    // Check if p is not equal to v_pos and if it's not already in curr_tri
+                    if (p != v_pos && curr_tri_set.find(p) == curr_tri_set.end()) {
+                        curr_tri.push_back(p);
+                        curr_tri_set.insert(p); // Update the hash set
+                    }
+                }
+                /*
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
                 for (int i = 3; i < adj_tri.size(); ++i) {
@@ -359,7 +374,7 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
 
-                }
+                }*/
 
                 //T3
                 curr_subdv[2].push_back(v_opp);
@@ -371,8 +386,6 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                 curr_subdv[3].push_back(v1e0);
                 curr_subdv[3].push_back(v_pos);
 
-                //clear the triangle adjacent from the stack
-                //stack_sub_tri.clearSingleVector(idx_tri);
             }
 
             subm.splitEdge(static_cast<uint>(e0_id), v_pos);
@@ -419,6 +432,20 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
                 curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
+
+                // Create a hash set for constant time lookup
+                std::unordered_set<uint> curr_tri_set(curr_tri.begin(), curr_tri.end());
+
+                // Iterate from index 3 to the end of adj_tri
+                for (int i = 3; i < adj_tri.size(); ++i) {
+                    uint p = adj_tri[i];
+
+                    // Check if p is not equal to v_pos and if it's not already in curr_tri
+                    if (p != v_pos && curr_tri_set.find(p) == curr_tri_set.end()) {
+                        curr_tri.push_back(p);
+                        curr_tri_set.insert(p); // Update the hash set
+                    }
+                }/*
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
                 for (int i = 3; i < adj_tri.size(); ++i) {
@@ -427,7 +454,7 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                         curr_tri.push_back(p);
 
                 }
-
+                */
                 //T3
                 curr_subdv[2].push_back(v_opp);
                 curr_subdv[2].push_back(v_pos);
@@ -437,8 +464,6 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                 curr_subdv[3].push_back(v_opp);
                 curr_subdv[3].push_back(v1e1);
                 curr_subdv[3].push_back(v_pos);
-
-                //stack_sub_tri.clearSingleVector(idx_tri); //clear the adjacent triangle from the stack
             }
 
             subm.splitEdge(static_cast<uint>(e1_id), v_pos);
@@ -486,6 +511,19 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
                 curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
+                std::unordered_set<uint> curr_tri_set(curr_tri.begin(), curr_tri.end());
+
+                // Iterate from index 3 to the end of adj_tri
+                for (int i = 3; i < adj_tri.size(); ++i) {
+                    uint p = adj_tri[i];
+
+                    // Check if p is not equal to v_pos and if it's not already in curr_tri
+                    if (p != v_pos && curr_tri_set.find(p) == curr_tri_set.end()) {
+                        curr_tri.push_back(p);
+                        curr_tri_set.insert(p); // Update the hash set
+                    }
+                }
+                /*
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
                 for (int i = 3; i < adj_tri.size(); ++i) {
@@ -493,7 +531,7 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
 
-                }
+                }*/
 
                 //T3
                 curr_subdv[2].push_back(v_opp);
@@ -505,7 +543,6 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                 curr_subdv[3].push_back(v1e2);
                 curr_subdv[3].push_back(v_pos);
 
-                //stack_sub_tri.clearSingleVector(idx_tri); //clear the adjacent triangle from the stack
             }
 
             subm.splitEdge(static_cast<uint>(e2_id), v_pos);
@@ -556,7 +593,7 @@ inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tr
             if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[1][0]),
                                                     *subm.vert(curr_subdv[1][1]),
                                                     *subm.vert(curr_subdv[1][2])))
-            curr_subdv[1].push_back(curr_tri[i]);
+                curr_subdv[1].push_back(curr_tri[i]);
 
             if(!curr_subdv.size() > 2) continue;
 
