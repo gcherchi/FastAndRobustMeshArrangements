@@ -64,12 +64,16 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                                  POINTS AND SEGMENTS RECOVERY
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-
     const auto& t_points = g.trianglePointsList(t_id);
 
     int e0_id = ts.edgeID(subm.vertOrigID(0), subm.vertOrigID(1));      assert(e0_id != -1);
     int e1_id = ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2));      assert(e1_id != -1);
     int e2_id = ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0));      assert(e2_id != -1);
+
+    //auxvector<uint> e0_points, e1_points, e2_points;
+    //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0), subm.vertOrigID(1), e0_points);
+    //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1), subm.vertOrigID(2), e1_points);
+    //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2), subm.vertOrigID(0), e2_points);
 
     const auxvector<uint> &e0_points = g.edgePointsList(static_cast<uint>(e0_id));
     const auxvector<uint> &e1_points = g.edgePointsList(static_cast<uint>(e1_id));
@@ -77,6 +81,7 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
 
     auxvector<UIPair> t_segments(g.triangleSegmentsList(t_id).begin(), g.triangleSegmentsList(t_id).end());
 
+    //uint estimated_vert_num = static_cast<uint>(t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
     uint estimated_vert_num = static_cast<uint>(3 + t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
     subm.preAllocateSpace(estimated_vert_num);
 
