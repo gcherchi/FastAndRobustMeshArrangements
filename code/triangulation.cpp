@@ -299,6 +299,7 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
     while(!stack_sub_tri.empty()){
 
         auxvector<uint> &curr_tri = stack_sub_tri.pop();
+        bool onEdge = false;
 
         if(curr_tri.empty()) continue;
 
@@ -311,202 +312,74 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
         if(t_id == -1) continue;
 
-        //Take the edges of the triangle
-        int e0_id = subm.triEdgeID(static_cast<uint>(t_id), 0); assert(e0_id != -1 && "No edge 0 found");
-        int e1_id = subm.triEdgeID(static_cast<uint>(t_id), 1); assert(e1_id != -1 && "No edge 1 found");
-        int e2_id = subm.triEdgeID(static_cast<uint>(t_id), 2); assert(e2_id != -1 && "No edge 2 found");
-
         uint v_pos = static_cast<uint>(curr_tri[3]);
 
-        if(fastPointOnLine(subm, static_cast<uint>(e0_id), v_pos)) {//on the first edge
+        for (int i = 0 ; i < 3; ++i){
+            int e_id = subm.triEdgeID(static_cast<uint>(t_id), i); assert(e_id != -1 && "No edge found");
 
-            uint v0e0 = subm.edgeVertID(static_cast<uint>(e0_id),0);
-            uint v1e0 = subm.edgeVertID(static_cast<uint>(e0_id),1);
+            if(fastPointOnLine(subm, static_cast<uint>(e_id), v_pos)) {//on the first edge
+                onEdge = true;
+                uint v0 = subm.edgeVertID(static_cast<uint>(e_id),0);
+                uint v1 = subm.edgeVertID(static_cast<uint>(e_id),1);
 
-            uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),v0e0,v1e0);
+                uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),v0,v1);
 
-            curr_subdv[0].reserve(curr_tri.size());
-            curr_subdv[1].reserve(curr_tri.size());
+                curr_subdv[0].reserve(curr_tri.size());
+                curr_subdv[1].reserve(curr_tri.size());
 
-            //T1
-            curr_subdv[0].push_back(v_opp);
-            curr_subdv[0].push_back(v0e0);
-            curr_subdv[0].push_back(v_pos);
+                //T1
+                curr_subdv[0].push_back(v_opp);
+                curr_subdv[0].push_back(v0);
+                curr_subdv[0].push_back(v_pos);
 
-            //T2
-            curr_subdv[1].push_back(v_opp);
-            curr_subdv[1].push_back(v_pos);
-            curr_subdv[1].push_back(v1e0);
+                //T2
+                curr_subdv[1].push_back(v_opp);
+                curr_subdv[1].push_back(v_pos);
+                curr_subdv[1].push_back(v1);
 
-            fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e0_id)); //adjacent triangles to the edge
+                fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e_id)); //adjacent triangles to the edge
 
-            if(e2t.size() > 1) { //if the edge is shared by two triangles
-                uint t_adj_id;
-                curr_subdv[2].reserve(curr_tri.size());
-                curr_subdv[3].reserve(curr_tri.size());
+                if(e2t.size() > 1) { //if the edge is shared by two triangles
+                    uint t_adj_id;
+                    curr_subdv[2].reserve(curr_tri.size());
+                    curr_subdv[3].reserve(curr_tri.size());
 
-                t_adj_id = (e2t[0] == static_cast<uint>(t_id)) ? e2t[1] : e2t[0]; //take the id of the adjacent triangle
+                    t_adj_id = (e2t[0] == static_cast<uint>(t_id)) ? e2t[1] : e2t[0]; //take the id of the adjacent triangle
 
-                v_opp = subm.triVertOppositeTo(t_adj_id,v1e0,v0e0);
+                    v_opp = subm.triVertOppositeTo(t_adj_id,v1,v0);
 
-                uint v0 = subm.triVertID(t_adj_id,0);
-                uint v1 = subm.triVertID(t_adj_id,1);
-                uint v2 = subm.triVertID(t_adj_id,2);
+                    uint v0_app = subm.triVertID(t_adj_id,0);
+                    uint v1_app = subm.triVertID(t_adj_id,1);
+                    uint v2_app = subm.triVertID(t_adj_id,2);
 
-                //int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
-                //const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
-                const auxvector<uint> &adj_tri = stack_sub_tri.getTriangleFromStack(v0,v1,v2);
+                    const auxvector<uint> &adj_tri = stack_sub_tri.getTriangleFromStack(v0_app,v1_app,v2_app);
 
-                curr_tri.reserve(curr_tri.size() + adj_tri.size());
+                    curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
-                //add the points of the adjacent triangle to the current triangle if they are not already present and
-                //not equal to the vertex that is currently being added
-                for (int i = 3; i < adj_tri.size(); ++i) {
-                    uint p = adj_tri[i];
-                    if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
-                        curr_tri.push_back(p);
-                }
-                //T3
-                curr_subdv[2].push_back(v_opp);
-                curr_subdv[2].push_back(v_pos);
-                curr_subdv[2].push_back(v0e0);
+                    //add the points of the adjacent triangle to the current triangle if they are not already present and
+                    //not equal to the vertex that is currently being added
+                    for (int i = 3; i < adj_tri.size(); ++i) {
+                        uint p = adj_tri[i];
+                        if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
+                            curr_tri.push_back(p);
+                    }
+                    //T3
+                    curr_subdv[2].push_back(v_opp);
+                    curr_subdv[2].push_back(v_pos);
+                    curr_subdv[2].push_back(v0);
 
-                //T4
-                curr_subdv[3].push_back(v_opp);
-                curr_subdv[3].push_back(v1e0);
-                curr_subdv[3].push_back(v_pos);
-
-            }
-
-            subm.splitEdge(static_cast<uint>(e0_id), v_pos);
-
-        }else if(fastPointOnLine(subm, static_cast<uint>(e1_id), v_pos)) {//on the second edge
-
-            uint v0e1 = subm.edgeVertID(static_cast<uint>(e1_id),0);
-            uint v1e1 = subm.edgeVertID(static_cast<uint>(e1_id),1);
-
-            uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),v0e1,v1e1);
-
-            curr_subdv[0].reserve(curr_tri.size());
-            curr_subdv[1].reserve(curr_tri.size());
-
-            //T1
-            curr_subdv[0].push_back(v_opp);
-            curr_subdv[0].push_back( v0e1);
-            curr_subdv[0].push_back(v_pos);
-
-            //T2
-            curr_subdv[1].push_back(v_opp);
-            curr_subdv[1].push_back(v_pos);
-            curr_subdv[1].push_back(v1e1);
-
-            fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e1_id)); //adjacent triangles to the edge
-
-            if(e2t.size() > 1) { //if the edge is shared by two triangles
-                uint t_adj_id;
-
-                curr_subdv[2].reserve(curr_tri.size());
-                curr_subdv[3].reserve(curr_tri.size());
-
-                t_adj_id = (e2t[0] == static_cast<uint>(t_id)) ? e2t[1] : e2t[0]; //Take the id of the adjacent triangle
-
-                v_opp = subm.triVertOppositeTo(t_adj_id,v1e1,v0e1);
-
-                uint v0 = subm.triVertID(t_adj_id,0);
-                uint v1 = subm.triVertID(t_adj_id,1);
-                uint v2 = subm.triVertID(t_adj_id,2);
-
-                //int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
-                //const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
-                const auxvector<uint> &adj_tri = stack_sub_tri.getTriangleFromStack(v0,v1,v2);
-
-                curr_tri.reserve(curr_tri.size() + adj_tri.size());
-
-                //add the points of the adjacent triangle to the current triangle if they are not already present and
-                //not equal to the vertex that is currently being added
-                for (int i = 3; i < adj_tri.size(); ++i) {
-                    uint p = adj_tri[i];
-                    if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
-                        curr_tri.push_back(p);
+                    //T4
+                    curr_subdv[3].push_back(v_opp);
+                    curr_subdv[3].push_back(v1);
+                    curr_subdv[3].push_back(v_pos);
                 }
 
-                //T3
-                curr_subdv[2].push_back(v_opp);
-                curr_subdv[2].push_back(v_pos);
-                curr_subdv[2].push_back(v0e1);
-
-                //T4
-                curr_subdv[3].push_back(v_opp);
-                curr_subdv[3].push_back(v1e1);
-                curr_subdv[3].push_back(v_pos);
+                subm.splitEdge(static_cast<uint>(e_id), v_pos);
+                break;
             }
+        }
 
-            subm.splitEdge(static_cast<uint>(e1_id), v_pos);
-
-        }else if(fastPointOnLine(subm, static_cast<uint>(e2_id), v_pos)) {//on the third edge
-            uint v0e2 = subm.edgeVertID(static_cast<uint>(e2_id),0);
-            uint v1e2 = subm.edgeVertID(static_cast<uint>(e2_id),1);
-
-            uint v_opp = subm.triVertOppositeTo(static_cast<uint>(t_id),v0e2,v1e2);
-
-            curr_subdv[0].reserve(curr_tri.size());
-            curr_subdv[1].reserve(curr_tri.size());
-
-            //T1
-            curr_subdv[0].push_back(v_opp);
-            curr_subdv[0].push_back(v0e2);
-            curr_subdv[0].push_back(v_pos);
-
-            //T2
-            curr_subdv[1].push_back(v_opp);
-            curr_subdv[1].push_back(v_pos);
-            curr_subdv[1].push_back(v1e2);
-
-            fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e2_id)); //adjacent triangles to the edge
-
-            if(e2t.size() > 1) { //if the edge is shared by two triangles
-                uint t_adj_id;
-
-                curr_subdv[2].reserve(curr_tri.size());
-                curr_subdv[3].reserve(curr_tri.size());
-
-                t_adj_id = (e2t[0] == static_cast<uint>(t_id)) ? e2t[1] : e2t[0]; //Take the id of the adjacent triangle
-
-                v_opp = subm.triVertOppositeTo(t_adj_id,v1e2,v0e2);
-
-                uint v0 = subm.triVertID(t_adj_id,0);
-                uint v1 = subm.triVertID(t_adj_id,1);
-                uint v2 = subm.triVertID(t_adj_id,2);
-
-                //int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
-                //const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
-                const auxvector<uint> &adj_tri = stack_sub_tri.getTriangleFromStack(v0,v1,v2);
-
-                curr_tri.reserve(curr_tri.size() + adj_tri.size());
-
-                //add the points of the adjacent triangle to the current triangle if they are not already present and
-                //not equal to the vertex that is currently being added
-                for (int i = 3; i < adj_tri.size(); ++i) {
-                    uint p = adj_tri[i];
-                    if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
-                        curr_tri.push_back(p);
-                }
-
-                //T3
-                curr_subdv[2].push_back(v_opp);
-                curr_subdv[2].push_back(v_pos);
-                curr_subdv[2].push_back(v0e2);
-
-                //T4
-                curr_subdv[3].push_back(v_opp);
-                curr_subdv[3].push_back(v1e2);
-                curr_subdv[3].push_back(v_pos);
-
-            }
-
-            subm.splitEdge(static_cast<uint>(e2_id), v_pos);
-
-        }else{//inside the triangle
+        if (!onEdge){
             curr_subdv[0].reserve(curr_tri.size());
             curr_subdv[1].reserve(curr_tri.size());
             curr_subdv[2].reserve(curr_tri.size());
