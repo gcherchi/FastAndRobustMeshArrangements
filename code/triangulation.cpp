@@ -55,8 +55,6 @@
 #include <fast_trimesh.h>
 #include <unordered_set>
 #include <iostream>
-#include <chrono>
-#include <ctime>
 
 
 inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, FastTrimesh &subm, uint t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, tbb::spin_mutex& mutex)
@@ -343,6 +341,7 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
             fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e0_id)); //adjacent triangles to the edge
 
             if(e2t.size() > 1) { //if the edge is shared by two triangles
+                std::cout << "Edge shared by two triangles" << std::endl;
                 uint t_adj_id;
                 curr_subdv[2].reserve(curr_tri.size());
                 curr_subdv[3].reserve(curr_tri.size());
@@ -446,7 +445,6 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                 // Iterate from index 3 to the end of adj_tri
                 for (int i = 3; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
-
                     // Check if p is not equal to v_pos and if it's not already in curr_tri
                     if (p != v_pos && curr_tri_set.find(p) == curr_tri_set.end()) {
                         curr_tri.push_back(p);
@@ -498,7 +496,6 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
             fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e2_id)); //adjacent triangles to the edge
 
             if(e2t.size() > 1) { //if the edge is shared by two triangles
-
                 uint t_adj_id;
 
                 curr_subdv[2].reserve(curr_tri.size());
@@ -523,7 +520,6 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                 // Iterate from index 3 to the end of adj_tri
                 for (int i = 3; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
-
                     // Check if p is not equal to v_pos and if it's not already in curr_tri
                     if (p != v_pos && curr_tri_set.find(p) == curr_tri_set.end()) {
                         curr_tri.push_back(p);

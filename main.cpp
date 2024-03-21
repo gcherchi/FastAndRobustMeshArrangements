@@ -48,9 +48,6 @@
 #include <cinolib/meshes/meshes.h>
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
-#include <iostream>
-#include <chrono>
-#include <ctime>
 
 using namespace cinolib;
 
@@ -94,7 +91,8 @@ int main(int argc, char **argv)
     }
 
     /** FUNZIONANTE **/
-    filename = "../data/test/40509.stl";
+    //filename = "../data/test/40509.stl";
+    filename = "../Thingi10K/z_996816.off";
 
     load(filename, in_coords, in_tris);
 
@@ -111,7 +109,9 @@ int main(int argc, char **argv)
     solveIntersections(in_coords, in_tris, arena, gen_points, out_tris, parallel);
     computeApproximateCoordinates(gen_points, out_coords);
 
-    //visualization
+
+
+    /**----------------Visualization part-----------------**/
     m = DrawableTrimesh(out_coords, out_tris);
 
     //Example marker vert

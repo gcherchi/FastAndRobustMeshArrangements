@@ -37,8 +37,7 @@
 
 #include "solve_intersections.h"
 #include <iostream>
-#include <chrono>
-#include <ctime>
+
 
 #undef NDEBUG
 

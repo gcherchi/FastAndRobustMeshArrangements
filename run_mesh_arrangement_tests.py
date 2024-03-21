@@ -47,7 +47,7 @@ def clean_folder(folder_path):
             os.rmdir(file_path)
 
 
-def compile_and_run_cpp(mesh_file):
+def compile_and_run_cpp(mesh_file, path_folder_filename, excel_file):
     executable = os.path.join("cmake-build-release", 'mesh_arrangement')
     #executable = '/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/history-results/old_version_results/mesh_arrangement'
     #measure the time it takes to run the process
@@ -69,19 +69,16 @@ def compile_and_run_cpp(mesh_file):
     # Format the elapsed time
     end_time_formatted = "{:02d}:{:02d}:{:02d}:{:03d}".format(hours, minutes, seconds, milliseconds)
 
-    #print(run_process.stdout, "Time: ", end_time_formatted)
-    
-    #if run_process.stderr:
-        #print("Error:", run_process.stderr)
-
     #remove from the mesh_file the path and the off extension
 
-    mesh_file = mesh_file.replace("./Thingi10K/", "")
+    mesh_file = mesh_file.replace(path_folder + "/", "")
     #mesh_file = mesh_file.replace("./data/test", "")
     if mesh_file.endswith(".off"):
         mesh_file = mesh_file.replace(".off", "")
     elif mesh_file.endswith(".stl"):
         mesh_file = mesh_file.replace(".stl", "")
+    elif mesh_file.endswith(".obj"):
+        mesh_file = mesh_file.replace(".obj", "")
 
     #if the process failed, return the error message
    
@@ -94,7 +91,7 @@ def compile_and_run_cpp(mesh_file):
         result = [mesh_file, "Passed", end_time_formatted, ""]
     
 
-    write_to_excel(result, "test_results.xlsx")
+    write_to_excel(result, excel_file)
 
 
 def create_excel_file(excel_file):
@@ -160,7 +157,12 @@ def write_to_excel(output_data, excel_file):
 
 if __name__ == "__main__":
 
-    #clean the terminal screen
+     #big_mesh = "z_996816.off"
+    path_folder = "./Thingi10k"
+    path_folder = "./data/test"
+    excel_file = "test_results.xlsx"
+    
+    #clean terminal
     os.system('cls' if os.name == 'nt' else 'clear')
     
     if not os.path.exists("./results"):
@@ -170,33 +172,24 @@ if __name__ == "__main__":
     clean_folder(folder_to_clean)
 
     #if the file exists, delete it
-    if os.path.exists("test_results.xlsx"):
-        os.remove("test_results.xlsx")
+    if os.path.exists(excel_file):
+        os.remove(excel_file)
 
     #if the file does not exist, create it
-    if not os.path.exists("test_results.xlsx"):
-        create_excel_file("test_results.xlsx")
+    if not os.path.exists(excel_file):
+        create_excel_file(excel_file)
 
-    #order the files in the folder by name and iterate over them
-    #path_folder = "./data/test"
-    path_folder = "./Thingi10K"
     results = []
     files = sorted_alphanumeric(os.listdir(path_folder))
-    #find the mesh in file with name 996816.off
-    #files = files[files.index("996816.off")+1:]
-    #index = files.index("996816.off")
-    #files.pop(index)
-    #if("996816.off" in files):
-     #   print("yes")
 
     total_files = len(files)-1
     for i, filename in enumerate(files):
-        if filename.endswith(".off") or filename.endswith(".stl"):
+        if filename.endswith(".off") or filename.endswith(".stl") or   filename.endswith(".obj"):
             progress_bar = completion_bar(i, total_files)
-            print("\rProgress: {}% {}".format(int((i / total_files) * 100), progress_bar), "Files Processed -> ", i,"/", total_files+1," Running on file: ", filename, end="")
+            print("\rProgress: {}% {}".format(int((i / total_files) * 100), progress_bar), "Files Processed -> ", i,"/", total_files," Running on file: ", filename, end="")
           
             mesh_file = os.path.join(path_folder, filename)
-            result = compile_and_run_cpp(mesh_file)
+            result = compile_and_run_cpp(mesh_file, path_folder, excel_file)
             results.append(result)
     
        
