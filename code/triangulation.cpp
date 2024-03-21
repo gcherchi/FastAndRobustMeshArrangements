@@ -304,8 +304,8 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
         curr_subdv[0].clear();
         curr_subdv[1].clear();
-        curr_subdv[2].clear();
-        curr_subdv[3].clear();
+        if (!curr_subdv[2].empty()) curr_subdv[2].clear();
+        if (!curr_subdv[3].empty()) curr_subdv[3].clear();
 
         int t_id = subm.triID(curr_tri[0], curr_tri[1], curr_tri[2]);
 
@@ -341,7 +341,6 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
             fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e0_id)); //adjacent triangles to the edge
 
             if(e2t.size() > 1) { //if the edge is shared by two triangles
-                std::cout << "Edge shared by two triangles" << std::endl;
                 uint t_adj_id;
                 curr_subdv[2].reserve(curr_tri.size());
                 curr_subdv[3].reserve(curr_tri.size());
@@ -354,34 +353,19 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                 uint v1 = subm.triVertID(t_adj_id,1);
                 uint v2 = subm.triVertID(t_adj_id,2);
 
-                int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
-
-                const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+                //int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
+                //const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+                const auxvector<uint> &adj_tri = stack_sub_tri.getTriangleFromStack(v0,v1,v2);
 
                 curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
-                std::unordered_set<uint> curr_tri_set(curr_tri.begin(), curr_tri.end());
-
-                // Iterate from index 3 to the end of adj_tri
-                for (int i = 3; i < adj_tri.size(); ++i) {
-                    uint p = adj_tri[i];
-
-                    // Check if p is not equal to v_pos and if it's not already in curr_tri
-                    if (p != v_pos && curr_tri_set.find(p) == curr_tri_set.end()) {
-                        curr_tri.push_back(p);
-                        curr_tri_set.insert(p); // Update the hash set
-                    }
-                }
-                /*
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
                 for (int i = 3; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
-
-                }*/
-
+                }
                 //T3
                 curr_subdv[2].push_back(v_opp);
                 curr_subdv[2].push_back(v_pos);
@@ -432,34 +416,20 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                 uint v1 = subm.triVertID(t_adj_id,1);
                 uint v2 = subm.triVertID(t_adj_id,2);
 
-                int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
-
-                const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+                //int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
+                //const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+                const auxvector<uint> &adj_tri = stack_sub_tri.getTriangleFromStack(v0,v1,v2);
 
                 curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
-
-                // Create a hash set for constant time lookup
-                std::unordered_set<uint> curr_tri_set(curr_tri.begin(), curr_tri.end());
-
-                // Iterate from index 3 to the end of adj_tri
-                for (int i = 3; i < adj_tri.size(); ++i) {
-                    uint p = adj_tri[i];
-                    // Check if p is not equal to v_pos and if it's not already in curr_tri
-                    if (p != v_pos && curr_tri_set.find(p) == curr_tri_set.end()) {
-                        curr_tri.push_back(p);
-                        curr_tri_set.insert(p); // Update the hash set
-                    }
-                }/*
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
                 for (int i = 3; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
-
                 }
-                */
+
                 //T3
                 curr_subdv[2].push_back(v_opp);
                 curr_subdv[2].push_back(v_pos);
@@ -474,7 +444,6 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
             subm.splitEdge(static_cast<uint>(e1_id), v_pos);
 
         }else if(fastPointOnLine(subm, static_cast<uint>(e2_id), v_pos)) {//on the third edge
-
             uint v0e2 = subm.edgeVertID(static_cast<uint>(e2_id),0);
             uint v1e2 = subm.edgeVertID(static_cast<uint>(e2_id),1);
 
@@ -509,32 +478,19 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                 uint v1 = subm.triVertID(t_adj_id,1);
                 uint v2 = subm.triVertID(t_adj_id,2);
 
-                int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
-
-                const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+                //int idx_tri = stack_sub_tri.findTriplet(v0,v1,v2);
+                //const auxvector<uint> &adj_tri = stack_sub_tri.getSingleVector(idx_tri);
+                const auxvector<uint> &adj_tri = stack_sub_tri.getTriangleFromStack(v0,v1,v2);
 
                 curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
-                std::unordered_set<uint> curr_tri_set(curr_tri.begin(), curr_tri.end());
-
-                // Iterate from index 3 to the end of adj_tri
-                for (int i = 3; i < adj_tri.size(); ++i) {
-                    uint p = adj_tri[i];
-                    // Check if p is not equal to v_pos and if it's not already in curr_tri
-                    if (p != v_pos && curr_tri_set.find(p) == curr_tri_set.end()) {
-                        curr_tri.push_back(p);
-                        curr_tri_set.insert(p); // Update the hash set
-                    }
-                }
-                /*
                 //add the points of the adjacent triangle to the current triangle if they are not already present and
                 //not equal to the vertex that is currently being added
                 for (int i = 3; i < adj_tri.size(); ++i) {
                     uint p = adj_tri[i];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
-
-                }*/
+                }
 
                 //T3
                 curr_subdv[2].push_back(v_opp);
@@ -573,7 +529,8 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
             subm.splitTri(static_cast<uint>(t_id), v_pos);
         }
 
-        repositionPointsInStack(subm, stack_sub_tri, curr_subdv, curr_tri);
+        if (curr_tri.size() > 4)
+            repositionPointsInStack(subm, stack_sub_tri, curr_subdv, curr_tri);
 
     }
 }
@@ -581,48 +538,49 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
 inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri)
 {
-    if (curr_tri.size() > 4){
-        for (int i = 4; i < curr_tri.size() ; i++){
+    for (int i = 4; i < curr_tri.size() ; ++i){
 
-            const genericPoint &p = *subm.vert(curr_tri[i]);
+        const genericPoint &p = *subm.vert(curr_tri[i]);
 
-            //checking if it is in the first triangle
-            if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[0][0]),
-                                                    *subm.vert(curr_subdv[0][1]),
-                                                    *subm.vert(curr_subdv[0][2])))
-                curr_subdv[0].push_back(curr_tri[i]);
+        //checking if it is in the first triangle
+        if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[0][0]),
+                                                *subm.vert(curr_subdv[0][1]),
+                                                *subm.vert(curr_subdv[0][2])))
+            curr_subdv[0].push_back(curr_tri[i]);
 
-            //checking if it is in the second triangle
-            if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[1][0]),
-                                                    *subm.vert(curr_subdv[1][1]),
-                                                    *subm.vert(curr_subdv[1][2])))
-                curr_subdv[1].push_back(curr_tri[i]);
+        //checking if it is in the second triangle
+        if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[1][0]),
+                                                *subm.vert(curr_subdv[1][1]),
+                                                *subm.vert(curr_subdv[1][2])))
+            curr_subdv[1].push_back(curr_tri[i]);
 
-            if(curr_subdv[2].empty()) continue;
+        if(curr_subdv[2].empty()) continue;
 
-            //checking if it is in the (possible) third triangle
-            if(!curr_subdv[2].empty() && genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[2][0]),
-                                                                            *subm.vert(curr_subdv[2][1]),
-                                                                            *subm.vert(curr_subdv[2][2])))
-                curr_subdv[2].push_back(curr_tri[i]);
+        //checking if it is in the (possible) third triangle
+        if(!curr_subdv[2].empty() && genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[2][0]),
+                                                                        *subm.vert(curr_subdv[2][1]),
+                                                                        *subm.vert(curr_subdv[2][2])))
+            curr_subdv[2].push_back(curr_tri[i]);
 
-            //checking if it is in the (possible) fourth triangle
-            if(!curr_subdv[3].empty() && genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[3][0]),
-                                                                       *subm.vert(curr_subdv[3][1]),
-                                                                       *subm.vert(curr_subdv[3][2])))
-                curr_subdv[3].push_back(curr_tri[i]);
-        }
+        //checking if it is in the (possible) fourth triangle
+        if(!curr_subdv[3].empty() && genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[3][0]),
+                                                                   *subm.vert(curr_subdv[3][1]),
+                                                                   *subm.vert(curr_subdv[3][2])))
+            curr_subdv[3].push_back(curr_tri[i]);
     }
+
 
     // push progressively the elements of the curr_subv in the stack if the triangle has almost one point to add
-    for(int i = 0 ; i < curr_subdv.size(); i++){
-        if((i > 1 && curr_subdv[i].empty()) || curr_subdv[i].size() == 3) {
+    for(int i = 0 ; i < curr_subdv.size(); ++i){
+        if((i > 1 && curr_subdv[i].empty()) || curr_subdv[i].size() == 3)
             continue;
-        }
-        stack_sub_tri.push(curr_subdv[i]);
-    }
 
+        stack_sub_tri.push(curr_subdv[i]);
+
+    }
 }
+
+
 
 void makeConformalVertOrder(FastTrimesh &subm, vector<auxvector<uint>> &curr_subdv)
 {

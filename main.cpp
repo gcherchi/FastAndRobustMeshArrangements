@@ -39,7 +39,6 @@
 #define _HAS_STD_BYTE 0  // https://developercommunity.visualstudio.com/t/error-c2872-byte-ambiguous-symbol/93889
 #define NOMINMAX // https://stackoverflow.com/questions/1825904/error-c2589-on-stdnumeric-limitsdoublemin
 #endif
-#undef NDEBUG
 #include <iostream>
 
 #include "solve_intersections.h"

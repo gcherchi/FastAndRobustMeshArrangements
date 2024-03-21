@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
      #big_mesh = "z_996816.off"
     path_folder = "./Thingi10k"
-    path_folder = "./data/test"
+    #path_folder = "./data/test"
     excel_file = "test_results.xlsx"
     
     #clean terminal
