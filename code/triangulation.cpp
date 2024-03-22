@@ -50,6 +50,7 @@
 
 #include <tbb/tbb.h>
 #include <typeinfo>
+#include <utility>
 
 #include <custom_stack.h>
 #include <fast_trimesh.h>
@@ -319,6 +320,7 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
             if(fastPointOnLine(subm, static_cast<uint>(e_id), v_pos)) {//on the first edge
                 onEdge = true;
+
                 uint v0 = subm.edgeVertID(static_cast<uint>(e_id),0);
                 uint v1 = subm.edgeVertID(static_cast<uint>(e_id),1);
 
@@ -334,8 +336,8 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
                 //T2
                 curr_subdv[1].push_back(v_opp);
-                curr_subdv[1].push_back(v_pos);
                 curr_subdv[1].push_back(v1);
+                curr_subdv[1].push_back(v_pos);
 
                 fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e_id)); //adjacent triangles to the edge
 
@@ -358,15 +360,15 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
                     //add the points of the adjacent triangle to the current triangle if they are not already present and
                     //not equal to the vertex that is currently being added
-                    for (int i = 3; i < adj_tri.size(); ++i) {
-                        uint p = adj_tri[i];
+                    for (int j = 3; j < adj_tri.size(); ++j) {
+                        uint p = adj_tri[j];
                         if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                             curr_tri.push_back(p);
                     }
                     //T3
                     curr_subdv[2].push_back(v_opp);
-                    curr_subdv[2].push_back(v_pos);
                     curr_subdv[2].push_back(v0);
+                    curr_subdv[2].push_back(v_pos);
 
                     //T4
                     curr_subdv[3].push_back(v_opp);
@@ -404,7 +406,6 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
         if (curr_tri.size() > 4)
             repositionPointsInStack(subm, stack_sub_tri, curr_subdv, curr_tri);
-
     }
 }
 
@@ -453,6 +454,46 @@ inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tr
     }
 }
 
+inline void repositionPointsInStackOptimized(FastTrimesh &subm, CustomStack &stack_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri){
+
+    uint &v0_e0 = curr_subdv[0][2];
+    uint &v1_e0 = curr_subdv[0][1];
+
+    uint &v0_e1 = curr_subdv[1][2];
+    uint &v1_e1 = (curr_subdv[1][1] == v1_e0) ? curr_subdv[1][0] : curr_subdv[1][1];
+
+    if(!curr_subdv[2].empty()){
+        uint &v0_e2 = curr_subdv[2][2];
+        uint &v1_e2 = (curr_subdv[2][1] == v1_e1) ? curr_subdv[2][0] : curr_subdv[2][1];
+
+        if(!curr_subdv[3].empty()){
+            uint &v0_e3 = curr_subdv[3][2];
+            uint &v1_e3 = (curr_subdv[3][1] == v1_e2) ? curr_subdv[3][0] : curr_subdv[3][1];
+        }
+    }
+
+    for (int i = 4; i < curr_tri.size() ; ++i){
+
+        const genericPoint &p = *subm.vert(curr_tri[i]);
+       //Se edge 1 e edge 2 sono concordi è dentro il triangolo 1
+       /*if (genericPoint::orient3D(p,*subm.vert(v0_e0), *subm.vert(v1_e0), subm.vert()) > 0 &&
+           genericPoint::orient3D(p,*subm.vert(v0_e1), *subm.vert(v1_e0), subm.vert()) > 0){
+           curr_subdv[0].push_back(p);
+
+       }*/
+
+    }
+
+
+    // push progressively the elements of the curr_subv in the stack if the triangle has almost one point to add
+    for(int i = 0 ; i < curr_subdv.size(); ++i){
+        if((i > 1 && curr_subdv[i].empty()) || curr_subdv[i].size() == 3)
+            continue;
+
+        stack_sub_tri.push(curr_subdv[i]);
+
+    }
+}
 
 
 void makeConformalVertOrder(FastTrimesh &subm, vector<auxvector<uint>> &curr_subdv)
