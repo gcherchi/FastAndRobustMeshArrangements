@@ -47,8 +47,8 @@ def clean_folder(folder_path):
             os.rmdir(file_path)
 
 
-def compile_and_run_cpp(mesh_file, path_folder_filename, excel_file):
-    executable = os.path.join("cmake-build-release", 'mesh_arrangement')
+def compile_and_run_cpp(mesh_file, path_folder_filename, excel_file, mode="release"):
+    executable = os.path.join("cmake-build-"+ mode, 'mesh_arrangement')
     #executable = '/Users/michele/Documents/GitHub/FastAndRobustMeshArrangements/history-results/old_version_results/mesh_arrangement'
     #measure the time it takes to run the process
     start_time_float = time.time()
@@ -79,15 +79,19 @@ def compile_and_run_cpp(mesh_file, path_folder_filename, excel_file):
         mesh_file = mesh_file.replace(".stl", "")
     elif mesh_file.endswith(".obj"):
         mesh_file = mesh_file.replace(".obj", "")
+   
+    #check if the new file is in the results folder
+    #pick the last file in the results folder
+    results_folder = "./results"
+    files = os.listdir(results_folder)
 
     #if the process failed, return the error message
-   
-    
     if run_process.stderr:
         print("Failed on file:", mesh_file, run_process.stderr)
         result = [mesh_file, "Failed", end_time_formatted, run_process.stderr]
-    else:
-        #print("Success on file:", mesh_file)
+    elif not "output_"+ mesh_file + ".obj" in files:
+        result = [mesh_file, "Failed", end_time_formatted, "The output file is not in the results folder. Somenthing went wrong."]
+    else: 
         result = [mesh_file, "Passed", end_time_formatted, ""]
     
 
@@ -161,6 +165,7 @@ if __name__ == "__main__":
     path_folder = "./Thingi10k"
     #path_folder = "./data/test"
     excel_file = "test_results.xlsx"
+    mode = "release"
     
     #clean terminal
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -182,14 +187,14 @@ if __name__ == "__main__":
     results = []
     files = sorted_alphanumeric(os.listdir(path_folder))
 
-    total_files = len(files)-1
+    total_files = len(files)
     for i, filename in enumerate(files):
         if filename.endswith(".off") or filename.endswith(".stl") or   filename.endswith(".obj"):
             progress_bar = completion_bar(i, total_files)
-            print("\rProgress: {}% {}".format(int((i / total_files) * 100), progress_bar), "Files Processed -> ", i,"/", total_files," Running on file: ", filename, end="")
-          
+            print("\rProgress: {}% {}".format(int((i / total_files) * 100), progress_bar), "Files Processed -> ", i+1,"/", total_files," Running on file: ", filename, end="")
+        
             mesh_file = os.path.join(path_folder, filename)
-            result = compile_and_run_cpp(mesh_file, path_folder, excel_file)
+            result = compile_and_run_cpp(mesh_file, path_folder, excel_file, mode)
             results.append(result)
     
        

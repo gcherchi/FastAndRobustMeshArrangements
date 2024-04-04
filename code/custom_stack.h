@@ -59,7 +59,7 @@ public:
 
     int findTriplet(uint v0, uint v1, uint v2)
     {
-        for(uint i = cursor; i >= 0; --i)
+        for(int i = cursor; i >= 0; --i)
         {
             assert(stack[i].size() >= 3 && "Empty element in the queue");
 
@@ -79,16 +79,16 @@ public:
 
     const auxvector<uint>& getTriangleFromStack(uint v0, uint v1, uint v2)
     {
-        for(uint i = cursor; i >= 0; --i)
+        for(int i = cursor; i >= 0; --i)
         {
             assert(stack[i].size() >= 3 && "Empty element in the queue");
 
             if ((stack[i][0] == v0 && stack[i][1] == v1 && stack[i][2] == v2) ||
                 (stack[i][0] == v0 && stack[i][1] == v2 && stack[i][2] == v1) ||
+                (stack[i][0] == v2 && stack[i][1] == v1 && stack[i][2] == v0) ||
                 (stack[i][0] == v1 && stack[i][1] == v0 && stack[i][2] == v2) ||
                 (stack[i][0] == v1 && stack[i][1] == v2 && stack[i][2] == v0) ||
-                (stack[i][0] == v2 && stack[i][1] == v0 && stack[i][2] == v1) ||
-                (stack[i][0] == v2 && stack[i][1] == v1 && stack[i][2] == v0) ){
+                (stack[i][0] == v2 && stack[i][1] == v0 && stack[i][2] == v1)){
                 return stack[i];
             }
         }
@@ -102,7 +102,6 @@ public:
 private:
         std::vector<auxvector<uint>> stack;
         int cursor;
-
 };
 
 
