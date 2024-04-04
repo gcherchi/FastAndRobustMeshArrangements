@@ -4,6 +4,9 @@
 # For each "<filename>.mesh" in the "vol_in" folder, the script checks the mapping in the "srf_maps" folder  
 # (with name <filename>_smap.txt, as produced from our run_surface_mapping.py script).
 
+
+import smtplib
+from email.message import EmailMessage
 import os
 import subprocess
 import time
@@ -159,6 +162,33 @@ def write_to_excel(output_data, excel_file):
     # Save the Excel file
     wb_add.save(excel_file)
 
+def send_email_with_attachment(filename, content):
+    # Set up email account information
+    email_address = "sender.uni@hotmail.com"
+    email_password = "Haloreach1!"
+    smtp_server = "smtp-mail.outlook.com"
+    smtp_port = 587
+
+    # Create email message
+    msg = EmailMessage()
+    msg['Subject'] = 'Re: Hello, World!'
+    msg['From'] = email_address
+    msg['To'] = 'michele.faeddal@hotmail.com'
+    msg.set_content(content)
+    with open(filename, 'rb') as f:
+        file_data = f.read()
+    msg.add_attachment(file_data, maintype='application', subtype='octet-stream', filename=filename)
+
+    # Send email message
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(email_address, email_password)
+            server.send_message(msg)
+        print("Email sent successfully!")
+    except Exception as e:
+        print("An error occurred:", e)
+
 if __name__ == "__main__":
 
      #big_mesh = "z_996816.off"
@@ -166,6 +196,7 @@ if __name__ == "__main__":
     #path_folder = "./data/test"
     excel_file = "test_results.xlsx"
     mode = "release"
+    sendmail = True
     
     #clean terminal
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -196,10 +227,12 @@ if __name__ == "__main__":
             mesh_file = os.path.join(path_folder, filename)
             result = compile_and_run_cpp(mesh_file, path_folder, excel_file, mode)
             results.append(result)
-    
-       
+        
+             # Print progress after each 1/5 of total files processed
+            if sendmail and i % (total_files // 5) == 0:
+                progress = i // (total_files // 5)
+                send_email_with_attachment(excel_file,"\nProgress: {}%".format(progress * 20) )
 
 
-    
 
-    
+
