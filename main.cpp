@@ -94,53 +94,7 @@ int main(int argc, char **argv)
     }
 
     /** FUNZIONANTE **/
-    filename = "../data/test/test_point_e3.obj";
-    //filename = "../Thingi10K/z_996816.off";
-
-
-
-    genericPoint *A = new explicitPoint3D(0.0,0.0,0.0);
-    genericPoint *B = new explicitPoint3D(1.0,0.0,0.0);
-    genericPoint *C = new explicitPoint3D(0.5,1.0,0.0);
-    genericPoint *POS = new explicitPoint3D(0.5,0.0,0.0);
-    genericPoint *H = new explicitPoint3D(-1.0,2.0,7.0);
-
-    genericPoint *QT0 = new explicitPoint3D(0.25,0.5,0.0);
-
-
-    genericPoint *QT1 = new explicitPoint3D(0.65,0.5,0.0);
-    genericPoint *QT2 = new explicitPoint3D(0.35,0.5,0.0);
-
-    int T0_e2 = genericPoint::orient3D(*POS, *C, *A, *H);
-    std::cout<<"T0_e2 = "<< T0_e2 << std::endl;
-
-    int T0_e0 = genericPoint::orient3D(*QT1, *POS, *C, *H );
-    int T0_e1 = genericPoint::orient3D(*QT2, *POS, *C, *H );
-
-    int T1_e0 = genericPoint::orient3D(*QT1, *POS, *B, *H);
-    int T1_e1 = genericPoint::orient3D(*QT2, *POS, *C, *H);
-
-
-    std::cout<<"T0_e0 = "<< T0_e0 << " T0_e1: "<< T0_e1 << std::endl;
-    std::cout<<"T1_e0 = "<< T0_e0*-1 << " T1_e1: "<< T1_e1 << std::endl;
-
-    //take the time of the for loop
-
-    Profiler p;
-
-    p.push("Test");
-    for(int i = 0; i<90000000; i++){
-        int a = genericPoint::orient3D(*A, *B, *C, *H);
-    }
-    p.pop();
-    //auto a = out_coords[-1000];
-    //std:cout<<a<<std::endl;
-
-    p.push("Test2");
-    for(int i = 0; i<30000000; i++){
-        int b = genericPoint::orient3D(*A, *B, *C, *H);
-    }
-    auto time = p.pop();
+    filename = "../data/test/ttt5.off";
 
     load(filename, in_coords, in_tris);
 

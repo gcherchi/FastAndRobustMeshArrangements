@@ -69,19 +69,19 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
     int e1_id = ts.edgeID(subm.vertOrigID(1), subm.vertOrigID(2));      assert(e1_id != -1);
     int e2_id = ts.edgeID(subm.vertOrigID(2), subm.vertOrigID(0));      assert(e2_id != -1);
 
-    auxvector<uint> e0_points, e1_points, e2_points;
-    sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0), subm.vertOrigID(1), e0_points);
-    sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1), subm.vertOrigID(2), e1_points);
-    sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2), subm.vertOrigID(0), e2_points);
+    //auxvector<uint> e0_points, e1_points, e2_points;
+    //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e0_id)), subm.vertOrigID(0), subm.vertOrigID(1), e0_points);
+    //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e1_id)), subm.vertOrigID(1), subm.vertOrigID(2), e1_points);
+    //sortedVertexListAlongSegment(ts, g.edgePointsList(static_cast<uint>(e2_id)), subm.vertOrigID(2), subm.vertOrigID(0), e2_points);
 
-    //const auxvector<uint> &e0_points = g.edgePointsList(static_cast<uint>(e0_id));
-    //const auxvector<uint> &e1_points = g.edgePointsList(static_cast<uint>(e1_id));
-    //const auxvector<uint> &e2_points = g.edgePointsList(static_cast<uint>(e2_id));
+    const auxvector<uint> &e0_points = g.edgePointsList(static_cast<uint>(e0_id));
+    const auxvector<uint> &e1_points = g.edgePointsList(static_cast<uint>(e1_id));
+    const auxvector<uint> &e2_points = g.edgePointsList(static_cast<uint>(e2_id));
 
     auxvector<UIPair> t_segments(g.triangleSegmentsList(t_id).begin(), g.triangleSegmentsList(t_id).end());
 
-    uint estimated_vert_num = static_cast<uint>(t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
-    //uint estimated_vert_num = static_cast<uint>(3 + t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
+    //uint estimated_vert_num = static_cast<uint>(t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
+    uint estimated_vert_num = static_cast<uint>(3 + t_points.size() + e0_points.size() + e1_points.size() + e2_points.size());
     subm.preAllocateSpace(estimated_vert_num);
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -93,17 +93,16 @@ inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, Fast
     //else
     //splitSingleTriangleWithTree(ts, subm, t_points);
 
-    /****************** NEW SPLITTING *************************/
-    //splitSingleTriangleWithStack(ts, subm, t_points, e0_points, e1_points, e2_points);
-    splitSingleTriangleWithStack(ts, subm, t_points);
+    splitSingleTriangleWithStack(ts, subm, t_points, e0_points, e1_points, e2_points);
+
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                                  EDGE SPLIT
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-    splitSingleEdge(ts, subm, 0, 1, e0_points);
-    splitSingleEdge(ts, subm, 1, 2, e1_points);
-    splitSingleEdge(ts, subm, 2, 0, e2_points);
+    //splitSingleEdge(ts, subm, 0, 1, e0_points);
+    //splitSingleEdge(ts, subm, 1, 2, e1_points);
+    //splitSingleEdge(ts, subm, 2, 0, e2_points);
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *                           CONSTRAINT SEGMENT INSERTION
@@ -233,39 +232,14 @@ inline void splitSingleTriangle(const TriangleSoup &ts, FastTrimesh &subm, const
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points)
+inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points,  const auxvector<uint> &e0_points, const auxvector<uint> &e1_points, const auxvector<uint> &e2_points)
 {
-    //if(points.empty() && e0_points.empty() && e1_points.empty() && e2_points.empty()) return;
-    if(points.empty()) return;
+    if(points.empty() && e0_points.empty() && e1_points.empty() && e2_points.empty()) return;
 
-    /** Structure of a stack of subtriangles:
-     *     ---
-     *    | N | = [N triangle's points and points contained into it]
-     *    | . |
-     *    | . |
-     *    | 2 | = [2 triangle's points and points contained into it]
-     *    | 1 | = [1 triangle's points and points contained into it]
-     *     ---
-     *********************************************************************/
-
-    //number of points to insert in the stack
-    //int size_p2ins = 3 + points.size() + e0_points.size() + e1_points.size() + e2_points.size();
-    int size_p2ins = 3 + points.size();
-
-    //stack of subtriangles
+    int size_p2ins = 3 + points.size() + e0_points.size() + e1_points.size() + e2_points.size();
     CustomStack stack_sub_tri(size_p2ins * 3);
-
-    //vector of current subdvision
     std::vector<auxvector<uint>>curr_subdv(4);
 
-    /** structure of a subtriangle:
-     *
-     *  | n | = [1,2,3,4,5,6,7] first 3 points are n triangle's vertices and the rest are the points contained into it
-     *
-     ******************************************************************************************************************/
-
-    //Concatenation of the first triangle and the points
     auxvector<uint> all_points;
     all_points.reserve(size_p2ins);
 
@@ -273,31 +247,26 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
     all_points.push_back(subm.triVertID(0,1));
     all_points.push_back(subm.triVertID(0,2));
 
-    //add the points of the edges e0 to the submesh and to the all_points vector (except v0 e v1 of the edge)
-    /*for (uint p : e0_points){
+    for (uint p : e0_points){
         uint v_pos = subm.addVert(ts.vert(p), p);
         all_points.push_back(v_pos);
-    }*/
+    }
 
-    //add the points of the edges e1 to the submesh and to the all_points vector (except v0 e v1 of the edge)
-    /*for (uint p : e1_points){
+    for (uint p : e1_points){
         uint v_pos = subm.addVert(ts.vert(p), p);
         all_points.push_back(v_pos);
-    }*/
+    }
 
-    //add the points of the edges e2 to the submesh and to the all_points vector (except v0 e v1 of the edge)
-    /*for (uint p : e2_points){
+    for (uint p : e2_points){
         uint v_pos = subm.addVert(ts.vert(p), p);
         all_points.push_back(v_pos);
-    }*/
+    }
 
-    //add each internal point to the sub mesh
     for (uint p : points){
         uint v_pos = subm.addVert(ts.vert(p), p);
         all_points.push_back(v_pos);
     }
 
-    //push the points in the stack
     stack_sub_tri.push(all_points);
 
     while(!stack_sub_tri.empty()){
@@ -309,7 +278,7 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
         curr_subdv[0].clear();
         curr_subdv[1].clear();
-        curr_subdv[2].clear();
+        if (!curr_subdv[2].empty()) curr_subdv[2].clear();
         if (!curr_subdv[3].empty()) curr_subdv[3].clear();
 
         int t_id = subm.triID(curr_tri[0], curr_tri[1], curr_tri[2]);
@@ -321,7 +290,7 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
         for (int i = 0 ; i < 3; ++i){
             int e_id = subm.triEdgeID(static_cast<uint>(t_id), i); assert(e_id != -1 && "No edge found");
 
-            if(fastPointOnLine(subm, static_cast<uint>(e_id), v_pos)) {//on the first edge
+            if(fastPointOnLine(subm, static_cast<uint>(e_id), v_pos)) {
                 onEdge = true;
 
                 uint v0 = subm.edgeVertID(static_cast<uint>(e_id),0);
@@ -332,24 +301,22 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
                 curr_subdv[0].reserve(curr_tri.size());
                 curr_subdv[1].reserve(curr_tri.size());
 
-                //T1
                 curr_subdv[0].push_back(v0);
                 curr_subdv[0].push_back(v_pos);
                 curr_subdv[0].push_back(v_opp);
 
-                //T2
                 curr_subdv[1].push_back(v_opp);
                 curr_subdv[1].push_back(v_pos);
                 curr_subdv[1].push_back(v1);
 
-                fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e_id)); //adjacent triangles to the edge
+                fmvector<uint> e2t = subm.adjE2T(static_cast<uint>(e_id));
 
-               // if(e2t.size() > 1) { //if the edge is shared by two triangles
+               if(e2t.size() > 1) {
 
                 curr_subdv[2].reserve(curr_tri.size());
                 curr_subdv[3].reserve(curr_tri.size());
 
-                uint t_adj_id = (e2t[0] == static_cast<uint>(t_id)) ? e2t[1] : e2t[0]; //take the id of the adjacent triangle
+                uint t_adj_id = (e2t[0] == static_cast<uint>(t_id)) ? e2t[1] : e2t[0];
 
                 v_opp = subm.triVertOppositeTo(t_adj_id,v1,v0);
 
@@ -357,23 +324,20 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
                 curr_tri.reserve(curr_tri.size() + adj_tri.size());
 
-                //add the points of the adjacent triangle to the current triangle if they are not already present and
-                //not equal to the vertex that is currently being added
                 for (int j = 3; j < adj_tri.size(); ++j) {
                     uint p = adj_tri[j];
                     if (p != v_pos && std::find(curr_tri.begin(), curr_tri.end(), p) == curr_tri.end())
                         curr_tri.push_back(p);
                 }
-                //T3
+
                 curr_subdv[2].push_back(v_opp);
                 curr_subdv[2].push_back(v_pos);
                 curr_subdv[2].push_back(v0);
 
-                //T4
                 curr_subdv[3].push_back(v1);
                 curr_subdv[3].push_back(v_pos);
                 curr_subdv[3].push_back(v_opp);
-                //}
+                }
 
                 subm.splitEdge(static_cast<uint>(e_id), v_pos);
                 break;
@@ -385,17 +349,14 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
             curr_subdv[1].reserve(curr_tri.size());
             curr_subdv[2].reserve(curr_tri.size());
 
-            //T1
             curr_subdv[0].push_back(curr_tri[1]);
             curr_subdv[0].push_back(v_pos);
             curr_subdv[0].push_back(curr_tri[0]);
 
-            //T2
             curr_subdv[1].push_back(curr_tri[2]);
             curr_subdv[1].push_back(v_pos);
             curr_subdv[1].push_back(curr_tri[1]);
 
-            //T3
             curr_subdv[2].push_back(curr_tri[0]);
             curr_subdv[2].push_back(v_pos);
             curr_subdv[2].push_back(curr_tri[2]);
@@ -405,56 +366,50 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
         if (curr_tri.size() > 4)
             repositionPointsInStack(subm, stack_sub_tri, curr_subdv, curr_tri);
-            //repositionPointsInStackOptimized(subm,stack_sub_tri, curr_subdv, curr_tri, p_outside);
     }
 }
 
 
 inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri)
 {
+    int n_insertions = 0;
+
     for (int i = 4; i < curr_tri.size() ; ++i){
 
-        int n_insertions = 0; //number of triangles in which the point is inserted
+        n_insertions = 0;
         const genericPoint &p = *subm.vert(curr_tri[i]);
         const genericPoint &v_pos = *subm.vert(curr_subdv[0][1]);
 
 
-        //checking if it is in the first triangle
-        if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[0][0]),
-                                                v_pos,
-                                                *subm.vert(curr_subdv[0][2]))){
+
+        if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[0][0]), v_pos, *subm.vert(curr_subdv[0][2]))){
             n_insertions++;
             curr_subdv[0].push_back(curr_tri[i]);}
 
-        //checking if it is in the second triangle
-        if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[1][0]),
-                                                v_pos,
-                                                *subm.vert(curr_subdv[1][2]))){
+
+        if(genericPoint::pointInTriangle(p, *subm.vert(curr_subdv[1][0]), v_pos, *subm.vert(curr_subdv[1][2]))){
             n_insertions++;
             curr_subdv[1].push_back(curr_tri[i]);
         }
 
         if(n_insertions == 2) continue;
 
-        //checking if it is in the (possible) third triangle
-        if(genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[2][0]),
-                                                                        v_pos,
-                                                                        *subm.vert(curr_subdv[2][2]))){
+
+        if(!curr_subdv[2].empty() && genericPoint::pointInTriangle(p, *subm.vert(curr_subdv[2][0]), v_pos,
+                                                                   *subm.vert(curr_subdv[2][2]))){
             n_insertions++;
             curr_subdv[2].push_back(curr_tri[i]);
         }
 
         if(n_insertions == 2) continue;
 
-        //checking if it is in the (possible) fourth triangle
-        if(!curr_subdv[3].empty() && genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[3][0]),
-                                                                   v_pos,
-                                                                   *subm.vert(curr_subdv[3][2])))
+
+        if(!curr_subdv[3].empty() && genericPoint::pointInTriangle(p,*subm.vert(curr_subdv[3][0]), v_pos,
+                                                                   *subm.vert(curr_subdv[3][2]))) {
             curr_subdv[3].push_back(curr_tri[i]);
+        }
     }
 
-
-    // push progressively the elements of the curr_subv in the stack if the triangle has almost one point to add
     for(int i = 0 ; i < curr_subdv.size(); ++i){
         if((i > 1 && curr_subdv[i].empty()) || curr_subdv[i].size() == 3)
             continue;
@@ -462,156 +417,6 @@ inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tr
         stack_sub_tri.push(curr_subdv[i]);
 
     }
-}
-
-inline void repositionPointsInStackOptimized(FastTrimesh &subm, CustomStack &stack_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri,  genericPoint &p_outside){
-
-    const genericPoint &C = p_outside;/** DA CAMBIARE **/
-
-    //Se il primo, il secondo e il terzo e l'ultimo vuoto allora siamo nel caso di tre triangoli generati
-    if(!curr_subdv[2].empty() && curr_subdv[3].empty()){
-        for (int i = 4; i < curr_tri.size() ; ++i){
-
-            const genericPoint &p = *subm.vert(curr_tri[i]);
-            uint &v0_e0 = curr_subdv[0][0];
-            uint &v1_e0= curr_subdv[0][1];
-
-           int T0_e0 =  genericPoint::orient3D(p,*subm.vert(curr_subdv[0][0]), *subm.vert(curr_subdv[0][1]), C );
-           int T0_e1 =  genericPoint::orient3D(p, *subm.vert(curr_subdv[0][1]), *subm.vert(curr_subdv[0][2]), C);
-
-           if(T0_e0 == 0){
-               curr_subdv[0].push_back(curr_tri[i]);
-               curr_subdv[1].push_back(curr_tri[i]);
-           }
-           if(T0_e1 == 0){
-                curr_subdv[0].push_back(curr_tri[i]);
-                curr_subdv[2].push_back(curr_tri[i]);
-           }
-
-           if((T0_e0 > 0 && T0_e1 > 0) || (T0_e0 < 0 && T0_e1 < 0)){
-               curr_subdv[0].push_back(curr_tri[i]);
-           }
-
-           //int T1_e0 = (T0_e0 > 0) ? T0_e0 * -1 : T0_e0;
-           int T2_e0 = genericPoint::orient3D(p, *subm.vert(curr_subdv[2][1]), *subm.vert(curr_subdv[2][2]), C);
-
-           if (T2_e0 == 0){
-               curr_subdv[1].push_back(curr_tri[i]);
-               curr_subdv[2].push_back(curr_tri[i]);
-           }
-           //T2_e0 < 0 se si trova a destra dell'edge e quindi in T1
-           if (((T0_e0 * -1) < 0 && T2_e0 < 0) || ((T0_e0 * -1) > 0 && T2_e0 > 0)){
-               curr_subdv[1].push_back(curr_tri[i]);
-           } else{
-               curr_subdv[2].push_back(curr_tri[i]);
-           }
-        }
-    }
-
-        //Se solo i primi due sono pieni allora siamo nel caso di un punto che si trova su un edge esterno
-        if(curr_subdv[2].empty() && curr_subdv[3].empty()){
-            for (int i = 4; i < curr_tri.size() ; ++i){
-
-                const genericPoint &p = *subm.vert(curr_tri[i]);
-                int T0_e0 =  genericPoint::orient3D(p,*subm.vert(curr_subdv[0][1]), *subm.vert(curr_subdv[0][2]), C );
-                std::cout<< "Triangolo: "<< subm.vertOrigID(curr_subdv[0][0]) << " " << subm.vertOrigID(curr_subdv[0][1]) << " " << subm.vertOrigID(curr_subdv[0][2]) << std::endl;
-                std::cout << "Punto: " << subm.vertOrigID(curr_tri[i]) << std::endl;
-
-                /**PROBLEMA: SECONDO ME IL PUNTO C è preso male, perchè orient3D da l'inverso di cio che deve dare
-                 * Da 1 invece deve dare -1 */
-                if (T0_e0 == 0){
-                    curr_subdv[0].push_back(curr_tri[i]);
-                    curr_subdv[1].push_back(curr_tri[i]);
-                }
-
-                if(T0_e0 > 0){
-                    curr_subdv[0].push_back(curr_tri[i]);
-                }else{
-                    curr_subdv[1].push_back(curr_tri[i]);
-                }
-            }
-        }
-
-        //se tutt'e quattro sono pieni allora significa che siamo nel caso di un punto su un edge condiviso da due tri
-        if(!curr_subdv[2].empty() && !curr_subdv[3].empty()){
-            for (int i = 4; i < curr_tri.size() ; ++i){
-
-                const genericPoint &p = *subm.vert(curr_tri[i]);
-                int T0_e0 = genericPoint::orient3D(p,*subm.vert(curr_subdv[0][0]), *subm.vert(curr_subdv[0][1]), C );
-                int T1_e0 = genericPoint::orient3D(p,*subm.vert(curr_subdv[1][1]), *subm.vert(curr_subdv[1][2]), C );
-
-                if(T0_e0 == 0){
-                    curr_subdv[0].push_back(curr_tri[i]);
-                    curr_subdv[2].push_back(curr_tri[i]);
-                }
-
-                if(T1_e0 == 0){
-                    curr_subdv[1].push_back(curr_tri[i]);
-                    curr_subdv[3].push_back(curr_tri[i]);
-                }
-
-
-                if(T0_e0 > 0){
-                    int T0_e1 = genericPoint::orient3D(p, *subm.vert(curr_subdv[0][1]), *subm.vert(curr_subdv[0][2]), C);
-
-                    if(T0_e1 == 0){
-                        curr_subdv[0].push_back(curr_tri[i]);
-                        curr_subdv[1].push_back(curr_tri[i]);
-                    }
-
-                    if(T0_e1 > 0){
-                        curr_subdv[0].push_back(curr_tri[i]);
-                    }else{
-                        curr_subdv[1].push_back(curr_tri[i]);
-                    }
-
-                    int T2_e1 = genericPoint::orient3D(p, *subm.vert(curr_subdv[2][0]), *subm.vert(curr_subdv[2][1]), C);
-
-                    if(T2_e1 == 0){
-                        curr_subdv[2].push_back(curr_tri[i]);
-                        curr_subdv[3].push_back(curr_tri[i]);
-                    }
-
-                    if(T2_e1 > 0){
-                        curr_subdv[2].push_back(curr_tri[i]);
-                    }else{
-                        curr_subdv[3].push_back(curr_tri[i]);
-                    }
-                }
-            }
-        }
-
-    //assert(curr_subdv[0].size() > 3 && curr_subdv[1].size() > 3 && curr_subdv[2].size() > 3 && curr_subdv[3].size() > 3 && "Error in the repositionPointsInStackOptimized function");
-
-    // push progressively the elements of the curr_subv in the stack if the triangle has almost one point to add
-    for(int i = 0 ; i < curr_subdv.size(); ++i){
-        if((i > 1 && curr_subdv[i].empty()) || curr_subdv[i].size() == 3)
-            continue;
-
-        stack_sub_tri.push(curr_subdv[i]);
-
-    }
-}
-
-
-void makeConformalVertOrder(FastTrimesh &subm, vector<auxvector<uint>> &curr_subdv)
-{
-
-    if (!subm.triVertsAreCCW(subm.triID(curr_subdv[0][0], curr_subdv[0][1], curr_subdv[0][2]),
-                             curr_subdv[0][2], curr_subdv[0][1]))
-        std::swap(curr_subdv[0][2], curr_subdv[0][1]);
-
-    if (!subm.triVertsAreCCW(subm.triID(curr_subdv[1][0], curr_subdv[1][1], curr_subdv[1][2]),
-                             curr_subdv[1][2], curr_subdv[1][1]))
-        std::swap(curr_subdv[1][2], curr_subdv[1][1]);
-
-    if (!curr_subdv[2].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[2][0], curr_subdv[2][1], curr_subdv[2][2]),
-                                                       curr_subdv[2][2], curr_subdv[2][1]))
-        std::swap(curr_subdv[2][2], curr_subdv[2][1]);
-
-    if (!curr_subdv[3].empty() && !subm.triVertsAreCCW(subm.triID(curr_subdv[3][0], curr_subdv[3][1], curr_subdv[3][2]),
-                                                       curr_subdv[3][2], curr_subdv[3][1]))
-        std::swap(curr_subdv[3][2], curr_subdv[3][1]);
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

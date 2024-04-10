@@ -1,34 +1,28 @@
-from openpyxl import Workbook
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.table import Table, TableStyleInfo
+import smtplib
+from email.message import EmailMessage
 
-# Sample data
-data = [
-    ["Name", "Age", "Gender"],
-    ["John", 30, "Male"],
-    ["Alice", 25, "Female"],
-    ["Bob", 35, "Male"]
-]
+# Set up email account information
+email_address = "sender.uni@hotmail.com"
+email_password = "Haloreach1!"
+smtp_server = "smtp-mail.outlook.com"
+smtp_port = 587
 
-# Create a new workbook
-wb = Workbook()
+# Create email message
+msg = EmailMessage()
+msg['Subject'] = 'Re: Hello, World!'
+msg['From'] = email_address
+msg['To'] = 'michele.faeddal@hotmail.com'
+msg.set_content('Hello Gilfoyle, this is a test email with an attachment. -Dinesh')
+with open('test_results_optimized.xlsx', 'rb') as f:
+    file_data = f.read()
+msg.add_attachment(file_data, maintype='application', subtype='octet-stream', filename='test_results_optimized.xlsx')
 
-# Select active worksheet
-ws = wb.active
-
-# Add data to worksheet
-for row in data:
-    ws.append(row)
-
-# Create Excel Table
-table = Table(displayName="Table1", ref=f"A1:{get_column_letter(len(data[0]))}{len(data)}")
-
-# Add a table style
-table.tableStyleInfo = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False,
-                                      showLastColumn=False, showRowStripes=True, showColumnStripes=False)
-
-# Add the table to the worksheet
-ws.add_table(table)
-
-# Save the workbook
-wb.save("formatted_table.xlsx")
+# Send email message
+try:
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()
+        server.login(email_address, email_password)
+        server.send_message(msg)
+    print("Email sent successfully!")
+except Exception as e:
+    print("An error occurred:", e)

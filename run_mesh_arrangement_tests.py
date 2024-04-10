@@ -196,7 +196,7 @@ if __name__ == "__main__":
     #path_folder = "./data/test"
     excel_file = "test_results.xlsx"
     mode = "release"
-    sendmail = True
+    sendmail = False
     
     #clean terminal
     os.system('cls' if os.name == 'nt' else 'clear')
