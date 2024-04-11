@@ -41,6 +41,8 @@
 
 #undef NDEBUG
 
+bool parallel_value = true;
+
 inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels, point_arena &arena,
                                     std::vector<genericPoint*> &vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels, bool parallel)
 {
@@ -53,11 +55,11 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
     std::vector<uint> tmp_tris;
     std::vector< std::bitset<NBIT> > tmp_labels;
 
-    mergeDuplicatedVertices(in_coords, in_tris, arena, vertices, tmp_tris, parallel);
+    mergeDuplicatedVertices(in_coords, in_tris, arena, vertices, tmp_tris, parallel_value);
 
     removeDegenerateAndDuplicatedTriangles(vertices, in_labels, tmp_tris, tmp_labels);
 
-    TriangleSoup ts(arena, vertices, tmp_tris, tmp_labels, multiplier, parallel);
+    TriangleSoup ts(arena, vertices, tmp_tris, tmp_labels, multiplier, parallel_value);
 
     detectIntersections(ts, g.intersectionList());
 
@@ -65,7 +67,7 @@ inline void meshArrangementPipeline(const std::vector<double> &in_coords, const 
 
     classifyIntersections(ts, arena, g);
 
-    triangulation(ts, arena, g, out_tris, out_labels, parallel);
+    triangulation(ts, arena, g, out_tris, out_labels, parallel_value);
 
     ts.appendJollyPoints();
 }
@@ -87,11 +89,11 @@ inline void solveIntersections(const std::vector<double> &in_coords, const std::
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline void solveIntersections(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, point_arena &arena,
-                               std::vector<genericPoint *> &out_vertices, std::vector<uint> &out_tris, bool parallel)
+                               std::vector<genericPoint *> &out_vertices, std::vector<uint> &out_tris)
 {
     std::vector< std::bitset<NBIT>> tmp_in_labels(in_tris.size() / 3), out_labels;
 
-    meshArrangementPipeline(in_coords, in_tris, tmp_in_labels, arena, out_vertices, out_tris, out_labels,parallel);
+    meshArrangementPipeline(in_coords, in_tris, tmp_in_labels, arena, out_vertices, out_tris, out_labels, parallel_value);
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

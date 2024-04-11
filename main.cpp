@@ -39,136 +39,52 @@
 #define _HAS_STD_BYTE 0  // https://developercommunity.visualstudio.com/t/error-c2872-byte-ambiguous-symbol/93889
 #define NOMINMAX // https://stackoverflow.com/questions/1825904/error-c2589-on-stdnumeric-limitsdoublemin
 #endif
+
 #include <iostream>
-#undef NDEBUG
+
 #include "solve_intersections.h"
 #include "io_functions.h"
 
-#include <cinolib/meshes/meshes.h>
-#include <cinolib/gl/glcanvas.h>
-#include <cinolib/gl/surface_mesh_controls.h>
-
-#include <iostream>
-#include <chrono>
-#include <cinolib/profiler.h>
-
-using namespace cinolib;
-
-
+#undef NDEBUG
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-bool debug = false;
-bool parallel = true;
 
 int main(int argc, char **argv)
 {
     std::string filename;
+
+    if(argc > 1)
+        filename = argv[1];
+    else
+    {
+        std::cout << "input file missing" << std::endl;
+        return -1;
+    }
 
     std::vector<double> in_coords, out_coords;
     std::vector<uint> in_tris, out_tris;
     std::vector<genericPoint*> gen_points;
     point_arena arena;
 
-    if(!debug){
-        if(argc > 1) {
-            filename = argv[1];
-        }
-        else
-        {
-            std::cout << "input file missing" << std::endl;
-            return -1;
-        }
-
-        load(filename, in_coords, in_tris);
-        solveIntersections(in_coords, in_tris, arena, gen_points, out_tris, parallel);
-        computeApproximateCoordinates(gen_points, out_coords);
-
-        size_t pos_slash = filename.find_last_of("/");
-        size_t pos_dot = filename.find_last_of(".");
-
-        std::string name_out = filename.substr(pos_slash + 1, pos_dot - pos_slash - 1);
-
-        std::string output_name = "./results/output_" + name_out + ".obj";
-
-        save(output_name, out_coords, out_tris);
-        return 0;
-    }
-
-    /** FUNZIONANTE **/
-    filename = "../data/test/ttt5.off";
-
     load(filename, in_coords, in_tris);
-
-    DrawableTrimesh<> m;
-    GLcanvas gui;
-
-    std::queue<uint> vertices;
-    std::vector<uint> debug_points;
 
     /*-------------------------------------------------------------------
      * There are 4 versions of the solveIntersections function. Please
      * refer to the solve_intersections.h file to see how to use them. */
 
-    solveIntersections(in_coords, in_tris, arena, gen_points, out_tris, parallel);
+    solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
+
     computeApproximateCoordinates(gen_points, out_coords);
-
-
-
-    /**----------------Visualization part-----------------**/
-    m = DrawableTrimesh(out_coords, out_tris);
-
-    //Example marker vert
-    for(uint i = 0; i < m.num_edges(); i++){
-        m.edge_data(i).flags[MARKED] = false;
-    }
-
-    m.updateGL();
-    std::string name = get_file_name(filename, false);
-    m.mesh_data().filename = name;
-    m.updateGL();
-
-    gui.push(&m);
-    gui.push(new SurfaceMeshControls<DrawableTrimesh<>>(&m, &gui));
-
-    int ii = 0;
-    int state = 1;
-    gui.callback_app_controls = [&]()
-    {
-        if(ImGui::Button("Go ahead edge")) {
-            for(uint i = 0; i < m.num_edges(); i++){
-                m.edge_data(i).flags[MARKED] = false;
-            }
-            m.edge_data(ii).flags[MARKED] = true;
-            if (ii == m.num_edges() - 1) ii = 0;
-            else ii++;
-            m.updateGL();
-
-        }
-
-        if(ImGui::Button("show me vert")) {
-            for(uint i = 0; i < debug_points.size(); i++){
-
-                    gui.push_marker(m.vert(debug_points[i]),to_string(debug_points[i]), Color::BLUE(), 2,4);
-
-            }
-        }// slider moved: do something
-    };
-
-
-
-    // Find the position of the last occurrence of '/'
+    /**Parte da rimuovere**/
     size_t pos_slash = filename.find_last_of("/");
-    // Find the position of the last occurrence of '.'
     size_t pos_dot = filename.find_last_of(".");
 
-    // Extract the filename
     std::string name_out = filename.substr(pos_slash + 1, pos_dot - pos_slash - 1);
 
-    std::string output_name = "output_" + name_out + ".obj";
+    std::string output_name = "./results/output_" + name_out + ".obj";
 
     save(output_name, out_coords, out_tris);
+    /****/
+    save("output.obj", out_coords, out_tris);
 
-    return gui.launch();
+    return 0;
 }
-
-
-

@@ -51,7 +51,7 @@
 * Use one of the solveInterctions functions to interface whit it.
 */
 inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels, point_arena &arena,
-                                    std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels, bool parallel);
+                                    std::vector<genericPoint*> &out_vertices, std::vector<uint> &out_tris, std::vector< std::bitset<NBIT> > &out_labels);
 
 
 /**
