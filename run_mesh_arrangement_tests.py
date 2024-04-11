@@ -162,6 +162,9 @@ def write_to_excel(output_data, excel_file):
     # Save the Excel file
     wb_add.save(excel_file)
 
+import smtplib
+from email.message import EmailMessage
+
 def send_email_with_attachment(filename, content):
     # Set up email account information
     email_address = "sender.uni@hotmail.com"
@@ -171,7 +174,7 @@ def send_email_with_attachment(filename, content):
 
     # Create email message
     msg = EmailMessage()
-    msg['Subject'] = 'Re: Hello, World!'
+    msg['Subject'] = 'Results from the server test run'
     msg['From'] = email_address
     msg['To'] = 'michele.faeddal@hotmail.com'
     msg.set_content(content)
@@ -182,18 +185,22 @@ def send_email_with_attachment(filename, content):
     # Send email message
     try:
         with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(email_address, email_password)
+            # Check if already logged in
+            if not server.does_esmtp:
+                server.starttls()
+                server.login(email_address, email_password)
             server.send_message(msg)
         print("Email sent successfully!")
     except Exception as e:
         print("An error occurred:", e)
 
+
+
 if __name__ == "__main__":
 
      #big_mesh = "z_996816.off"
-    path_folder = "./Thingi10k"
-    #path_folder = "./data/test"
+    #path_folder = "./Thingi10k"
+    path_folder = "./data/test"
     excel_file = "test_results.xlsx"
     mode = "release"
     sendmail = False
@@ -221,17 +228,19 @@ if __name__ == "__main__":
     total_files = len(files)
     for i, filename in enumerate(files):
         if filename.endswith(".off") or filename.endswith(".stl") or   filename.endswith(".obj"):
-            progress_bar = completion_bar(i, total_files)
-            print("\rProgress: {}% {}".format(int((i / total_files) * 100), progress_bar), "Files Processed -> ", i+1,"/", total_files," Running on file: ", filename, end="")
+            progress_bar = completion_bar(i, total_files-1)
+            print("\rProgress: {}% {}".format(int(((i+1) / total_files) * 100), progress_bar), "Files Processed -> ", i+1,"/", total_files," Running on file: ", filename, end="")
         
             mesh_file = os.path.join(path_folder, filename)
             result = compile_and_run_cpp(mesh_file, path_folder, excel_file, mode)
             results.append(result)
         
              # Print progress after each 1/5 of total files processed
-            if sendmail and i % (total_files // 5) == 0:
-                progress = i // (total_files // 5)
-                send_email_with_attachment(excel_file,"\nProgress: {}%".format(progress * 20) )
+            if sendmail and i % (total_files // 10) == 0:
+                progress = i // (total_files // 10)
+                send_email_with_attachment(excel_file,"\nProgress: {}%".format(progress * 10))
+    if sendmail:
+        send_email_with_attachment(excel_file,"\nProgress: {}%".format(100))
 
 
 
