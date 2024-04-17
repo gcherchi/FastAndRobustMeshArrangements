@@ -19,8 +19,8 @@ cmake-build-release/
 xcode/
 *.a
 
-results/
-Thingi10K/
+./Test_folder/results/
+./Test_folder/Thingi10K/
 
 .DS_Store
 
