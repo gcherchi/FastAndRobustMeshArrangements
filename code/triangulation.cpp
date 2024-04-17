@@ -701,7 +701,7 @@ inline void findIntersectingElements(TriangleSoup &ts, point_arena& arena, FastT
             return;
         }
     }
-    
+
     assert(intersected_edges.size() > 0);
 
     // walk along the topology to find the sorted list of edges and tris that intersect {v_start, v_stop}

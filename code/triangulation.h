@@ -73,10 +73,7 @@ inline void splitSingleTriangleWithTree(const TriangleSoup &ts, FastTrimesh &sub
 
 
 inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &subm, const auxvector<uint> &points,  const auxvector<uint> &e0_points, const auxvector<uint> &e1_points, const auxvector<uint> &e2_points);
-inline void repositionPointsInStackNewVersion(FastTrimesh &subm, CustomStack &stack_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri);
 inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri);
-inline void makeConformalVertOrder(FastTrimesh &subm,  std::vector<auxvector<uint>> &curr_subdv);
-inline void repositionPointsInStackOptimized(FastTrimesh &subm, CustomStack &stack_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri, genericPoint &p_outside);
 
 inline int findContainingTriangle(const FastTrimesh &subm, uint p_id);
 
