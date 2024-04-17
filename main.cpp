@@ -72,16 +72,6 @@ int main(int argc, char **argv)
     solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
 
     computeApproximateCoordinates(gen_points, out_coords);
-    /**Parte da rimuovere**/
-    size_t pos_slash = filename.find_last_of("/");
-    size_t pos_dot = filename.find_last_of(".");
-
-    std::string name_out = filename.substr(pos_slash + 1, pos_dot - pos_slash - 1);
-
-    std::string output_name = "./Test_folder/results/output_" + name_out + ".obj";
-
-    save(output_name, out_coords, out_tris);
-    /****/
 
     save("output.obj", out_coords, out_tris);
 
