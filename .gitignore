@@ -18,9 +18,13 @@ cmake-build-debug/
 cmake-build-release/
 xcode/
 *.a
-
+./Test_folder/data/
 ./Test_folder/results/
 ./Test_folder/Thingi10K/
+
+./data/
+./results/
+./Thingi10K/
 
 .DS_Store
 
