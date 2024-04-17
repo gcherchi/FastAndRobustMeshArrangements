@@ -40,7 +40,6 @@
 
 #include "triangulation.h"
 
-#undef NDEBUG
 
 #include <stack>
 #include <numeric>
@@ -49,13 +48,7 @@
 #include "utils.h"
 
 #include <tbb/tbb.h>
-#include <typeinfo>
-#include <utility>
-
 #include <custom_stack.h>
-#include <fast_trimesh.h>
-#include <unordered_set>
-#include <iostream>
 
 
 inline void triangulateSingleTriangle(TriangleSoup &ts, point_arena& arena, FastTrimesh &subm, uint t_id, AuxiliaryStructure &g, std::vector<uint> &new_tris, std::vector< std::bitset<NBIT> > &new_labels, tbb::spin_mutex& mutex)
@@ -372,7 +365,7 @@ inline void splitSingleTriangleWithStack(const TriangleSoup &ts, FastTrimesh &su
 
 inline void repositionPointsInStack(FastTrimesh &subm, CustomStack &stack_sub_tri, std::vector<auxvector<uint>> &curr_subdv, auxvector<uint> &curr_tri)
 {
-    int n_insertions = 0;
+    int n_insertions;
 
     for (int i = 4; i < curr_tri.size() ; ++i){
 
@@ -597,12 +590,8 @@ inline void addConstraintSegmentsInSingleTriangle(TriangleSoup &ts, point_arena&
         segment_list.pop_back();
 
         uint v0_id = subm.vertNewID(seg.first);
-        if (v0_id == -1)
-            continue;
 
         uint v1_id = subm.vertNewID(seg.second);
-        if (v1_id == -1)
-            continue;
 
         addConstraintSegment(ts, arena, subm, v0_id, v1_id, orientation, g, segment_list, sub_segs_map, mutex);
     }
@@ -712,9 +701,7 @@ inline void findIntersectingElements(TriangleSoup &ts, point_arena& arena, FastT
             return;
         }
     }
-
-    if(!intersected_edges.size()>0)
-        return;
+    
     assert(intersected_edges.size() > 0);
 
     // walk along the topology to find the sorted list of edges and tris that intersect {v_start, v_stop}

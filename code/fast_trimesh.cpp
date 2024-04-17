@@ -726,27 +726,6 @@ inline void FastTrimesh::splitEdge(const uint  &e_id, uint v_id)
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-inline void FastTrimesh::splitEdge(const uint  &e_id, uint v_id, std::queue<uint> &queue_tri_IDs)
-{
-    assert(e_id < edges.size() && "edge id out of range");
-
-    uint ev0_id = edges[e_id].v.first;
-    uint ev1_id = edges[e_id].v.second;
-
-    for(int i=0; i < e2t[e_id].size(); i++)
-    {
-        uint t_id = e2t[e_id][i];
-        uint v_opp = triVertOppositeTo(t_id, ev0_id, ev1_id);
-        if(triVertsAreCCW(t_id, ev0_id, ev1_id)) std::swap(ev0_id, ev1_id);
-
-        queue_tri_IDs.push(addTri(v_opp, ev0_id, v_id));
-        queue_tri_IDs.push(addTri(v_opp, v_id, ev1_id));
-    }
-
-    removeTris(e2t[e_id]);
-}
-
-//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline void FastTrimesh::splitEdge(const uint  &e_id, uint v_id, Tree &tree)
 {
@@ -790,18 +769,6 @@ inline void FastTrimesh::splitTri(uint t_id, uint v_id)
     removeTri(t_id);
 }
 
-//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-inline void FastTrimesh::splitTri(uint t_id, uint v_id, std::queue<uint> &queue_tri_IDs)
-{
-    assert(t_id < triangles.size() && "tri id out of range");
-    assert(v_id < vertices.size() && "vtx id out of range");
-
-    queue_tri_IDs.push( addTri(triVertID(t_id, 0), triVertID(t_id, 1), v_id));
-    queue_tri_IDs.push( addTri(triVertID(t_id, 1), triVertID(t_id, 2), v_id));
-    queue_tri_IDs.push(addTri(triVertID(t_id, 2), triVertID(t_id, 0), v_id));
-
-    removeTri(t_id);
-}
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 inline void FastTrimesh::splitTri(uint t_id, uint v_id, Tree &tree)

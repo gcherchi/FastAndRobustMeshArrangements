@@ -39,8 +39,6 @@
 #include <iostream>
 
 
-#undef NDEBUG
-
 bool parallel_value = true;
 
 inline void meshArrangementPipeline(const std::vector<double> &in_coords, const std::vector<uint> &in_tris, const std::vector< std::bitset<NBIT> > &in_labels, point_arena &arena,
@@ -80,7 +78,7 @@ inline void solveIntersections(const std::vector<double> &in_coords, const std::
     std::vector<genericPoint*> vertices;
     std::vector< std::bitset<NBIT>> tmp_in_labels(in_tris.size() / 3), out_labels;
 
-    //meshArrangementPipeline(in_coords, in_tris, tmp_in_labels, arena, vertices, out_tris, out_labels);
+    meshArrangementPipeline(in_coords, in_tris, tmp_in_labels, arena, vertices, out_tris, out_labels);
 
     computeApproximateCoordinates(vertices, out_coords);
     freePointsMemory(vertices);
@@ -107,7 +105,7 @@ inline void solveIntersections(const std::vector<double> &in_coords, const std::
     for(uint i = 0; i < in_labels.size(); i++)
         tmp_in_labels[i][in_labels[i]] = 1;
 
-    //meshArrangementPipeline(in_coords, in_tris, tmp_in_labels, arena, vertices, out_tris, out_labels);
+    meshArrangementPipeline(in_coords, in_tris, tmp_in_labels, arena, vertices, out_tris, out_labels);
 
     computeApproximateCoordinates(vertices, out_coords);
     freePointsMemory(vertices);
@@ -123,5 +121,5 @@ inline void solveIntersections(const std::vector<double> &in_coords, const std::
     for(uint i = 0; i < in_labels.size(); i++)
         tmp_in_labels[i][in_labels[i]] = 1;
 
-    //meshArrangementPipeline(in_coords, in_tris, tmp_in_labels, arena, vertices, out_tris, out_labels);
+    meshArrangementPipeline(in_coords, in_tris, tmp_in_labels, arena, vertices, out_tris, out_labels);
 }
