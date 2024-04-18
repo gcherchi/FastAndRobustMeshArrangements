@@ -19,8 +19,10 @@ cmake-build-release/
 xcode/
 *.a
 
+
 .DS_Store
 
 build/
+
 
 *.pro.user

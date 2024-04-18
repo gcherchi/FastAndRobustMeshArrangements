@@ -44,7 +44,6 @@
 
 #include "solve_intersections.h"
 #include "io_functions.h"
-
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 int main(int argc, char **argv)
@@ -73,11 +72,8 @@ int main(int argc, char **argv)
     solveIntersections(in_coords, in_tris, arena, gen_points, out_tris);
 
     computeApproximateCoordinates(gen_points, out_coords);
-    
+
     save("output.obj", out_coords, out_tris);
 
     return 0;
 }
-
-
-

@@ -207,10 +207,12 @@ inline uint FastTrimesh::vertOrigID(uint new_v_id) const
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline  uint FastTrimesh::vertNewID(uint orig_v_id) const
+inline uint FastTrimesh::vertNewID(uint orig_v_id) const
 {
     auto it = rev_vtx_map.find(orig_v_id);
     assert(it != rev_vtx_map.end() && "vtx id not found in reverse map");
+    if(it == rev_vtx_map.end())
+        return -1;
 
     return it->second;
 }

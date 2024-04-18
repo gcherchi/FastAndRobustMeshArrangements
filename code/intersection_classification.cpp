@@ -56,6 +56,7 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
     {        
         auto & leaf = o.leaves.at(i);
         if(leaf->item_indices.empty()) return;
+
         for(uint j=0;   j<leaf->item_indices.size()-1; ++j)
         for(uint k=j+1; k<leaf->item_indices.size();   ++k)
         {
@@ -63,6 +64,7 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
             uint tid1 = leaf->item_indices.at(k);
             auto T0 = o.items.at(tid0);
             auto T1 = o.items.at(tid1);
+
             if(T0->aabb.intersects_box(T1->aabb)) // early reject based on AABB intersection
             {
                 const cinolib::Triangle *t0 = dynamic_cast<cinolib::Triangle*>(T0);
@@ -75,6 +77,7 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
             }
         }
     });
+
 
     remove_duplicates(intersections);
 }
@@ -119,6 +122,7 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
     bool coplanar_tris = false;
     phmap::flat_hash_set<uint> li; // intersection list
 
+
     /* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *      check of tB respect to tA
      * :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
@@ -153,8 +157,9 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
 
     // a vertex of tB is coplanar to tA, and the opposite edge is on the same side respect to tA  (e.g. orBA: 1 0 1)
     int tmp_vtx_id = vtxInPlaneAndOppositeEdgeOnSameSide(orBA);
-    if(tmp_vtx_id != -1)
+    if(tmp_vtx_id != -1) {
         checkVtxInTriangleIntersection(ts, ts.triVertID(tB_id, static_cast<uint>(tmp_vtx_id)), tA_id, v_tmp, g, li);
+    }
 
     // a vertex of tB is coplanar to tA, and the opposite edge could intersect tA   (e.g. orBA: -1 0 1)
     tmp_vtx_id = vtxInPlaneAndOppositeEdgeCrossPlane(orBA);
@@ -170,6 +175,8 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
     // a vertex of tB is on one side of the plane defined to tA, and the opposite edge (always in tB) is in the other (e.g. orBA: -1 1 1)
     uint opp_v0, opp_v1;
     tmp_vtx_id = vtxOnASideAndOppositeEdgeOnTheOther(orBA, opp_v0, opp_v1);
+
+
     if(tmp_vtx_id != -1)
     {
         uint id_v = ts.triVertID(tB_id, static_cast<uint>(tmp_vtx_id));
@@ -185,6 +192,8 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
     }
 
     if(!coplanar_tris && li.size() > 1) goto final_check; // sorry about that :(
+
+
 
     /* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
      *      check of A respect to B
@@ -221,6 +230,7 @@ inline void checkTriangleTriangleIntersections(TriangleSoup &ts, point_arena& ar
 
     // a vertex of tA is coplanar to tB, and the opposite edge is on the same side respect to tB  (e.g. orAB: 1 0 1)
     tmp_vtx_id = vtxInPlaneAndOppositeEdgeOnSameSide(orAB);
+
     if(tmp_vtx_id != -1)
         checkVtxInTriangleIntersection(ts, ts.triVertID(tA_id, static_cast<uint>(tmp_vtx_id)), tB_id, v_tmp, g, li);
 
@@ -419,7 +429,11 @@ inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, point_arena& 
 
 
     // e_v0 position
-    cinolib::PointInSimplex v0_inters = cinolib::point_in_triangle_3d(ts.vertPtr(e_v0), ts.triVertPtr(o_t_id, 0), ts.triVertPtr(o_t_id, 1), ts.triVertPtr(o_t_id, 2));
+    cinolib::PointInSimplex v0_inters = cinolib::point_in_triangle_3d(ts.vertPtr(e_v0),
+                                                                         ts.triVertPtr(o_t_id, 0),
+                                                                         ts.triVertPtr(o_t_id, 1),
+                                                                         ts.triVertPtr(o_t_id, 2));
+
     if(v0_inters == cinolib::ON_VERT0 || v0_inters == cinolib::ON_VERT1 || v0_inters == cinolib::ON_VERT2)
     {
         v0_in_vtx = true; // v0 in a vertex
@@ -556,7 +570,13 @@ inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, point_arena& 
         else if(tv2_in_edge)
         {
             addSymbolicSegment(ts,ts.triVertID(o_t_id, 2), static_cast<uint>(seg0_cross), o_t_id, e_t_id, g);
-            il.insert(ts.triVertID(o_t_id, 2));
+            uint v_id = ts.triVertID(o_t_id, 2);
+            int edge_id = ts.edgeID(e_v0, e_v1);
+            assert(edge_id != -1 && "edge not found!");
+
+            il.insert(v_id);
+            g.addVertexInEdge(edge_id, v_id);
+
             return;
         }
     }
@@ -582,7 +602,13 @@ inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, point_arena& 
         else if(tv0_in_edge)
         {
             addSymbolicSegment(ts, ts.triVertID(o_t_id, 0), static_cast<uint>(seg1_cross), o_t_id, e_t_id, g);
-            il.insert(ts.triVertID(o_t_id, 0));
+            uint v_id = ts.triVertID(o_t_id, 0);
+            int edge_id = ts.edgeID(e_v0, e_v1);
+            assert(edge_id != 0 && "edge not foubd!");
+
+            il.insert(v_id);
+            g.addVertexInEdge(edge_id, v_id);
+
             return;
         }
     }
@@ -608,7 +634,13 @@ inline void checkSingleCoplanarEdgeIntersections(TriangleSoup &ts, point_arena& 
         else if(tv1_in_edge)
         {
             addSymbolicSegment(ts, ts.triVertID(o_t_id, 1), static_cast<uint>(seg2_cross), o_t_id, e_t_id, g);
-            il.insert(ts.triVertID(o_t_id, 1));
+            uint v_id = ts.triVertID(o_t_id, 1);
+            int edge_id = ts.edgeID(e_v0, e_v1);
+            assert(edge_id != 0 && "edge not found!");
+
+            il.insert(v_id);
+            g.addVertexInEdge(edge_id, v_id);
+
             return;
         }
     }

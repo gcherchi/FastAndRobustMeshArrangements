@@ -19,6 +19,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(TBB_TEST OFF CACHE BOOL " " FORCE)
 set(TBB_EXAMPLES OFF CACHE BOOL " " FORCE)
 
+set(CINOLIB_USES_OPENGL_GLFW_IMGUI ON)
+
 add_subdirectory(external/oneTBB)
 
 # add the executable
@@ -51,6 +53,27 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${cinolib_SOURCE_DIR}/external
 target_include_directories(${PROJECT_NAME} PUBLIC ${cinolib_SOURCE_DIR}/include/)
 add_subdirectory(${cinolib_SOURCE_DIR}/external/shewchuk_predicates shewchuk_predicates)
 target_compile_definitions(${PROJECT_NAME} PUBLIC CINOLIB_USES_SHEWCHUK_PREDICATES)
+
+if(CINOLIB_USES_OPENGL_GLFW_IMGUI)
+	message("CINOLIB OPTIONAL MODULES: OpenGL, GLFW, ImGui")
+	find_package(OpenGL)
+	if(OpenGL_FOUND)
+		target_link_libraries(${PROJECT_NAME} PUBLIC OpenGL::GL)
+		add_subdirectory(${cinolib_SOURCE_DIR}/external/imgui imgui)
+		target_link_libraries(${PROJECT_NAME} PUBLIC imgui)
+		target_compile_definitions(${PROJECT_NAME} PUBLIC CINOLIB_USES_OPENGL_GLFW_IMGUI GL_SILENCE_DEPRECATION)
+		# https://github.com/ocornut/imgui/issues/4301 (ImGui errors : undefined reference to `ImmGetContext')
+		target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS)
+		# compile stb separately, so that it does not duplicate symbols when used in a header only environment
+		add_subdirectory(${cinolib_SOURCE_DIR}/external/stb STB)
+		target_link_libraries(${PROJECT_NAME} PUBLIC STB)
+	else()
+		message("Could not find OpenGL!")
+		set(CINOLIB_USES_OPENGL_GLFW_IMGUI OFF)
+	endif()
+endif()
+
+
 
 target_link_libraries(${PROJECT_NAME} PUBLIC shewchuk_predicates tbb)
 
